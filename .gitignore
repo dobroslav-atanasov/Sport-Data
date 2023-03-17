@@ -348,3 +348,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Config files
+src\Web\SportData.WebAPI\appsettings.Development.json
+src\Web\SportData.WebAPI\appsettings.json
