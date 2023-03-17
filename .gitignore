@@ -350,5 +350,5 @@ MigrationBackup/
 .ionide/
 
 # Config files
-src\Web\SportData.WebAPI\appsettings.Development.json
-src\Web\SportData.WebAPI\appsettings.json
+src/Web/SportData.WebAPI/appsettings.Development.json
+src/Web/SportData.WebAPI/appsettings.json
