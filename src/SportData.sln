@@ -5,29 +5,27 @@ VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{C9D28794-7080-4FFD-ADB7-292F44977078}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.WebAPI", "Web\SportData.WebAPI\SportData.WebAPI.csproj", "{C29410FB-293C-48BE-BB32-F70014FF3137}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data", "Data\SportData.Data\SportData.Data.csproj", "{ABDAC50D-51F6-4473-A141-8A7A2B031146}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data", "Data\SportData.Data\SportData.Data.csproj", "{ABDAC50D-51F6-4473-A141-8A7A2B031146}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Entities", "Data\SportData.Data.Entities\SportData.Data.Entities.csproj", "{479C9C8E-22CA-4E80-B727-AF65E5E6EB35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.Entities", "Data\SportData.Data.Entities\SportData.Data.Entities.csproj", "{479C9C8E-22CA-4E80-B727-AF65E5E6EB35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Models", "Data\SportData.Data.Models\SportData.Data.Models.csproj", "{23E3A00B-2280-4F31-8EAD-F2205164B595}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.Models", "Data\SportData.Data.Models\SportData.Data.Models.csproj", "{23E3A00B-2280-4F31-8EAD-F2205164B595}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{DAD35EBB-3132-47AC-A450-4630494F54C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Common.Constants", "Common\SportData.Common.Constants\SportData.Common.Constants.csproj", "{64EE77C0-4CDA-46B7-94C1-2CB365F21165}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Common.Constants", "Common\SportData.Common.Constants\SportData.Common.Constants.csproj", "{64EE77C0-4CDA-46B7-94C1-2CB365F21165}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Common.Extensions", "Common\SportData.Common.Extensions\SportData.Common.Extensions.csproj", "{F3EA0116-AC82-4B70-852E-940507407C16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Common.Extensions", "Common\SportData.Common.Extensions\SportData.Common.Extensions.csproj", "{F3EA0116-AC82-4B70-852E-940507407C16}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{ABC538B6-C478-47B4-B789-FB94AF548668}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Services", "Services\SportData.Services\SportData.Services.csproj", "{82BDCFC7-86DE-40A5-B017-82E633C3FE7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Services", "Services\SportData.Services\SportData.Services.csproj", "{82BDCFC7-86DE-40A5-B017-82E633C3FE7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Services.Data", "Services\SportData.Services.Data\SportData.Services.Data.csproj", "{33A3FCB0-953A-465F-B3C0-9C745914C133}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Services.Data", "Services\SportData.Services.Data\SportData.Services.Data.csproj", "{33A3FCB0-953A-465F-B3C0-9C745914C133}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Services.Mapper", "Services\SportData.Services.Mapper\SportData.Services.Mapper.csproj", "{1B09B0CB-3C29-45D8-9F63-0AA79256BC99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Services.Mapper", "Services\SportData.Services.Mapper\SportData.Services.Mapper.csproj", "{1B09B0CB-3C29-45D8-9F63-0AA79256BC99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C29410FB-293C-48BE-BB32-F70014FF3137}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C29410FB-293C-48BE-BB32-F70014FF3137}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C29410FB-293C-48BE-BB32-F70014FF3137}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C29410FB-293C-48BE-BB32-F70014FF3137}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ABDAC50D-51F6-4473-A141-8A7A2B031146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ABDAC50D-51F6-4473-A141-8A7A2B031146}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABDAC50D-51F6-4473-A141-8A7A2B031146}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -76,7 +70,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{C29410FB-293C-48BE-BB32-F70014FF3137} = {C9D28794-7080-4FFD-ADB7-292F44977078}
 		{ABDAC50D-51F6-4473-A141-8A7A2B031146} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
 		{479C9C8E-22CA-4E80-B727-AF65E5E6EB35} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
 		{23E3A00B-2280-4F31-8EAD-F2205164B595} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
