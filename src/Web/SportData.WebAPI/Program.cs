@@ -1,5 +1,9 @@
 namespace SportData.WebAPI;
 
+using Microsoft.EntityFrameworkCore;
+
+using SportData.Data.Contexts;
+
 public class Program
 {
     public static void Main(string[] args)
@@ -19,6 +23,8 @@ public class Program
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
+
+        services.AddDbContext<OlympicGamesDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("BloggingContext")));
     }
 
     private static void Configure(WebApplication app)
