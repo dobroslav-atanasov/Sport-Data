@@ -2,6 +2,7 @@ namespace SportData.WebAPI;
 
 using Microsoft.EntityFrameworkCore;
 
+using SportData.Common.Constants;
 using SportData.Data.Contexts;
 
 public class Program
@@ -20,10 +21,19 @@ public class Program
         var services = builder.Services;
         var configuration = builder.Configuration;
 
+        // LOGGING
+        services.AddLogging(config =>
+        {
+            config.AddConfiguration(configuration.GetSection(AppGlobalConstants.LOGGING));
+            config.AddConsole();
+            config.AddLog4Net(configuration.GetSection(AppGlobalConstants.LOG4NET_CORE).Get<Log4NetProviderOptions>());
+        });
+
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
+        services.AddDbContext<UserDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("BloggingContext")));
         services.AddDbContext<OlympicGamesDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("BloggingContext")));
     }
 
