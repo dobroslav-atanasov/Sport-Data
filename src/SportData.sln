@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.WebAPI.Infrastruc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.ViewModels", "Data\SportData.Data.ViewModels\SportData.Data.ViewModels.csproj", "{FB96B5D1-FF0E-44E6-A9B9-BEAB4C066213}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Web", "Web\SportData.Web\SportData.Web.csproj", "{32FB62E8-8299-4DAD-95F0-42C8E30F897F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Web", "Web\SportData.Web\SportData.Web.csproj", "{32FB62E8-8299-4DAD-95F0-42C8E30F897F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
