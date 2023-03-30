@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Models;
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
 using SportData.Data.Models.Entities.Identity;
-using SportData.WebAPI.Infrastructure.Filters.Swagger;
+using SportData.Web.Infrastructure.Filters.Swagger;
 
 public class Program
 {

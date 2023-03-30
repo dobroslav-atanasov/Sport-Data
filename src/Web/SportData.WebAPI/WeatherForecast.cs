@@ -2,7 +2,7 @@ namespace SportData.WebAPI;
 
 using System.ComponentModel.DataAnnotations;
 
-using SportData.WebAPI.Infrastructure.Attributes;
+using SportData.Web.Infrastructure.Attributes;
 
 using Swashbuckle.AspNetCore.Annotations;
 
