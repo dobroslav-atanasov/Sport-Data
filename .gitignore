@@ -355,3 +355,4 @@ src/Web/SportData.WebAPI/appsettings.json
 src/Web/SportData.Web/appsettings.Development.json
 src/Web/SportData.Web/appsettings.json
 src/Web/SportData.Web/wwwroot/lib
+src/Data/SportData.Data/Migrations
