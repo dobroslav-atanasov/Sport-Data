@@ -31,6 +31,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Common\SportData.Common.Constants\SportData.Common.Constants.csproj" />
     <ProjectReference Include="..\..\Data\SportData.Data.ViewModels\SportData.Data.ViewModels.csproj" />
+    <ProjectReference Include="..\..\Services\SportData.Services\SportData.Services.csproj" />
     <ProjectReference Include="..\SportData.WebAPI.Infrastructure\SportData.WebAPI.Infrastructure.csproj" />
   </ItemGroup>
 
