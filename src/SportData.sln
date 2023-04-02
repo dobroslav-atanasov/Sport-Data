@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Web", "Web\SportD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Web.Infrastructure", "Web\SportData.Web.Infrastructure\SportData.Web.Infrastructure.csproj", "{85FEB39A-A3B1-4680-B331-9DDE533D1F9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Seeders", "Data\SportData.Data.Seeders\SportData.Data.Seeders.csproj", "{4867BD59-297A-464A-BD8E-6C9D166EF742}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{85FEB39A-A3B1-4680-B331-9DDE533D1F9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85FEB39A-A3B1-4680-B331-9DDE533D1F9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85FEB39A-A3B1-4680-B331-9DDE533D1F9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{FB96B5D1-FF0E-44E6-A9B9-BEAB4C066213} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
 		{32FB62E8-8299-4DAD-95F0-42C8E30F897F} = {C9D28794-7080-4FFD-ADB7-292F44977078}
 		{85FEB39A-A3B1-4680-B331-9DDE533D1F9E} = {C9D28794-7080-4FFD-ADB7-292F44977078}
+		{4867BD59-297A-464A-BD8E-6C9D166EF742} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {14C91846-D579-4BA9-A01F-7223A4E65C29}
