@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 using SportData.Data.Models.Authentication;
+using SportData.Data.Models.Entities.ApplicationUserDb;
 using SportData.Data.Models.Entities.Enumerations;
-using SportData.Data.Models.Entities.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -13,10 +13,10 @@ public class AuthenticationController : ControllerBase
 {
     private readonly ILogger<AuthenticationController> logger;
     private readonly IConfiguration configuration;
-    private readonly UserManager<User> userManager;
+    private readonly UserManager<ApplicationUser> userManager;
     private readonly RoleManager<IdentityRole> roleManager;
 
-    public AuthenticationController(ILogger<AuthenticationController> logger, IConfiguration configuration, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+    public AuthenticationController(ILogger<AuthenticationController> logger, IConfiguration configuration, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         this.logger = logger;
         this.configuration = configuration;
@@ -34,7 +34,7 @@ public class AuthenticationController : ControllerBase
             return this.StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = ResponseStatus.Error, Message = "User already exists!" });
         }
 
-        var user = new User
+        var user = new ApplicationUser
         {
             Email = model.Email,
             UserName = model.Username,
