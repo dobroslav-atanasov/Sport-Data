@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
+using SportData.Data.Seeders;
 using SportData.Web.Infrastructure.Filters;
 using SportData.Web.Services;
 
@@ -34,13 +35,14 @@ public class Program
 
         // Add services to the container.
         var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        services.AddDbContext<UserDbContext>(options =>
+        services.AddDbContext<ApplicationUserDbContext>(options =>
             options.UseSqlServer(connectionString));
 
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-            .AddEntityFrameworkStores<UserDbContext>();
+            //.AddRoles<ApplicationRole>()
+            .AddEntityFrameworkStores<ApplicationUserDbContext>();
 
         services.AddRazorPages();
         services.AddControllersWithViews(options =>
@@ -57,6 +59,11 @@ public class Program
 
     private static void Configure(WebApplication app)
     {
+        using (var serviceScope = app.Services.CreateScope())
+        {
+            new ApplicationUserDbContextSeeder().SeedAsync(serviceScope.ServiceProvider).GetAwaiter().GetResult();
+        }
+
         // ip limit middleware ????????? nuget
         //app.UseMiddleware<CustomeMiddleware>();
         if (app.Environment.IsDevelopment())
@@ -85,7 +92,7 @@ public class Program
 
         app.UseAuthorization();
 
-        app.MapControllerRoute("area", "{area:exist}/{controller=Home}/{action=Index}/{id?}");
+        app.MapControllerRoute("area", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
         app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
