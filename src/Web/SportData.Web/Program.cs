@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
+using SportData.Data.Models.Entities;
 using SportData.Data.Seeders;
 using SportData.Web.Infrastructure.Filters;
 using SportData.Web.Services;
@@ -35,14 +35,14 @@ public class Program
 
         // Add services to the container.
         var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        services.AddDbContext<ApplicationUserDbContext>(options =>
+        services.AddDbContext<SportDataDbContext>(options =>
             options.UseSqlServer(connectionString));
 
         services.AddDatabaseDeveloperPageExceptionFilter();
 
-        services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-            //.AddRoles<ApplicationRole>()
-            .AddEntityFrameworkStores<ApplicationUserDbContext>();
+        services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+            .AddRoles<ApplicationRole>()
+            .AddEntityFrameworkStores<SportDataDbContext>();
 
         services.AddRazorPages();
         services.AddControllersWithViews(options =>
@@ -61,7 +61,7 @@ public class Program
     {
         using (var serviceScope = app.Services.CreateScope())
         {
-            new ApplicationUserDbContextSeeder().SeedAsync(serviceScope.ServiceProvider).GetAwaiter().GetResult();
+            new SportDataDbSeeder().SeedAsync(serviceScope.ServiceProvider).GetAwaiter().GetResult();
         }
 
         // ip limit middleware ????????? nuget
