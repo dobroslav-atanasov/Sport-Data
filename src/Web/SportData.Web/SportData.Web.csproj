@@ -36,4 +36,10 @@
     <ProjectReference Include="..\SportData.Web.Infrastructure\SportData.Web.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Areas\Admin\" />
+    <Folder Include="Areas\Editor\" />
+    <Folder Include="Areas\SuperAdmin\" />
+  </ItemGroup>
+
 </Project>
