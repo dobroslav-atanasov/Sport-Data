@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 using SportData.Data.Models.Authentication;
-using SportData.Data.Models.Entities.ApplicationUserDb;
+using SportData.Data.Models.Entities;
 using SportData.Data.Models.Entities.Enumerations;
 
 [ApiController]
