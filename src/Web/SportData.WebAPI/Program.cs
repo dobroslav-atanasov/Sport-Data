@@ -10,7 +10,7 @@ using Microsoft.OpenApi.Models;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
-using SportData.Data.Models.Entities.ApplicationUserDb;
+using SportData.Data.Models.Entities;
 using SportData.Web.Infrastructure.Filters.Swagger;
 
 public class Program
@@ -38,14 +38,15 @@ public class Program
         });
 
         // Users Db
-        services.AddDbContext<ApplicationUserDbContext>(options =>
+        services.AddDbContext<SportDataDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString(AppGlobalConstants.USERS_CONNECTION_STRING)).UseLazyLoadingProxies();
+            options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.USERS_CONNECTION_STRING)).UseLazyLoadingProxies();
         });
 
         // Config identity
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationUserDbContext>()
+        services.AddIdentity<ApplicationUser, ApplicationUser>()
+            .AddRoles<ApplicationUser>()
+            .AddEntityFrameworkStores<SportDataDbContext>()
             .AddDefaultTokenProviders();
 
         services.Configure<IdentityOptions>(options =>
