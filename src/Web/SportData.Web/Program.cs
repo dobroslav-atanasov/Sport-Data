@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using SportData.Common.Constants;
@@ -52,6 +53,7 @@ public class Program
             options.Filters.Add(new CustomExceptionFilterAttribute());
             options.Filters.Add(new CustomResourceFilterAttribute());
             options.Filters.Add(new CustomResultFilterAttribute());
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         }).AddRazorRuntimeCompilation();
 
         services.AddScoped<IShortStringService, ShortStringService>();
