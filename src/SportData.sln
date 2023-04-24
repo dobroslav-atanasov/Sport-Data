@@ -31,9 +31,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.ViewModels",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Web", "Web\SportData.Web\SportData.Web.csproj", "{32FB62E8-8299-4DAD-95F0-42C8E30F897F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Web.Infrastructure", "Web\SportData.Web.Infrastructure\SportData.Web.Infrastructure.csproj", "{85FEB39A-A3B1-4680-B331-9DDE533D1F9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Web.Infrastructure", "Web\SportData.Web.Infrastructure\SportData.Web.Infrastructure.csproj", "{85FEB39A-A3B1-4680-B331-9DDE533D1F9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Seeders", "Data\SportData.Data.Seeders\SportData.Data.Seeders.csproj", "{4867BD59-297A-464A-BD8E-6C9D166EF742}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.Seeders", "Data\SportData.Data.Seeders\SportData.Data.Seeders.csproj", "{4867BD59-297A-464A-BD8E-6C9D166EF742}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{74938AC5-2D5C-413B-BE04-C86E2CAA135D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Services.Tests", "Tests\SportData.Services.Tests\SportData.Services.Tests.csproj", "{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +93,10 @@ Global
 		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4867BD59-297A-464A-BD8E-6C9D166EF742}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -106,6 +114,7 @@ Global
 		{32FB62E8-8299-4DAD-95F0-42C8E30F897F} = {C9D28794-7080-4FFD-ADB7-292F44977078}
 		{85FEB39A-A3B1-4680-B331-9DDE533D1F9E} = {C9D28794-7080-4FFD-ADB7-292F44977078}
 		{4867BD59-297A-464A-BD8E-6C9D166EF742} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
+		{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366} = {74938AC5-2D5C-413B-BE04-C86E2CAA135D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {14C91846-D579-4BA9-A01F-7223A4E65C29}
