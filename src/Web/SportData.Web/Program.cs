@@ -6,7 +6,6 @@ using SportData.Data.Contexts;
 using SportData.Data.Models.Entities;
 using SportData.Data.Seeders;
 using SportData.Web.Infrastructure.Filters;
-using SportData.Web.Services;
 
 namespace SportData.Web;
 
@@ -55,8 +54,6 @@ public class Program
             options.Filters.Add(new CustomResultFilterAttribute());
             options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         }).AddRazorRuntimeCompilation();
-
-        services.AddScoped<IShortStringService, ShortStringService>();
     }
 
     private static void Configure(WebApplication app)
