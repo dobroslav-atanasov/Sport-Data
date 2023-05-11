@@ -1,3 +1,5 @@
+namespace SportData.Web;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,8 +8,6 @@ using SportData.Data.Contexts;
 using SportData.Data.Models.Entities;
 using SportData.Data.Seeders;
 using SportData.Web.Infrastructure.Filters;
-
-namespace SportData.Web;
 
 public class Program
 {
