@@ -81,6 +81,11 @@
         "dist/css/bootstrap.rtl.min.css",
         "dist/css/bootstrap.rtl.min.css.map"
       ]
+    },
+    {
+      "provider": "cdnjs",
+      "library": "font-awesome@6.4.0",
+      "destination": "wwwroot/lib/font-awesome/"
     }
   ]
 }
