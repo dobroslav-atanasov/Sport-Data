@@ -7,13 +7,18 @@
     "minify": {
       "enabled": true,
       "renameLocals": true
-    },
-    "sourceMap": false
+    }
   },
   {
     "outputFileName": "wwwroot/css/site.min.css",
     "inputFiles": [
       "wwwroot/css/site.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/bootstrap_litera.min.min.css",
+    "inputFiles": [
+      "wwwroot/css/bootstrap_litera.min.css"
     ]
   }
 ]
