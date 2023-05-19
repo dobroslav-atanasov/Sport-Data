@@ -41,6 +41,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Services.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Common", "Data\SportData.Data.Common\SportData.Data.Common.csproj", "{BF8954B8-7EBF-4E4E-96F1-5A4675AF4D39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Entities", "Data\SportData.Data.Entities\SportData.Data.Entities.csproj", "{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,10 @@ Global
 		{BF8954B8-7EBF-4E4E-96F1-5A4675AF4D39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF8954B8-7EBF-4E4E-96F1-5A4675AF4D39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF8954B8-7EBF-4E4E-96F1-5A4675AF4D39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,6 +128,7 @@ Global
 		{4867BD59-297A-464A-BD8E-6C9D166EF742} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
 		{9C137A7A-32A9-4F47-B7CC-4F9A49BE0366} = {74938AC5-2D5C-413B-BE04-C86E2CAA135D}
 		{BF8954B8-7EBF-4E4E-96F1-5A4675AF4D39} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
+		{298CBAD4-8579-4BE8-BE56-DF4A626C00B1} = {7E8EDCED-7CA0-4C8C-B92A-B69F2CD936D3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {14C91846-D579-4BA9-A01F-7223A4E65C29}
