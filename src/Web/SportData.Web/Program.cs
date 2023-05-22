@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
-using SportData.Data.Models.Entities;
+using SportData.Data.Entities;
+using SportData.Data.Options;
 using SportData.Data.Seeders;
 using SportData.Web.Infrastructure.Filters;
+using SportData.Web.Infrastructure.Middlewares;
 
 public class Program
 {
@@ -40,7 +42,7 @@ public class Program
 
         services.AddDatabaseDeveloperPageExceptionFilter();
 
-        services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+        services.AddDefaultIdentity<ApplicationUser>(IdentityOptionsProvider.SetIdentityOptions)
             .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<SportDataDbContext>();
 
@@ -54,12 +56,22 @@ public class Program
             options.Filters.Add(new CustomResultFilterAttribute());
             options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         }).AddRazorRuntimeCompilation();
+
+        services.AddAuthentication()
+            .AddGoogle(options =>
+            {
+                options.ClientId = configuration.GetSection("Google:ClientId").Value;
+                options.ClientSecret = configuration.GetSection("Google:ClientSecret").Value;
+            });
     }
 
     private static void Configure(WebApplication app)
     {
         using (var serviceScope = app.Services.CreateScope())
         {
+            var sportDataDbContext = serviceScope.ServiceProvider.GetRequiredService<SportDataDbContext>();
+            sportDataDbContext.Database.Migrate();
+
             new SportDataDbSeeder().SeedAsync(serviceScope.ServiceProvider).GetAwaiter().GetResult();
         }
 
@@ -67,6 +79,7 @@ public class Program
         //app.UseMiddleware<CustomeMiddleware>();
         if (app.Environment.IsDevelopment())
         {
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
 
