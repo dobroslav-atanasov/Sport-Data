@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
-using SportData.Data.Models.Entities;
+using SportData.Data.Entities;
 using SportData.Data.Seeders.Interfaces;
 
 public class RolesSeeder : ISeeder
