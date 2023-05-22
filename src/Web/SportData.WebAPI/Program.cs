@@ -10,7 +10,7 @@ using Microsoft.OpenApi.Models;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
-using SportData.Data.Models.Entities;
+using SportData.Data.Entities;
 using SportData.Web.Infrastructure.Filters.Swagger;
 
 public class Program
@@ -45,7 +45,7 @@ public class Program
 
         // Config identity
         services.AddIdentity<ApplicationUser, ApplicationUser>()
-            .AddRoles<ApplicationUser>()
+            .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<SportDataDbContext>()
             .AddDefaultTokenProviders();
 
