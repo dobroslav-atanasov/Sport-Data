@@ -3,8 +3,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
+using SportData.Data.Entities;
 using SportData.Data.Models.Authentication;
-using SportData.Data.Models.Entities;
 using SportData.Data.Models.Entities.Enumerations;
 
 [ApiController]
