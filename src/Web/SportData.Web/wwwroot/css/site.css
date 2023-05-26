@@ -21,3 +21,15 @@ body {
     /*padding-top: 120px;*/
     margin-bottom: 60px;
 }
+
+.login-page-form {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: rgba(0,0,0,.1);
+    padding: 20px;
+}
+
+.login-header {
+    padding: 10px 0px 10px 0px;
+}
