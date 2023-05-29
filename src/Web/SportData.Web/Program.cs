@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 namespace SportData.Web;
 
 using Microsoft.AspNetCore.Mvc;
