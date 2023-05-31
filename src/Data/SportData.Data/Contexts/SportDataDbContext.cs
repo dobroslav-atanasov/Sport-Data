@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 using SportData.Data.Entities;
+using SportData.Data.Entities.Countries;
 
 public class SportDataDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
@@ -11,4 +12,6 @@ public class SportDataDbContext : IdentityDbContext<ApplicationUser, Application
         : base(options)
     {
     }
+
+    public virtual DbSet<Country> Countries { get; set; }
 }
