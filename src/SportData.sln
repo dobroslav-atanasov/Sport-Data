@@ -41,13 +41,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Services.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.Common", "Data\SportData.Data.Common\SportData.Data.Common.csproj", "{BF8954B8-7EBF-4E4E-96F1-5A4675AF4D39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Data.Entities", "Data\SportData.Data.Entities\SportData.Data.Entities.csproj", "{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Data.Entities", "Data\SportData.Data.Entities\SportData.Data.Entities.csproj", "{298CBAD4-8579-4BE8-BE56-DF4A626C00B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConsoleApps", "ConsoleApps", "{442C7350-8D0A-4EDC-A898-6998C0B2B351}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Crawlers", "ConsoleApps\SportData.Crawlers\SportData.Crawlers.csproj", "{9F3F2067-3136-4812-985A-A284F4CCA179}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Crawlers", "ConsoleApps\SportData.Crawlers\SportData.Crawlers.csproj", "{9F3F2067-3136-4812-985A-A284F4CCA179}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportData.Converters", "ConsoleApps\SportData.Converters\SportData.Converters.csproj", "{7D60BBE1-AA87-46DD-9F2A-2ADB880C9F87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportData.Converters", "ConsoleApps\SportData.Converters\SportData.Converters.csproj", "{7D60BBE1-AA87-46DD-9F2A-2ADB880C9F87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
