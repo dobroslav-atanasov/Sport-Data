@@ -40,7 +40,7 @@ public class Program
         // Users Db
         services.AddDbContext<SportDataDbContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.USERS_CONNECTION_STRING)).UseLazyLoadingProxies();
+            options.UseSqlServer(configuration.GetConnectionString("")).UseLazyLoadingProxies();
         });
 
         // Config identity
