@@ -5,8 +5,9 @@ public static class AppGlobalConstants
     public const string LOGGING = "Logging";
     public const string LOG4NET_CORE = "Log4NetCore";
 
-    public const string USERS_CONNECTION_STRING = "UsersConnectionString";
+    public const string APP_SETTINGS_FILE = "appsettings.json";
 
+    public const string CRAWLER_STORAGE_CONNECTION_STRING = "CrawlerStorageConnectionString";
 
     public const string JWT_SECRET = "JWT:Secret";
     public const string JWT_ISSUER = "JWT:Issuer";
