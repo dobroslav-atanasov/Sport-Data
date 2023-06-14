@@ -24,11 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SportData.Data.Entities\SportData.Data.Entities.csproj" />
-    <ProjectReference Include="..\SportData.Data.Models\SportData.Data.Models.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>
