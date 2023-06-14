@@ -15,4 +15,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SportData.Data.Common\SportData.Data.Common.csproj" />
+  </ItemGroup>
+
 </Project>
