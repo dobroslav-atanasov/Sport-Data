@@ -8,11 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Common\SportData.Common.Constants\SportData.Common.Constants.csproj" />
-    <ProjectReference Include="..\SportData.Services.Data\SportData.Services.Data.csproj" />
+    <ProjectReference Include="..\..\Data\SportData.Data.Entities\SportData.Data.Entities.csproj" />
+    <ProjectReference Include="..\..\Data\SportData.Data.Models\SportData.Data.Models.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,11 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Data\SportData.Data\SportData.Data.csproj" />
+    <ProjectReference Include="..\SportData.Services.Mapper\SportData.Services.Mapper.csproj" />
+    <ProjectReference Include="..\SportData.Services\SportData.Services.csproj" />
   </ItemGroup>
 
 </Project>
