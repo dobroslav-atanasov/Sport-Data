@@ -28,6 +28,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\SportData.Common.Constants\SportData.Common.Constants.csproj" />
+	  <ProjectReference Include="..\..\Services\SportData.Services.Data\SportData.Services.Data.csproj" />
 	  <ProjectReference Include="..\..\Services\SportData.Services\SportData.Services.csproj" />
 	</ItemGroup>
 
