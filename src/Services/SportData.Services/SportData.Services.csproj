@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Common\SportData.Common.Constants\SportData.Common.Constants.csproj" />
+    <ProjectReference Include="..\..\Common\SportData.Common.Extensions\SportData.Common.Extensions.csproj" />
     <ProjectReference Include="..\..\Data\SportData.Data.Entities\SportData.Data.Entities.csproj" />
     <ProjectReference Include="..\..\Data\SportData.Data.Models\SportData.Data.Models.csproj" />
   </ItemGroup>
