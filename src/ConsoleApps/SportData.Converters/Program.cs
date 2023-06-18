@@ -5,12 +5,23 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
+using SportData.Converters.Countries;
+using SportData.Services;
+using SportData.Services.Data.CrawlerStorage;
+using SportData.Services.Data.CrawlerStorage.Interfaces;
+using SportData.Services.Interfaces;
 
 public class Program
 {
     public static async Task Main(string[] args)
     {
         var services = ConfigureServices();
+        await StartConvertersAscyn(services);
+    }
+
+    private static async Task StartConvertersAscyn(ServiceProvider services)
+    {
+        await services.GetService<CountryDataConverter>().ConvertAsync("");
     }
 
     private static ServiceProvider ConfigureServices()
@@ -31,6 +42,18 @@ public class Program
             config.AddConsole();
             config.AddLog4Net(configuration.GetSection(AppGlobalConstants.LOG4NET_CORE).Get<Log4NetProviderOptions>());
         });
+
+        // DATABASE
+
+        services.AddScoped<IZipService, ZipService>();
+        services.AddScoped<IRegularExpressionService, RegularExpressionService>();
+        services.AddScoped<IHttpService, HttpService>();
+
+        services.AddScoped<ICrawlersService, CrawlersService>();
+        services.AddScoped<IGroupsService, GroupsService>();
+        services.AddScoped<ILogsService, LogsService>();
+
+        services.AddTransient<CountryDataConverter>();
 
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider;
