@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
 using SportData.Crawlers.Countries;
+using SportData.Crawlers.Olympedia;
 using SportData.Data.Contexts;
 using SportData.Services;
 using SportData.Services.Data.CrawlerStorage;
@@ -24,7 +25,12 @@ public class Program
     private static async Task StartCrawlersAsync(ServiceProvider services)
     {
         await services.GetService<CountryDataCrawler>().StartAsync();
-
+        await services.GetService<NOCCrawler>().StartAsync();
+        await services.GetService<GameCrawler>().StartAsync();
+        await services.GetService<SportDisciplineCrawler>().StartAsync();
+        await services.GetService<ResultCrawler>().StartAsync();
+        await services.GetService<AthleteCrawler>().StartAsync();
+        await services.GetService<VenueCrawler>().StartAsync();
     }
 
     private static ServiceProvider ConfigureServices()
@@ -60,6 +66,7 @@ public class Program
         services.AddScoped<IHttpService, HttpService>();
         services.AddScoped<IMD5Hash, MD5Hash>();
         services.AddScoped<IZipService, ZipService>();
+        services.AddScoped<IRegularExpressionService, RegularExpressionService>();
 
         services.AddScoped<ICrawlersService, CrawlersService>();
         services.AddScoped<IGroupsService, GroupsService>();
@@ -67,6 +74,12 @@ public class Program
         services.AddScoped<IOperationsService, OperationsService>();
 
         services.AddTransient<CountryDataCrawler>();
+        services.AddTransient<NOCCrawler>();
+        services.AddTransient<GameCrawler>();
+        services.AddTransient<SportDisciplineCrawler>();
+        services.AddTransient<ResultCrawler>();
+        services.AddTransient<AthleteCrawler>();
+        services.AddTransient<VenueCrawler>();
 
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider;
