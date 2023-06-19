@@ -7,12 +7,13 @@ using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
 using SportData.Data.Models.Http;
+using SportData.Services.Data.CrawlerStorage.Interfaces;
 using SportData.Services.Interfaces;
 
 public class CountryDataCrawler : BaseCrawler
 {
-    public CountryDataCrawler(ILogger<BaseCrawler> logger, IConfiguration configuration, IHttpService httpService)
-        : base(logger, configuration, httpService)
+    public CountryDataCrawler(ILogger<BaseCrawler> logger, IConfiguration configuration, IHttpService httpService, ICrawlersService crawlersService, IGroupsService groupsService)
+        : base(logger, configuration, httpService, crawlersService, groupsService)
     {
     }
 
