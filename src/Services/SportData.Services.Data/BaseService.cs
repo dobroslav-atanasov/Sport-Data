@@ -10,4 +10,12 @@ public abstract class BaseService
     }
 
     protected SportDataDbContext Context { get; }
+
+    protected virtual async Task<TEntity> BaseAddAsync<TEntity>(TEntity entity)
+    {
+        await this.Context.AddAsync(entity);
+        await this.Context.SaveChangesAsync();
+
+        return entity;
+    }
 }
