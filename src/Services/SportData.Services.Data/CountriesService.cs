@@ -14,11 +14,6 @@ public class CountriesService : BaseService, ICountriesService
 
     public async Task<TEntity> AddAsync<TEntity>(TEntity entity)
     {
-        using var context = this.Context;
-
-        await context.AddAsync(entity);
-        await context.SaveChangesAsync();
-
-        return entity;
+        return await this.BaseAddAsync(entity);
     }
 }

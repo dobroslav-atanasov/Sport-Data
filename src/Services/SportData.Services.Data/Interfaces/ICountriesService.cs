@@ -1,6 +1,6 @@
 ﻿namespace SportData.Services.Data.Interfaces;
 
-public interface ICountriesService
+public interface ICountriesService : IAddable
 {
-    Task<TEntity> AddAsync<TEntity>(TEntity entity);
+
 }
