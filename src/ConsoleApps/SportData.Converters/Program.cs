@@ -1,11 +1,13 @@
 ﻿namespace SportData.Converters;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
 using SportData.Converters.Countries;
+using SportData.Data.Contexts;
 using SportData.Services;
 using SportData.Services.Data.CrawlerStorage;
 using SportData.Services.Data.CrawlerStorage.Interfaces;
@@ -44,6 +46,11 @@ public class Program
         });
 
         // DATABASE
+        services.AddDbContext<SportDataDbContext>(options =>
+        {
+            options.UseLazyLoadingProxies();
+            options.UseSqlServer(configuration.GetConnectionString(""));
+        });
 
         services.AddScoped<IZipService, ZipService>();
         services.AddScoped<IRegularExpressionService, RegularExpressionService>();
