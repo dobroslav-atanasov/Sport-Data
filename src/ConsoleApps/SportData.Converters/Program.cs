@@ -53,7 +53,7 @@ public class Program
         });
 
         services.AddScoped<IZipService, ZipService>();
-        services.AddScoped<IRegularExpressionService, RegularExpressionService>();
+        services.AddScoped<IRegExpService, RegExpService>();
         services.AddScoped<IHttpService, HttpService>();
 
         services.AddScoped<ICrawlersService, CrawlersService>();
