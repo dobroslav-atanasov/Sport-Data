@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 using SportData.Data.Entities;
 using SportData.Data.Entities.Countries;
+using SportData.Data.Entities.OlympicGames;
 
 public class SportDataDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
@@ -14,4 +15,8 @@ public class SportDataDbContext : IdentityDbContext<ApplicationUser, Application
     }
 
     public virtual DbSet<Country> Countries { get; set; }
+
+    public virtual DbSet<Sport> Sports { get; set; }
+
+    public virtual DbSet<Discipline> Disciplines { get; set; }
 }
