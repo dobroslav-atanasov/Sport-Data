@@ -10,6 +10,11 @@ using SportData.Data.Common.Models;
 [Table("Disciplines", Schema = "og")]
 public class Discipline : BaseEntity<int>, IDeletableEntity, IEquatable<Discipline>
 {
+    public Discipline()
+    {
+        this.Events = new HashSet<Event>();
+    }
+
     [Required]
     [MaxLength(100)]
     public string Name { get; set; }
@@ -20,6 +25,8 @@ public class Discipline : BaseEntity<int>, IDeletableEntity, IEquatable<Discipli
 
     public int SportId { get; set; }
     public virtual Sport Sport { get; set; }
+
+    public virtual ICollection<Event> Events { get; set; }
 
     public bool IsDeleted { get; set; }
 

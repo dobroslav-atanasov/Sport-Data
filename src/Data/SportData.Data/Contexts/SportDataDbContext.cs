@@ -19,4 +19,10 @@ public class SportDataDbContext : IdentityDbContext<ApplicationUser, Application
     public virtual DbSet<Sport> Sports { get; set; }
 
     public virtual DbSet<Discipline> Disciplines { get; set; }
+
+    public virtual DbSet<Event> Events { get; set; }
+
+    public virtual DbSet<NOC> NOCs { get; set; }
+
+    public virtual DbSet<Game> Games { get; set; }
 }
