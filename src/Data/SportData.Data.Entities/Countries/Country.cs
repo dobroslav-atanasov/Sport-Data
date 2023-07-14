@@ -5,10 +5,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
+using SportData.Data.Entities.OlympicGames;
 
 [Table("Countries", Schema = "countries")]
-public class Country : BaseDeletableEntity<int>, ICheckableEntity, IUpdatable<Country>
+public class Country : BaseDeletableEntity<int>, ICheckableEntity, IEquatable<Country>
 {
+    public Country()
+    {
+        this.Cities = new HashSet<City>();
+    }
+
     [Required]
     [MaxLength(100)]
     public string Name { get; set; }
@@ -54,88 +60,24 @@ public class Country : BaseDeletableEntity<int>, ICheckableEntity, IUpdatable<Co
 
     public byte[] Flag { get; set; }
 
-    public bool Update(Country other)
+    public virtual ICollection<City> Cities { get; set; }
+
+    public bool Equals(Country other)
     {
-        var isUpdated = false;
-
-        if (this.Name != other.Name)
-        {
-            this.Name = other.Name;
-            isUpdated = true;
-        }
-
-        if (this.OfficialName != other.OfficialName)
-        {
-            this.OfficialName = other.OfficialName;
-            isUpdated = true;
-        }
-
-        if (this.IsIndependent != other.IsIndependent)
-        {
-            this.IsIndependent = other.IsIndependent;
-            isUpdated = true;
-        }
-
-        if (this.Capital != other.Capital)
-        {
-            this.Capital = other.Capital;
-            isUpdated = true;
-        }
-
-        if (this.Continent != other.Continent)
-        {
-            this.Continent = other.Continent;
-            isUpdated = true;
-        }
-
-        if (this.MemberOf != other.MemberOf)
-        {
-            this.MemberOf = other.MemberOf;
-            isUpdated = true;
-        }
-
-        if (this.Population != other.Population)
-        {
-            this.Population = other.Population;
-            isUpdated = true;
-        }
-
-        if (this.TotalArea != other.TotalArea)
-        {
-            this.TotalArea = other.TotalArea;
-            isUpdated = true;
-        }
-
-        if (this.HighestPointPlace != other.HighestPointPlace)
-        {
-            this.HighestPointPlace = other.HighestPointPlace;
-            isUpdated = true;
-        }
-
-        if (this.HighestPoint != other.HighestPoint)
-        {
-            this.HighestPoint = other.HighestPoint;
-            isUpdated = true;
-        }
-
-        if (this.LowestPointPlace != other.LowestPointPlace)
-        {
-            this.LowestPointPlace = other.LowestPointPlace;
-            isUpdated = true;
-        }
-
-        if (this.LowestPoint != other.LowestPoint)
-        {
-            this.LowestPoint = other.LowestPoint;
-            isUpdated = true;
-        }
-
-        if (this.Flag != other.Flag)
-        {
-            this.Flag = other.Flag;
-            isUpdated = true;
-        }
-
-        return isUpdated;
+        return this.Name == other.Name
+            && this.OfficialName == other.OfficialName
+            && this.IsDeleted == other.IsDeleted
+            && this.TwoDigitsCode == other.TwoDigitsCode
+            && this.Code == other.Code
+            && this.Capital == other.Capital
+            && this.Continent == other.Continent
+            && this.MemberOf == other.MemberOf
+            && this.Population == other.Population
+            && this.TotalArea == other.TotalArea
+            && this.HighestPoint == other.HighestPoint
+            && this.HighestPointPlace == other.HighestPointPlace
+            && this.LowestPointPlace == other.LowestPointPlace
+            && this.LowestPoint == other.LowestPoint
+            && this.Flag.Length == other.Flag.Length;
     }
 }
