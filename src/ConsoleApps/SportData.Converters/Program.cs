@@ -8,9 +8,12 @@ using Microsoft.Extensions.Logging;
 using SportData.Common.Constants;
 using SportData.Converters.Countries;
 using SportData.Data.Contexts;
+using SportData.Data.Repositories;
 using SportData.Services;
+using SportData.Services.Data;
 using SportData.Services.Data.CrawlerStorage;
 using SportData.Services.Data.CrawlerStorage.Interfaces;
+using SportData.Services.Data.Interfaces;
 using SportData.Services.Interfaces;
 
 public class Program
@@ -23,7 +26,7 @@ public class Program
 
     private static async Task StartConvertersAscyn(ServiceProvider services)
     {
-        await services.GetService<CountryDataConverter>().ConvertAsync("");
+        await services.GetService<CountryDataConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
     }
 
     private static ServiceProvider ConfigureServices()
@@ -49,18 +52,32 @@ public class Program
         services.AddDbContext<SportDataDbContext>(options =>
         {
             options.UseLazyLoadingProxies();
-            options.UseSqlServer(configuration.GetConnectionString(""));
+            var connectionString = configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING);
+            options.UseSqlServer(connectionString);
         });
+
+        services.AddDbContext<CrawlerStorageDbContext>(options =>
+        {
+            options.UseLazyLoadingProxies();
+            var connectionString = configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING);
+            options.UseSqlServer(connectionString);
+        });
+
+        services.AddScoped(typeof(SportDataRepository<>));
+        services.AddScoped(typeof(CrawlerStorageRepository<>));
 
         services.AddScoped<IZipService, ZipService>();
         services.AddScoped<IRegExpService, RegExpService>();
         services.AddScoped<IHttpService, HttpService>();
+        services.AddScoped<IMD5Hash, MD5Hash>();
 
         services.AddScoped<ICrawlersService, CrawlersService>();
         services.AddScoped<IGroupsService, GroupsService>();
         services.AddScoped<ILogsService, LogsService>();
 
-        services.AddTransient<CountryDataConverter>();
+        services.AddScoped<ICountriesService, CountriesService>();
+
+        services.AddScoped<CountryDataConverter>();
 
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider;
