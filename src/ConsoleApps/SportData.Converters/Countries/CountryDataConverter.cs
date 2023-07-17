@@ -38,7 +38,7 @@ public class CountryDataConverter : BaseConverter
                 .InnerText;
 
             var name = this.RegExpService.Match(header, @"Flag of (.*)").Groups[1].Value.Trim();
-            var country = new Country { Name = name, CreatedOn = DateTime.UtcNow };
+            var country = new Country { Name = name };
 
             var rows = document
                 .DocumentNode
@@ -127,21 +127,7 @@ public class CountryDataConverter : BaseConverter
             var flag = await this.httpService.DownloadBytesAsync($"{this.configuration.GetSection(CrawlerConstants.WORLD_COUNTRIES_DOWNLOAD_IMAGE).Value}{coutnryCode}.png");
             country.Flag = flag;
 
-            var dbCountry = await this.countriesService.GetWorldCountryAsync(country.Code);
-            if (dbCountry == null)
-            {
-                await this.countriesService.AddAsync(country);
-                this.Logger.LogInformation($"Added country: {country.Name}");
-            }
-            else
-            {
-                if (dbCountry.Update(country))
-                {
-                    dbCountry.ModifiedOn = DateTime.UtcNow;
-                    await this.countriesService.UpdateAsync(dbCountry);
-                    this.Logger.LogInformation($"Updated country: {country.Name}");
-                }
-            }
+            await this.countriesService.AddOrUpdateAsync(country);
         }
         catch (Exception ex)
         {
