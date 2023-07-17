@@ -9,6 +9,7 @@ using SportData.Common.Constants;
 using SportData.Crawlers.Countries;
 using SportData.Crawlers.Olympedia;
 using SportData.Data.Contexts;
+using SportData.Data.Repositories;
 using SportData.Services;
 using SportData.Services.Data.CrawlerStorage;
 using SportData.Services.Data.CrawlerStorage.Interfaces;
@@ -58,10 +59,8 @@ public class Program
             options.UseLazyLoadingProxies();
             options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING));
         });
-        //var crawlerStorageOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
-        //    .UseLazyLoadingProxies(true)
-        //    .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING))
-        //    .Options;
+
+        services.AddScoped(typeof(CrawlerStorageRepository<>));
 
         services.AddScoped<IHttpService, HttpService>();
         services.AddScoped<IMD5Hash, MD5Hash>();
