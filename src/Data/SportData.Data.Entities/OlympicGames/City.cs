@@ -12,6 +12,7 @@ public class City : BaseEntity<int>, IDeletableEntity, IEquatable<City>
     public City()
     {
         this.Hosts = new HashSet<Host>();
+        this.Venues = new HashSet<Venue>();
     }
 
     public string Name { get; set; }
@@ -19,11 +20,13 @@ public class City : BaseEntity<int>, IDeletableEntity, IEquatable<City>
     public int CountryId { get; set; }
     public virtual Country Country { get; set; }
 
-    public virtual ICollection<Host> Hosts { get; set; }
-
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedOn { get; set; }
+
+    public virtual ICollection<Host> Hosts { get; set; }
+
+    public virtual ICollection<Venue> Venues { get; set; }
 
     public bool Equals(City other)
     {
