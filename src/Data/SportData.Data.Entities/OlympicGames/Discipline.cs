@@ -26,11 +26,11 @@ public class Discipline : BaseEntity<int>, IDeletableEntity, IEquatable<Discipli
     public int SportId { get; set; }
     public virtual Sport Sport { get; set; }
 
-    public virtual ICollection<Event> Events { get; set; }
-
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedOn { get; set; }
+
+    public virtual ICollection<Event> Events { get; set; }
 
     public bool Equals(Discipline other)
     {
