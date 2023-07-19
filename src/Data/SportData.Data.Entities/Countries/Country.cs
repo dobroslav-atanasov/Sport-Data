@@ -13,6 +13,7 @@ public class Country : BaseDeletableEntity<int>, ICheckableEntity, IEquatable<Co
     public Country()
     {
         this.Cities = new HashSet<City>();
+        this.NOCs = new HashSet<NOC>();
     }
 
     [Required]
@@ -62,8 +63,15 @@ public class Country : BaseDeletableEntity<int>, ICheckableEntity, IEquatable<Co
 
     public virtual ICollection<City> Cities { get; set; }
 
+    public virtual ICollection<NOC> NOCs { get; set; }
+
     public bool Equals(Country other)
     {
+        if (other == null)
+        {
+            return false;
+        }
+
         return this.Name == other.Name
             && this.OfficialName == other.OfficialName
             && this.IsDeleted == other.IsDeleted
@@ -79,5 +87,15 @@ public class Country : BaseDeletableEntity<int>, ICheckableEntity, IEquatable<Co
             && this.LowestPointPlace == other.LowestPointPlace
             && this.LowestPoint == other.LowestPoint
             && this.Flag.Length == other.Flag.Length;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Country);
+    }
+
+    public override int GetHashCode()
+    {
+        return $"{this.Name}-{this.TwoDigitsCode}-{this.Code}".GetHashCode();
     }
 }
