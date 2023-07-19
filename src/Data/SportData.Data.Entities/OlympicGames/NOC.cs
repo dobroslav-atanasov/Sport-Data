@@ -5,10 +5,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
+using SportData.Data.Entities.Countries;
 
 [Table("NOCs", Schema = "og")]
 public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
 {
+    public NOC()
+    {
+        this.Nationalities = new HashSet<Nationality>();
+        this.Participants = new HashSet<Participant>();
+        this.Teams = new HashSet<Team>();
+    }
+
     // check olympic.org data
     [Required]
     [MaxLength(50)]
@@ -17,6 +25,9 @@ public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
     [Required]
     [StringLength(3)]
     public string Code { get; set; }
+
+    public int CountryId { get; set; }
+    public virtual Country Country { get; set; }
 
     [MaxLength(500)]
     public string Title { get; set; }
@@ -47,6 +58,12 @@ public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
 
     public DateTime? DeletedOn { get; set; }
 
+    public virtual ICollection<Nationality> Nationalities { get; set; }
+
+    public virtual ICollection<Participant> Participants { get; set; }
+
+    public virtual ICollection<Team> Teams { get; set; }
+
     public bool Equals(NOC other)
     {
         if (other == null)
@@ -56,6 +73,7 @@ public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
 
         return this.Name == other.Name
             && this.Code == other.Code
+            && this.CountryId == other.CountryId
             && this.Title == other.Title
             && this.Abbreviation == other.Abbreviation
             && this.FoundedYear == other.FoundedYear
@@ -75,6 +93,6 @@ public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
 
     public override int GetHashCode()
     {
-        return $"{this.Name}-{this.Code}-{this.Title}-{this.Abbreviation}".GetHashCode();
+        return $"{this.Name}-{this.CountryId}-{this.Code}-{this.Title}-{this.Abbreviation}".GetHashCode();
     }
 }
