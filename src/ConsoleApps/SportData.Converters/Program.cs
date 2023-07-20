@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
 using SportData.Converters.Countries;
+using SportData.Converters.OlympicGames;
 using SportData.Data.Contexts;
 using SportData.Data.Repositories;
 using SportData.Services;
@@ -27,6 +28,7 @@ public class Program
     private static async Task StartConvertersAscyn(ServiceProvider services)
     {
         await services.GetService<CountryDataConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
+        await services.GetService<NOCConverter>().ConvertAsync();
     }
 
     private static ServiceProvider ConfigureServices()
@@ -78,6 +80,7 @@ public class Program
         services.AddScoped<ICountriesService, CountriesService>();
 
         services.AddScoped<CountryDataConverter>();
+        services.AddScoped<NOCConverter>();
 
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider;
