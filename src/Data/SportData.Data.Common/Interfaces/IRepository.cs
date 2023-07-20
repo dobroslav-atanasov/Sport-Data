@@ -18,4 +18,6 @@ public interface IRepository<TEntity> : IDisposable
     Task<int> SaveChangesAsync();
 
     void Update(TEntity entity);
+
+    void Delete(TEntity entity);
 }
