@@ -29,6 +29,8 @@ public class CrawlerStorageRepository<TEntity> : IRepository<TEntity>
 
     public IQueryable<TEntity> AllAsNoTracking() => this.DbSet.AsNoTracking();
 
+    public void Delete(TEntity entity) => this.DbSet.Remove(entity);
+
     public async Task<TEntity> GetAsync(params object[] id) => await this.DbSet.FindAsync(id);
 
     public async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> expression) => await this.DbSet.Where(expression).FirstOrDefaultAsync();
