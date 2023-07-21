@@ -9,6 +9,13 @@ using SportData.Data.Common.Models;
 [Table("Events", Schema = "og")]
 public class Event : BaseEntity<int>, IDeletableEntity, IEquatable<Event>
 {
+    public Event()
+    {
+        this.EventVenues = new HashSet<EventVenue>();
+        this.Participants = new HashSet<Participant>();
+        this.Teams = new HashSet<Team>();
+    }
+
     [Required]
     [MaxLength(200)]
     public string Name { get; set; }
@@ -50,6 +57,12 @@ public class Event : BaseEntity<int>, IDeletableEntity, IEquatable<Event>
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedOn { get; set; }
+
+    public virtual ICollection<EventVenue> EventVenues { get; set; }
+
+    public virtual ICollection<Participant> Participants { get; set; }
+
+    public virtual ICollection<Team> Teams { get; set; }
 
     public bool Equals(Event other)
     {
