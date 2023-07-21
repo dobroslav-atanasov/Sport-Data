@@ -75,13 +75,13 @@ public class Game : BaseEntity<int>, IDeletableEntity, IEquatable<Game>
     [MaxLength(10000)]
     public string BidProcess { get; set; }
 
-    public virtual ICollection<Event> Events { get; set; }
-
-    public virtual ICollection<Host> Hosts { get; set; }
-
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedOn { get; set; }
+
+    public virtual ICollection<Event> Events { get; set; }
+
+    public virtual ICollection<Host> Hosts { get; set; }
 
     public bool Equals(Game other)
     {
