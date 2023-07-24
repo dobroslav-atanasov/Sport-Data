@@ -2,7 +2,9 @@
 
 using SportData.Data.Entities.Countries;
 
-public interface ICountriesService : IAddable
+public interface ICountriesService
 {
-    Task<Country> GetCountryAsync(string code);
+    Task<Country> AddOrUpdateAsync(Country country);
+
+    Task<Country> GetAsync(string code);
 }
