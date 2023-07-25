@@ -16,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Services\SportData.Services.Mapper\SportData.Services.Mapper.csproj" />
     <ProjectReference Include="..\SportData.Data.Common\SportData.Data.Common.csproj" />
+    <ProjectReference Include="..\SportData.Data.Entities\SportData.Data.Entities.csproj" />
   </ItemGroup>
 
 </Project>
