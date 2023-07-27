@@ -1,5 +1,7 @@
 ﻿namespace SportData.Converters;
 
+using System.Reflection;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,11 +13,12 @@ using SportData.Converters.OlympicGames;
 using SportData.Data.Contexts;
 using SportData.Data.Repositories;
 using SportData.Services;
-using SportData.Services.Data;
-using SportData.Services.Data.CrawlerStorage;
-using SportData.Services.Data.CrawlerStorage.Interfaces;
-using SportData.Services.Data.Interfaces;
+using SportData.Services.Data.CrawlerStorageDb;
+using SportData.Services.Data.CrawlerStorageDb.Interfaces;
+using SportData.Services.Data.SportDataDb;
+using SportData.Services.Data.SportDataDb.Interfaces;
 using SportData.Services.Interfaces;
+using SportData.Services.Mapper;
 
 public class Program
 {
@@ -28,7 +31,10 @@ public class Program
     private static async Task StartConvertersAscyn(ServiceProvider services)
     {
         await services.GetService<CountryDataConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
-        await services.GetService<NOCConverter>().ConvertAsync();
+        await services.GetService<NOCConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_NOC_CONVERTER);
+        await services.GetService<GameConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_GAME_CONVERTER);
+        await services.GetService<SportDisciplineConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_SPORT_DISCIPLINE_CONVERTER);
+        await services.GetService<VenueConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_VENUE_CONVERTER);
     }
 
     private static ServiceProvider ConfigureServices()
@@ -49,6 +55,9 @@ public class Program
             config.AddConsole();
             config.AddLog4Net(configuration.GetSection(AppGlobalConstants.LOG4NET_CORE).Get<Log4NetProviderOptions>());
         });
+
+        // AUTOMAPPER
+        MapperConfig.RegisterMapper(Assembly.Load(AppGlobalConstants.AUTOMAPPER_MODELS_ASSEMBLY));
 
         // DATABASE
         services.AddDbContext<SportDataDbContext>(options =>
@@ -72,15 +81,27 @@ public class Program
         services.AddScoped<IRegExpService, RegExpService>();
         services.AddScoped<IHttpService, HttpService>();
         services.AddScoped<IMD5Hash, MD5Hash>();
+        services.AddScoped<INormalizeService, NormalizeService>();
 
         services.AddScoped<ICrawlersService, CrawlersService>();
         services.AddScoped<IGroupsService, GroupsService>();
         services.AddScoped<ILogsService, LogsService>();
 
+        services.AddScoped<IDataCacheService, DataCacheService>();
         services.AddScoped<ICountriesService, CountriesService>();
+        services.AddScoped<INOCsService, NOCsService>();
+        services.AddScoped<ICitiesService, CitiesService>();
+        services.AddScoped<IGamesService, GamesService>();
+        services.AddScoped<IHostsService, HostsService>();
+        services.AddScoped<ISportsService, SportsService>();
+        services.AddScoped<IDisciplinesService, DisciplinesService>();
+        services.AddScoped<IVenuesService, VenuesService>();
 
         services.AddScoped<CountryDataConverter>();
         services.AddScoped<NOCConverter>();
+        services.AddScoped<GameConverter>();
+        services.AddScoped<SportDisciplineConverter>();
+        services.AddScoped<VenueConverter>();
 
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider;
