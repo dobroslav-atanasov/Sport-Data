@@ -10,6 +10,8 @@ public static class AppGlobalConstants
     public const string CRAWLER_STORAGE_CONNECTION_STRING = "CrawlerStorageConnectionString";
     public const string SPORT_DATA_CONNECTION_STRING = "SportDataConnectionString";
 
+    public const string AUTOMAPPER_MODELS_ASSEMBLY = "SportData.Data.Models";
+
     public const string JWT_SECRET = "JWT:Secret";
     public const string JWT_ISSUER = "JWT:Issuer";
     public const string JWT_AUDIENCE = "JWT:Audience";
