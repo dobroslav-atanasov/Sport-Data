@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 using SportData.Common.Constants;
 using SportData.Data.Entities.Countries;
 using SportData.Data.Entities.Crawlers;
-using SportData.Services.Data.CrawlerStorage.Interfaces;
-using SportData.Services.Data.Interfaces;
+using SportData.Services.Data.CrawlerStorageDb.Interfaces;
+using SportData.Services.Data.SportDataDb.Interfaces;
 using SportData.Services.Interfaces;
 
 public class CountryDataConverter : BaseConverter
@@ -19,8 +19,8 @@ public class CountryDataConverter : BaseConverter
     private readonly ICountriesService countriesService;
 
     public CountryDataConverter(ILogger<BaseConverter> logger, ICrawlersService crawlersService, ILogsService logsService, IGroupsService groupsService, IZipService zipService,
-        IRegExpService regularExpressionService, IConfiguration configuration, IHttpService httpService, ICountriesService countriesService)
-        : base(logger, crawlersService, logsService, groupsService, zipService, regularExpressionService)
+        IRegExpService regExpService, INormalizeService normalizeService, IConfiguration configuration, IHttpService httpService, ICountriesService countriesService)
+        : base(logger, crawlersService, logsService, groupsService, zipService, regExpService, normalizeService)
     {
         this.configuration = configuration;
         this.httpService = httpService;
