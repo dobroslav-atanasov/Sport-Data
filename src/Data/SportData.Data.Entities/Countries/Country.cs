@@ -12,7 +12,6 @@ public class Country : BaseDeletableEntity<int>, ICheckableEntity, IEquatable<Co
 {
     public Country()
     {
-        this.Cities = new HashSet<City>();
         this.NOCs = new HashSet<NOC>();
     }
 
@@ -60,8 +59,6 @@ public class Country : BaseDeletableEntity<int>, ICheckableEntity, IEquatable<Co
     public int? LowestPoint { get; set; }
 
     public byte[] Flag { get; set; }
-
-    public virtual ICollection<City> Cities { get; set; }
 
     public virtual ICollection<NOC> NOCs { get; set; }
 
