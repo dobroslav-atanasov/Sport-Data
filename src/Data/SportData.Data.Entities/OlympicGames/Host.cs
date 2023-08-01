@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using SportData.Data.Common.Interfaces;
 
 [Table("Hosts", Schema = "og")]
-public class Host : ICheckableEntity, IDeletableEntity, IEquatable<Host>
+public class Host : ICheckableEntity, IDeletableEntity
 {
     public int CityId { get; set; }
     public virtual City City { get; set; }
@@ -20,25 +20,4 @@ public class Host : ICheckableEntity, IDeletableEntity, IEquatable<Host>
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedOn { get; set; }
-
-    public bool Equals(Host other)
-    {
-        if (other == null)
-        {
-            return false;
-        }
-
-        return this.CityId == other.CityId
-            && this.GameId == other.GameId;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Host);
-    }
-
-    public override int GetHashCode()
-    {
-        return $"{this.CityId}-{this.GameId}".GetHashCode();
-    }
 }
