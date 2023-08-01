@@ -8,16 +8,16 @@ using SportData.Data.Common.Models;
 using SportData.Data.Entities.Countries;
 
 [Table("NOCs", Schema = "og")]
-public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
+public class NOC : BaseDeletableEntity<int>, IUpdatable<NOC>
 {
     public NOC()
     {
         this.Nationalities = new HashSet<Nationality>();
         this.Participants = new HashSet<Participant>();
         this.Teams = new HashSet<Team>();
+        this.Cities = new HashSet<City>();
     }
 
-    // check olympic.org data
     [Required]
     [MaxLength(50)]
     public string Name { get; set; }
@@ -26,13 +26,13 @@ public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
     [StringLength(3)]
     public string Code { get; set; }
 
-    public int CountryId { get; set; }
+    public int? CountryId { get; set; }
     public virtual Country Country { get; set; }
 
     [MaxLength(500)]
     public string Title { get; set; }
 
-    [StringLength(3)]
+    [StringLength(20)]
     public string Abbreviation { get; set; }
 
     public int? FoundedYear { get; set; }
@@ -54,45 +54,84 @@ public class NOC : BaseEntity<int>, IDeletableEntity, IEquatable<NOC>
 
     public byte[] NOCFlag { get; set; }
 
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
     public virtual ICollection<Nationality> Nationalities { get; set; }
 
     public virtual ICollection<Participant> Participants { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; }
 
-    public bool Equals(NOC other)
+    public virtual ICollection<City> Cities { get; set; }
+
+    public bool IsUpdated(NOC other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.Name != other.Name)
         {
-            return false;
+            this.Name = other.Name;
+            isUpdated = true;
         }
 
-        return this.Name == other.Name
-            && this.Code == other.Code
-            && this.CountryId == other.CountryId
-            && this.Title == other.Title
-            && this.Abbreviation == other.Abbreviation
-            && this.FoundedYear == other.FoundedYear
-            && this.RecognationYear == other.RecognationYear
-            && this.DisbandedYear == other.DisbandedYear
-            && this.RelatedNOCCode == other.RelatedNOCCode
-            && this.CountryDescription == other.CountryDescription
-            && this.NOCDescription == other.NOCDescription
-            && this.CountryFlag?.Length == other.CountryFlag?.Length
-            && this.NOCFlag?.Length == other.NOCFlag?.Length;
-    }
+        if (this.Title != other.Title)
+        {
+            this.Title = other.Title;
+            isUpdated = true;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as NOC);
-    }
+        if (this.Abbreviation != other.Abbreviation)
+        {
+            this.Abbreviation = other.Abbreviation;
+            isUpdated = true;
+        }
 
-    public override int GetHashCode()
-    {
-        return $"{this.Name}-{this.CountryId}-{this.Code}-{this.Title}-{this.Abbreviation}".GetHashCode();
+        if (this.FoundedYear != other.FoundedYear)
+        {
+            this.FoundedYear = other.FoundedYear;
+            isUpdated = true;
+        }
+
+        if (this.RecognationYear != other.RecognationYear)
+        {
+            this.RecognationYear = other.RecognationYear;
+            isUpdated = true;
+        }
+
+        if (this.DisbandedYear != other.DisbandedYear)
+        {
+            this.DisbandedYear = other.DisbandedYear;
+            isUpdated = true;
+        }
+
+        if (this.RelatedNOCCode != other.RelatedNOCCode)
+        {
+            this.RelatedNOCCode = other.RelatedNOCCode;
+            isUpdated = true;
+        }
+
+        if (this.CountryDescription != other.CountryDescription)
+        {
+            this.CountryDescription = other.CountryDescription;
+            isUpdated = true;
+        }
+
+        if (this.NOCDescription != other.NOCDescription)
+        {
+            this.NOCDescription = other.NOCDescription;
+            isUpdated = true;
+        }
+
+        if (this.CountryFlag != other.CountryFlag)
+        {
+            this.CountryFlag = other.CountryFlag;
+            isUpdated = true;
+        }
+
+        if (this.NOCFlag != other.NOCFlag)
+        {
+            this.NOCFlag = other.NOCFlag;
+            isUpdated = true;
+        }
+
+        return isUpdated;
     }
 }
