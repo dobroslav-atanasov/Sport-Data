@@ -4,48 +4,32 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
-using SportData.Data.Entities.Countries;
 
 [Table("Cities", Schema = "og")]
-public class City : BaseEntity<int>, IDeletableEntity, IEquatable<City>
+public class City : BaseDeletableEntity<int>, IUpdatable<City>
 {
     public City()
     {
         this.Hosts = new HashSet<Host>();
-        this.Venues = new HashSet<Venue>();
     }
 
     public string Name { get; set; }
 
-    public int CountryId { get; set; }
-    public virtual Country Country { get; set; }
-
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
+    public int NOCId { get; set; }
+    public virtual NOC NOC { get; set; }
 
     public virtual ICollection<Host> Hosts { get; set; }
 
-    public virtual ICollection<Venue> Venues { get; set; }
-
-    public bool Equals(City other)
+    public bool IsUpdated(City other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.NOCId != other.NOCId)
         {
-            return false;
+            this.NOCId = other.NOCId;
+            isUpdated = true;
         }
 
-        return this.Name == other.Name
-            && this.CountryId == other.CountryId;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as City);
-    }
-
-    public override int GetHashCode()
-    {
-        return $"{this.Name}-{this.CountryId}".GetHashCode();
+        return isUpdated;
     }
 }
