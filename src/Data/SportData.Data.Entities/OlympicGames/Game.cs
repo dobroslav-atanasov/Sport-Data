@@ -8,7 +8,7 @@ using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
 
 [Table("Games", Schema = "og")]
-public class Game : BaseEntity<int>, IDeletableEntity, IEquatable<Game>
+public class Game : BaseDeletableEntity<int>, IUpdatable<Game>
 {
     public Game()
     {
@@ -24,6 +24,10 @@ public class Game : BaseEntity<int>, IDeletableEntity, IEquatable<Game>
 
     [Required]
     public OlympicGameType Type { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string OfficialName { get; set; }
 
     [Column(TypeName = "Date")]
     public DateTime? OpenDate { get; set; }
@@ -75,52 +79,140 @@ public class Game : BaseEntity<int>, IDeletableEntity, IEquatable<Game>
     [MaxLength(10000)]
     public string BidProcess { get; set; }
 
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
     public virtual ICollection<Event> Events { get; set; }
 
     public virtual ICollection<Host> Hosts { get; set; }
 
-    public bool Equals(Game other)
+    public bool IsUpdated(Game other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.Number != other.Number)
         {
-            return false;
+            this.Number = other.Number;
+            isUpdated = true;
         }
 
-        return this.Year == other.Year
-           && this.Number == other.Number
-           && this.Type == other.Type
-           && this.OpenDate == other.OpenDate
-           && this.CloseDate == other.CloseDate
-           && this.StartCompetitionDate == other.StartCompetitionDate
-           && this.EndCompetitionDate == other.EndCompetitionDate
-           && this.ParticipantAthletes == other.ParticipantAthletes
-           && this.ParticipantMenAthletes == other.ParticipantMenAthletes
-           && this.ParticipantWomenAthletes == other.ParticipantWomenAthletes
-           && this.ParticipantNOCs == other.ParticipantNOCs
-           && this.MedalDisciplines == other.MedalDisciplines
-           && this.MedalEvents == other.MedalEvents
-           && this.MedalSports == other.MedalSports
-           && this.OpenBy == other.OpenBy
-           && this.Torchbearers == other.Torchbearers
-           && this.AthleteOathBy == other.AthleteOathBy
-           && this.JudgeOathBy == other.JudgeOathBy
-           && this.CoachOathBy == other.CoachOathBy
-           && this.OlympicFlagBearers == other.OlympicFlagBearers
-           && this.Description == other.Description
-           && this.BidProcess == other.BidProcess;
-    }
+        if (this.OfficialName != other.OfficialName)
+        {
+            this.OfficialName = other.OfficialName;
+            isUpdated = true;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Game);
-    }
+        if (this.OpenDate != other.OpenDate)
+        {
+            this.OpenDate = other.OpenDate;
+            isUpdated = true;
+        }
 
-    public override int GetHashCode()
-    {
-        return $"{this.Year}-{this.Number}-{this.Type}".GetHashCode();
+        if (this.CloseDate != other.CloseDate)
+        {
+            this.CloseDate = other.CloseDate;
+            isUpdated = true;
+        }
+
+        if (this.StartCompetitionDate != other.StartCompetitionDate)
+        {
+            this.StartCompetitionDate = other.StartCompetitionDate;
+            isUpdated = true;
+        }
+
+        if (this.EndCompetitionDate != other.EndCompetitionDate)
+        {
+            this.EndCompetitionDate = other.EndCompetitionDate;
+            isUpdated = true;
+        }
+
+        if (this.ParticipantAthletes != other.ParticipantAthletes)
+        {
+            this.ParticipantAthletes = other.ParticipantAthletes;
+            isUpdated = true;
+        }
+
+        if (this.ParticipantMenAthletes != other.ParticipantMenAthletes)
+        {
+            this.ParticipantMenAthletes = other.ParticipantMenAthletes;
+            isUpdated = true;
+        }
+
+        if (this.ParticipantWomenAthletes != other.ParticipantWomenAthletes)
+        {
+            this.ParticipantWomenAthletes = other.ParticipantWomenAthletes;
+            isUpdated = true;
+        }
+
+        if (this.ParticipantNOCs != other.ParticipantNOCs)
+        {
+            this.ParticipantNOCs = other.ParticipantNOCs;
+            isUpdated = true;
+        }
+
+        if (this.MedalEvents != other.MedalEvents)
+        {
+            this.MedalEvents = other.MedalEvents;
+            isUpdated = true;
+        }
+
+        if (this.MedalDisciplines != other.MedalDisciplines)
+        {
+            this.MedalDisciplines = other.MedalDisciplines;
+            isUpdated = true;
+        }
+
+        if (this.MedalSports != other.MedalSports)
+        {
+            this.MedalSports = other.MedalSports;
+            isUpdated = true;
+        }
+
+        if (this.OpenBy != other.OpenBy)
+        {
+            this.OpenBy = other.OpenBy;
+            isUpdated = true;
+        }
+
+        if (this.Torchbearers != other.Torchbearers)
+        {
+            this.Torchbearers = other.Torchbearers;
+            isUpdated = true;
+        }
+
+        if (this.AthleteOathBy != other.AthleteOathBy)
+        {
+            this.AthleteOathBy = other.AthleteOathBy;
+            isUpdated = true;
+        }
+
+        if (this.JudgeOathBy != other.JudgeOathBy)
+        {
+            this.JudgeOathBy = other.JudgeOathBy;
+            isUpdated = true;
+        }
+
+        if (this.CoachOathBy != other.CoachOathBy)
+        {
+            this.CoachOathBy = other.CoachOathBy;
+            isUpdated = true;
+        }
+
+        if (this.OlympicFlagBearers != other.OlympicFlagBearers)
+        {
+            this.OlympicFlagBearers = other.OlympicFlagBearers;
+            isUpdated = true;
+        }
+
+        if (this.Description != other.Description)
+        {
+            this.Description = other.Description;
+            isUpdated = true;
+        }
+
+        if (this.BidProcess != other.BidProcess)
+        {
+            this.BidProcess = other.BidProcess;
+            isUpdated = true;
+        }
+
+        return isUpdated;
     }
 }
