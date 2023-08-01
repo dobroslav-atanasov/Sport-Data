@@ -7,7 +7,7 @@ using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
 
 [Table("Events", Schema = "og")]
-public class Event : BaseEntity<int>, IDeletableEntity, IEquatable<Event>
+public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
 {
     public Event()
     {
@@ -54,45 +54,82 @@ public class Event : BaseEntity<int>, IDeletableEntity, IEquatable<Event>
 
     public string Description { get; set; }
 
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
     public virtual ICollection<EventVenue> EventVenues { get; set; }
 
     public virtual ICollection<Participant> Participants { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; }
 
-    public bool Equals(Event other)
+    public bool IsUpdated(Event other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.Name != other.Name)
         {
-            return false;
+            this.Name = other.Name;
+            isUpdated = true;
         }
 
-        return this.Name == other.Name
-            && this.OriginalName == other.OriginalName
-            && this.NormalizedName == other.NormalizedName
-            && this.DisciplineId == other.DisciplineId
-            && this.GameId == other.GameId
-            && this.StartDate == other.StartDate
-            && this.EndDate == other.EndDate
-            && this.IsTeamEvent == other.IsTeamEvent
-            && this.AdditionalInfo == other.AdditionalInfo
-            && this.Athletes == other.Athletes
-            && this.NOCs == other.NOCs
-            && this.Format == other.Format
-            && this.Description == other.Description;
-    }
+        if (this.NormalizedName != other.NormalizedName)
+        {
+            this.NormalizedName = other.NormalizedName;
+            isUpdated = true;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Event);
-    }
+        if (this.OriginalName != other.OriginalName)
+        {
+            this.OriginalName = other.OriginalName;
+            isUpdated = true;
+        }
 
-    public override int GetHashCode()
-    {
-        return $"{this.Name}-{this.DisciplineId}-{this.GameId}".GetHashCode();
+        if (this.StartDate != other.StartDate)
+        {
+            this.StartDate = other.StartDate;
+            isUpdated = true;
+        }
+
+        if (this.EndDate != other.EndDate)
+        {
+            this.EndDate = other.EndDate;
+            isUpdated = true;
+        }
+
+        if (this.IsTeamEvent != other.IsTeamEvent)
+        {
+            this.IsTeamEvent = other.IsTeamEvent;
+            isUpdated = true;
+        }
+
+        if (this.AdditionalInfo != other.AdditionalInfo)
+        {
+            this.AdditionalInfo = other.AdditionalInfo;
+            isUpdated = true;
+        }
+
+        if (this.Athletes != other.Athletes)
+        {
+            this.Athletes = other.Athletes;
+            isUpdated = true;
+        }
+
+        if (this.NOCs != other.NOCs)
+        {
+            this.NOCs = other.NOCs;
+            isUpdated = true;
+        }
+
+        if (this.Format != other.Format)
+        {
+            this.Format = other.Format;
+            isUpdated = true;
+        }
+
+        if (this.Description != other.Description)
+        {
+            this.Description = other.Description;
+            isUpdated = true;
+        }
+
+        return isUpdated;
     }
 }
