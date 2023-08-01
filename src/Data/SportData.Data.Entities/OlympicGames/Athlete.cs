@@ -8,7 +8,7 @@ using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
 
 [Table("Athletes", Schema = "og")]
-public class Athlete : BaseEntity<Guid>, IDeletableEntity, IEquatable<Athlete>
+public class Athlete : BaseDeletableEntity<Guid>, IUpdatable<Athlete>
 {
     public Athlete()
     {
@@ -59,47 +59,100 @@ public class Athlete : BaseEntity<Guid>, IDeletableEntity, IEquatable<Athlete>
 
     public string Description { get; set; }
 
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
     public virtual ICollection<Nationality> Nationalities { get; set; }
 
     public virtual ICollection<Participant> Participants { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; }
 
-    public bool Equals(Athlete other)
+    public bool IsUpdated(Athlete other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.Name != other.Name)
         {
-            return false;
+            this.Name = other.Name;
+            isUpdated = true;
         }
 
-        return this.Name == other.Name
-            && this.Number == other.Number
-            && this.EnglishName == other.EnglishName
-            && this.FullName == other.FullName
-            && this.Gender == other.Gender
-            && this.Type == other.Type
-            && this.Nationality == other.Nationality
-            && this.BirthDate == other.BirthDate
-            && this.DiedDate == other.DiedDate
-            && this.BirthPlace == other.BirthPlace
-            && this.DiedPlace == other.DiedPlace
-            && this.Height == other.Height
-            && this.Weight == other.Weight
-            && this.Association == other.Association
-            && this.Description == other.Description;
-    }
+        if (this.EnglishName != other.EnglishName)
+        {
+            this.EnglishName = other.EnglishName;
+            isUpdated = true;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Athlete);
-    }
+        if (this.FullName != other.FullName)
+        {
+            this.FullName = other.FullName;
+            isUpdated = true;
+        }
 
-    public override int GetHashCode()
-    {
-        return $"{this.Name}-{this.Number}-{this.EnglishName}".GetHashCode();
+        if (this.Gender != other.Gender)
+        {
+            this.Gender = other.Gender;
+            isUpdated = true;
+        }
+
+        if (this.Type != other.Type)
+        {
+            this.Type = other.Type;
+            isUpdated = true;
+        }
+
+        if (this.Nationality != other.Nationality)
+        {
+            this.Nationality = other.Nationality;
+            isUpdated = true;
+        }
+
+        if (this.BirthDate != other.BirthDate)
+        {
+            this.BirthDate = other.BirthDate;
+            isUpdated = true;
+        }
+
+        if (this.DiedDate != other.DiedDate)
+        {
+            this.DiedDate = other.DiedDate;
+            isUpdated = true;
+        }
+
+        if (this.BirthPlace != other.BirthPlace)
+        {
+            this.BirthPlace = other.BirthPlace;
+            isUpdated = true;
+        }
+
+        if (this.DiedPlace != other.DiedPlace)
+        {
+            this.DiedPlace = other.DiedPlace;
+            isUpdated = true;
+        }
+
+        if (this.Height != other.Height)
+        {
+            this.Height = other.Height;
+            isUpdated = true;
+        }
+
+        if (this.Weight != other.Weight)
+        {
+            this.Weight = other.Weight;
+            isUpdated = true;
+        }
+
+        if (this.Association != other.Association)
+        {
+            this.Association = other.Association;
+            isUpdated = true;
+        }
+
+        if (this.Description != other.Description)
+        {
+            this.Description = other.Description;
+            isUpdated = true;
+        }
+
+        return isUpdated;
     }
 }
