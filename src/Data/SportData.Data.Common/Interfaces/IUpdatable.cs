@@ -2,5 +2,5 @@
 
 public interface IUpdatable<T>
 {
-    bool Update(T other);
+    bool IsUpdated(T other);
 }
