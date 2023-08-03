@@ -1,6 +1,5 @@
 ﻿namespace SportData.Data.Entities.OlympicGames;
 
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,7 +8,7 @@ using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
 
 [Table("Sports", Schema = "og")]
-public class Sport : BaseEntity<int>, IDeletableEntity, IEquatable<Sport>
+public class Sport : BaseDeletableEntity<int>, IUpdatable<Sport>
 {
     public Sport()
     {
@@ -27,31 +26,24 @@ public class Sport : BaseEntity<int>, IDeletableEntity, IEquatable<Sport>
     [Required]
     public OlympicGameType Type { get; set; }
 
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
     public virtual ICollection<Discipline> Disciplines { get; set; }
 
-    public bool Equals(Sport other)
+    public bool IsUpdated(Sport other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.Code != other.Code)
         {
-            return false;
+            this.Code = other.Code;
+            isUpdated = true;
         }
 
-        return this.Name == other.Name
-            && this.Code == other.Code
-            && this.Type == other.Type;
-    }
+        if (this.Type != other.Type)
+        {
+            this.Type = other.Type;
+            isUpdated = true;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Sport);
-    }
-
-    public override int GetHashCode()
-    {
-        return $"{this.Name}-{this.Code}-{this.Type}".GetHashCode();
+        return isUpdated;
     }
 }
