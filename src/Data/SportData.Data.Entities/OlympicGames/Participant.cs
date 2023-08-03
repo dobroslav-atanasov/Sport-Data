@@ -7,7 +7,7 @@ using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
 
 [Table("Participants", Schema = "og")]
-public class Participant : BaseEntity<Guid>, IDeletableEntity, IEquatable<Participant>
+public class Participant : BaseDeletableEntity<Guid>, IUpdatable<Participant>
 {
     public Participant()
     {
@@ -35,37 +35,42 @@ public class Participant : BaseEntity<Guid>, IDeletableEntity, IEquatable<Partic
 
     public bool IsCoach { get; set; } = false;
 
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
     public virtual ICollection<Squad> Squads { get; set; }
 
-    public bool Equals(Participant other)
+    public bool IsUpdated(Participant other)
     {
-        if (other == null)
+        var isUpdated = false;
+
+        if (this.AgeYears != other.AgeYears)
         {
-            return false;
+            this.AgeYears = other.AgeYears;
+            isUpdated = true;
         }
 
-        return this.AthleteId == other.AthleteId
-            && this.EventId == other.EventId
-            && this.NOCId == other.NOCId
-            && this.AgeYears == other.AgeYears
-            && this.AgeDays == other.AgeDays
-            && this.Medal == other.Medal
-            && this.FinishStatus == other.FinishStatus
-            && this.Number == other.Number
-            && this.IsCoach == other.IsCoach;
-    }
+        if (this.AgeDays != other.AgeDays)
+        {
+            this.AgeDays = other.AgeDays;
+            isUpdated = true;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as Participant);
-    }
+        if (this.Medal != other.Medal)
+        {
+            this.Medal = other.Medal;
+            isUpdated = true;
+        }
 
-    public override int GetHashCode()
-    {
-        return $"{this.AthleteId}-{this.EventId}-{this.NOCId}-{this.Number}".GetHashCode();
+        if (this.FinishStatus != other.FinishStatus)
+        {
+            this.FinishStatus = other.FinishStatus;
+            isUpdated = true;
+        }
+
+        if (this.IsCoach != other.IsCoach)
+        {
+            this.IsCoach = other.IsCoach;
+            isUpdated = true;
+        }
+
+        return isUpdated;
     }
 }
