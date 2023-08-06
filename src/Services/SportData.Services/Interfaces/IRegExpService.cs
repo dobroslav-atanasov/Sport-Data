@@ -12,7 +12,15 @@ public interface IRegExpService
 
     string CutHtml(string input);
 
+    string CutHtml(string input, string pattern);
+
     MatchCollection Matches(string text, string pattern);
 
     bool IsMatch(string text, string pattern);
+
+    int? MatchInt(string text);
+
+    double? MatchDouble(string text);
+
+    DateTime? MatchTime(string text);
 }
