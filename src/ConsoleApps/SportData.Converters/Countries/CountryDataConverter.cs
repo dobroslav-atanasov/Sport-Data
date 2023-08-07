@@ -14,14 +14,16 @@ using SportData.Services.Interfaces;
 
 public class CountryDataConverter : BaseConverter
 {
+    private readonly IRegExpService regExpService;
     private readonly IConfiguration configuration;
     private readonly IHttpService httpService;
     private readonly ICountriesService countriesService;
 
     public CountryDataConverter(ILogger<BaseConverter> logger, ICrawlersService crawlersService, ILogsService logsService, IGroupsService groupsService, IZipService zipService,
-        IRegExpService regExpService, INormalizeService normalizeService, IConfiguration configuration, IHttpService httpService, ICountriesService countriesService)
-        : base(logger, crawlersService, logsService, groupsService, zipService, regExpService, normalizeService)
+        IRegExpService regExpService, IConfiguration configuration, IHttpService httpService, ICountriesService countriesService)
+        : base(logger, crawlersService, logsService, groupsService, zipService)
     {
+        this.regExpService = regExpService;
         this.configuration = configuration;
         this.httpService = httpService;
         this.countriesService = countriesService;
@@ -37,7 +39,7 @@ public class CountryDataConverter : BaseConverter
                 .SelectSingleNode("//h1")
                 .InnerText;
 
-            var name = this.RegExpService.Match(header, @"Flag of (.*)").Groups[1].Value.Trim();
+            var name = this.regExpService.Match(header, @"Flag of (.*)").Groups[1].Value.Trim();
             var country = new Country { Name = name };
 
             var rows = document
@@ -55,7 +57,7 @@ public class CountryDataConverter : BaseConverter
                         country.IsIndependent = tdTag.ToLower() == "yes";
                         break;
                     case "country codes":
-                        var countryCodeMatch = this.RegExpService.Match(tdTag, @"([A-Z]{2}),\s*([A-Z]{3})");
+                        var countryCodeMatch = this.regExpService.Match(tdTag, @"([A-Z]{2}),\s*([A-Z]{3})");
                         if (countryCodeMatch != null)
                         {
                             country.TwoDigitsCode = countryCodeMatch.Groups[1].Value;
@@ -63,7 +65,7 @@ public class CountryDataConverter : BaseConverter
                         }
                         else
                         {
-                            countryCodeMatch = this.RegExpService.Match(tdTag, @"([A-Z-]{6})");
+                            countryCodeMatch = this.regExpService.Match(tdTag, @"([A-Z-]{6})");
                             if (countryCodeMatch != null)
                             {
                                 country.Code = countryCodeMatch.Groups[1].Value;
@@ -83,40 +85,40 @@ public class CountryDataConverter : BaseConverter
                         country.MemberOf = tdTag;
                         break;
                     case "population":
-                        var populationMatch = this.RegExpService.Match(tdTag, @"([\d\s]+)\(([\d]{4})\)");
+                        var populationMatch = this.regExpService.Match(tdTag, @"([\d\s]+)\(([\d]{4})\)");
                         if (populationMatch != null)
                         {
                             var text = populationMatch.Groups[1].Value.Trim();
-                            text = this.RegExpService.Replace(text, @"\s*", string.Empty);
+                            text = this.regExpService.Replace(text, @"\s*", string.Empty);
                             country.Population = int.Parse(text);
                         }
                         break;
                     case "total area":
-                        var areaMatch = this.RegExpService.Match(tdTag, @"([\d\s]+)km");
+                        var areaMatch = this.regExpService.Match(tdTag, @"([\d\s]+)km");
                         if (areaMatch != null)
                         {
                             var text = areaMatch.Groups[1].Value.Trim();
-                            text = this.RegExpService.Replace(text, @"\s*", string.Empty);
+                            text = this.regExpService.Replace(text, @"\s*", string.Empty);
                             country.TotalArea = int.Parse(text);
                         }
                         break;
                     case "highest point":
-                        var highestPointMatch = this.RegExpService.Match(tdTag, @"(.*?)\s*\(([\d\s-]+)\s*m,\s*([\d\s-]+)\s*ft\)");
+                        var highestPointMatch = this.regExpService.Match(tdTag, @"(.*?)\s*\(([\d\s-]+)\s*m,\s*([\d\s-]+)\s*ft\)");
                         if (highestPointMatch != null)
                         {
                             country.HighestPointPlace = highestPointMatch.Groups[1].Value.Trim();
                             var text = highestPointMatch.Groups[2].Value.Trim();
-                            text = this.RegExpService.Replace(text, @"\s*", string.Empty);
+                            text = this.regExpService.Replace(text, @"\s*", string.Empty);
                             country.HighestPoint = int.Parse(text);
                         }
                         break;
                     case "lowest point":
-                        var lowestPointMatch = this.RegExpService.Match(tdTag, @"(.*?)\s*\(([\d\s-]+)\s*m,\s*([\d\s-]+)\s*ft\)");
+                        var lowestPointMatch = this.regExpService.Match(tdTag, @"(.*?)\s*\(([\d\s-]+)\s*m,\s*([\d\s-]+)\s*ft\)");
                         if (lowestPointMatch != null)
                         {
                             country.LowestPointPlace = lowestPointMatch.Groups[1].Value.Trim();
                             var text = lowestPointMatch.Groups[2].Value.Trim();
-                            text = this.RegExpService.Replace(text, @"\s*", string.Empty);
+                            text = this.regExpService.Replace(text, @"\s*", string.Empty);
                             country.LowestPoint = int.Parse(text);
                         }
                         break;
