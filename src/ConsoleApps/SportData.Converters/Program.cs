@@ -11,6 +11,8 @@ using SportData.Common.Constants;
 using SportData.Converters.Countries;
 using SportData.Converters.OlympicGames;
 using SportData.Data.Contexts;
+using SportData.Data.Factories;
+using SportData.Data.Factories.Interfaces;
 using SportData.Data.Repositories;
 using SportData.Services;
 using SportData.Services.Data.CrawlerStorageDb;
@@ -30,11 +32,15 @@ public class Program
 
     private static async Task StartConvertersAscyn(ServiceProvider services)
     {
-        await services.GetService<CountryDataConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
-        await services.GetService<NOCConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_NOC_CONVERTER);
-        await services.GetService<GameConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_GAME_CONVERTER);
-        await services.GetService<SportDisciplineConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_SPORT_DISCIPLINE_CONVERTER);
-        await services.GetService<VenueConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_VENUE_CONVERTER);
+        //await services.GetService<CountryDataConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
+        //await services.GetService<NOCConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_NOC_CONVERTER);
+        //await services.GetService<GameConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_GAME_CONVERTER);
+        //await services.GetService<SportDisciplineConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_SPORT_DISCIPLINE_CONVERTER);
+        //await services.GetService<VenueConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_VENUE_CONVERTER);
+        //await services.GetService<EventConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_RESULT_CONVERTER);
+        //await services.GetService<AthleteConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_ATHELETE_CONVERTER);
+        //await services.GetService<ParticipantConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_RESULT_CONVERTER);
+        await services.GetService<ResultConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_RESULT_CONVERTER);
     }
 
     private static ServiceProvider ConfigureServices()
@@ -60,18 +66,29 @@ public class Program
         MapperConfig.RegisterMapper(Assembly.Load(AppGlobalConstants.AUTOMAPPER_MODELS_ASSEMBLY));
 
         // DATABASE
+        var sportDataDbOptions = new DbContextOptionsBuilder<SportDataDbContext>()
+            .UseLazyLoadingProxies(true)
+            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING))
+            .Options;
+
+        var crawlerStorageDbOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
+            .UseLazyLoadingProxies(true)
+            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING))
+            .Options;
+
+        var dbContextFactory = new DbContextFactory(crawlerStorageDbOptions, sportDataDbOptions);
+        services.AddSingleton<IDbContextFactory>(dbContextFactory);
+
         services.AddDbContext<SportDataDbContext>(options =>
         {
             options.UseLazyLoadingProxies();
-            var connectionString = configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING);
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING));
         });
 
         services.AddDbContext<CrawlerStorageDbContext>(options =>
         {
             options.UseLazyLoadingProxies();
-            var connectionString = configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING);
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING));
         });
 
         services.AddScoped(typeof(SportDataRepository<>));
@@ -82,11 +99,12 @@ public class Program
         services.AddScoped<IHttpService, HttpService>();
         services.AddScoped<IMD5Hash, MD5Hash>();
         services.AddScoped<INormalizeService, NormalizeService>();
+        services.AddScoped<IOlympediaService, OlympediaService>();
+        services.AddScoped<IDateService, DateService>();
 
         services.AddScoped<ICrawlersService, CrawlersService>();
         services.AddScoped<IGroupsService, GroupsService>();
         services.AddScoped<ILogsService, LogsService>();
-
         services.AddScoped<IDataCacheService, DataCacheService>();
         services.AddScoped<ICountriesService, CountriesService>();
         services.AddScoped<INOCsService, NOCsService>();
@@ -96,12 +114,24 @@ public class Program
         services.AddScoped<ISportsService, SportsService>();
         services.AddScoped<IDisciplinesService, DisciplinesService>();
         services.AddScoped<IVenuesService, VenuesService>();
+        services.AddScoped<IEventsService, EventsService>();
+        services.AddScoped<IEventVenueService, EventVenueService>();
+        services.AddScoped<IAthletesService, AthletesService>();
+        services.AddScoped<INationalitiesService, NationalitiesService>();
+        services.AddScoped<IParticipantsService, ParticipantsService>();
+        services.AddScoped<ITeamsService, TeamsService>();
+        services.AddScoped<ISquadsService, SquadsService>();
+        services.AddScoped<IResultsService, ResultsService>();
 
         services.AddScoped<CountryDataConverter>();
         services.AddScoped<NOCConverter>();
         services.AddScoped<GameConverter>();
         services.AddScoped<SportDisciplineConverter>();
         services.AddScoped<VenueConverter>();
+        services.AddScoped<EventConverter>();
+        services.AddScoped<AthleteConverter>();
+        services.AddScoped<ParticipantConverter>();
+        services.AddScoped<ResultConverter>();
 
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider;
