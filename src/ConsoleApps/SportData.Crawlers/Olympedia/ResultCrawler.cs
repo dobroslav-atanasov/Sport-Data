@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
 using SportData.Data.Entities.Crawlers;
-using SportData.Services.Data.CrawlerStorage.Interfaces;
+using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Interfaces;
 
 public class ResultCrawler : BaseOlympediaCrawler
