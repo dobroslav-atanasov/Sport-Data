@@ -37,7 +37,13 @@ public class SportDataDbContext : IdentityDbContext<ApplicationUser, Application
 
     public virtual DbSet<Participant> Participants { get; set; }
 
+    public virtual DbSet<Result> Results { get; set; }
+
     public virtual DbSet<Sport> Sports { get; set; }
+
+    public virtual DbSet<Squad> Squads { get; set; }
+
+    public virtual DbSet<Team> Teams { get; set; }
 
     public virtual DbSet<Venue> Venues { get; set; }
 
