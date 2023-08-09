@@ -14,6 +14,7 @@ public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
         this.EventVenues = new HashSet<EventVenue>();
         this.Participants = new HashSet<Participant>();
         this.Teams = new HashSet<Team>();
+        this.Results = new HashSet<Result>();
     }
 
     [Required]
@@ -59,6 +60,8 @@ public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
     public virtual ICollection<Participant> Participants { get; set; }
 
     public virtual ICollection<Team> Teams { get; set; }
+
+    public virtual ICollection<Result> Results { get; set; }
 
     public bool IsUpdated(Event other)
     {
