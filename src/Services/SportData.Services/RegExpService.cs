@@ -133,7 +133,7 @@ public class RegExpService : IRegExpService
         match = Regex.Match(text, @"(\d+)\s*:\s*(\d+)", RegexOptions.Singleline);
         if (match.Success)
         {
-            return new DateTime(1, 1, 1, 1, int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value));
+            return new DateTime(1, 1, 1, 0, int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value));
         }
 
         match = Regex.Match(text, @"(\d+)\.(\d+)", RegexOptions.Singleline);
