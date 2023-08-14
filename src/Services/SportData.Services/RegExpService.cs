@@ -1,6 +1,5 @@
 ﻿namespace SportData.Services;
 
-using System;
 using System.Text.RegularExpressions;
 
 using SportData.Common.Extensions;
@@ -99,59 +98,6 @@ public class RegExpService : IRegExpService
         if (match.Success)
         {
             return int.Parse(match.Groups[1].Value);
-        }
-
-        return null;
-    }
-
-    public DateTime? MatchTime(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return null;
-        }
-
-        var match = Regex.Match(text, @"(\d+)\s*:\s*(\d+)\.(\d+)", RegexOptions.Singleline);
-        if (match.Success)
-        {
-            var minutes = int.Parse(match.Groups[1].Value.Trim());
-            var seconds = int.Parse(match.Groups[2].Value.Trim());
-            var milisecondsString = match.Groups[3].Value.Trim();
-            var miliseconds = int.Parse(milisecondsString);
-            if (milisecondsString.Length == 1)
-            {
-                miliseconds *= 100;
-            }
-            else if (milisecondsString.Length == 2)
-            {
-                miliseconds *= 10;
-            }
-
-            return new DateTime(1, 1, 1, 0, minutes, seconds, miliseconds);
-        }
-
-        match = Regex.Match(text, @"(\d+)\s*:\s*(\d+)", RegexOptions.Singleline);
-        if (match.Success)
-        {
-            return new DateTime(1, 1, 1, 0, int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value));
-        }
-
-        match = Regex.Match(text, @"(\d+)\.(\d+)", RegexOptions.Singleline);
-        if (match.Success)
-        {
-            var seconds = int.Parse(match.Groups[1].Value.Trim());
-            var milisecondsString = match.Groups[2].Value.Trim();
-            var miliseconds = int.Parse(milisecondsString);
-            if (milisecondsString.Length == 1)
-            {
-                miliseconds *= 100;
-            }
-            else if (milisecondsString.Length == 2)
-            {
-                miliseconds *= 10;
-            }
-
-            return new DateTime(1, 1, 1, 0, 0, seconds, miliseconds);
         }
 
         return null;

@@ -21,6 +21,4 @@ public interface IRegExpService
     int? MatchInt(string text);
 
     double? MatchDouble(string text);
-
-    DateTime? MatchTime(string text);
 }
