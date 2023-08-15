@@ -1,5 +1,7 @@
 ﻿namespace SportData.Services;
 
+using System.Globalization;
+
 using SportData.Common.Extensions;
 using SportData.Data.Models.Dates;
 using SportData.Services.Interfaces;
@@ -11,62 +13,6 @@ public class DateService : IDateService
     public DateService(IRegExpService regExpService)
     {
         this.regExpService = regExpService;
-    }
-
-    public DateModel FindDateTime(string text, DateOptions options)
-    {
-        var dateModel = new DateModel();
-        if (string.IsNullOrEmpty(text))
-        {
-            return dateModel;
-        }
-
-        if (options.IsTimeOnly)
-        {
-            text = "2:12.3";
-            var formats = new string[] { "m\\:ss\\.ff", "m\\:ss\\.f" };
-            var asd = TimeSpan.ParseExact(text, formats, null);
-
-
-            var timeMatch = this.regExpService.Match(text, @"^(\d+)\s*:\s*(\d+)\.(\d+)$");
-            if (timeMatch != null)
-            {
-                var minutes = int.Parse(timeMatch.Groups[1].Value.Trim());
-                var seconds = int.Parse(timeMatch.Groups[2].Value.Trim());
-                var milisecondsString = timeMatch.Groups[3].Value.Trim();
-                var miliseconds = int.Parse(milisecondsString);
-                if (milisecondsString.Length == 1)
-                {
-                    miliseconds *= 100;
-                }
-                else if (milisecondsString.Length == 2)
-                {
-                    miliseconds *= 10;
-                }
-
-                dateModel.Time = new TimeSpan(0, 0, minutes, seconds, miliseconds);
-            }
-
-            timeMatch = this.regExpService.Match(text, @"^(\d+)\.(\d+)$");
-            if (timeMatch != null)
-            {
-                var seconds = int.Parse(timeMatch.Groups[1].Value.Trim());
-                var milisecondsString = timeMatch.Groups[2].Value.Trim();
-                var miliseconds = int.Parse(milisecondsString);
-                if (milisecondsString.Length == 1)
-                {
-                    miliseconds *= 100;
-                }
-                else if (milisecondsString.Length == 2)
-                {
-                    miliseconds *= 10;
-                }
-
-                dateModel.Time = new TimeSpan(0, 0, 0, seconds, miliseconds);
-            }
-        }
-
-        return dateModel;
     }
 
     public DateTime? MatchDate(string text)
@@ -208,6 +154,91 @@ public class DateService : IDateService
             }
 
             return new DateTime(1, 1, 1, 0, 0, seconds, miliseconds);
+        }
+
+        return null;
+    }
+
+    public DateTimeModel ParseDate(string text, int year = 0)
+    {
+        var dateModel = new DateTimeModel();
+        if (string.IsNullOrEmpty(text))
+        {
+            return dateModel;
+        }
+
+        var patternsDictionary = new Dictionary<int, string>
+            {
+                { 1, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*–\s*(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
+                { 2, @"(\d+)\s*–\s*(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
+                { 3, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})\s*(?:-|—)\s*(\d+)\s*:\s*(\d+)" },
+                { 4, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" }
+            };
+
+        var formats = new string[] { "dd-MM-yyyy", "dd-M-yyyy", "d-MM-yyyy", "d-M-yyyy", "dd-MM-yyyy HH:mm", "dd-M-yyyy HH:mm", "d-MM-yyyy HH:mm", "d-M-yyyy HH:mm", };
+        foreach (var kvp in patternsDictionary)
+        {
+            var match = this.regExpService.Match(text, kvp.Value);
+            if (match != null)
+            {
+                var startDate = string.Empty;
+                var endDate = string.Empty;
+                switch (kvp.Key)
+                {
+                    case 1:
+                        startDate = $"{match.Groups[1].Value}-{match.Groups[2].Value.GetMonthNumber()}-{match.Groups[5].Value}";
+                        endDate = $"{match.Groups[3].Value}-{match.Groups[4].Value.GetMonthNumber()}-{match.Groups[5].Value}";
+                        break;
+                    case 2:
+                        startDate = $"{match.Groups[1].Value}-{match.Groups[3].Value.GetMonthNumber()}-{match.Groups[4].Value}";
+                        endDate = $"{match.Groups[2].Value}-{match.Groups[3].Value.GetMonthNumber()}-{match.Groups[4].Value}";
+                        break;
+                    case 3:
+                        startDate = $"{match.Groups[1].Value}-{match.Groups[2].Value.GetMonthNumber()}-{match.Groups[3].Value} {match.Groups[4].Value}:{match.Groups[5].Value}";
+                        break;
+                    case 4:
+                        startDate = $"{match.Groups[1].Value}-{match.Groups[2].Value.GetMonthNumber()}-{match.Groups[3].Value}";
+                        break;
+                }
+
+                if (DateTime.TryParseExact(startDate, formats, null, DateTimeStyles.None, out DateTime startDateResult)
+                    && DateTime.TryParseExact(endDate, formats, null, DateTimeStyles.None, out DateTime endDateResult))
+                {
+                    dateModel.StartDateTime = startDateResult;
+                    dateModel.EndDateTime = endDateResult;
+                    break;
+                }
+
+                if (DateTime.TryParseExact(startDate, formats, null, DateTimeStyles.None, out DateTime startDateTimeResult))
+                {
+                    dateModel.StartDateTime = startDateTimeResult;
+                    break;
+                }
+            }
+        }
+
+        return dateModel;
+    }
+
+    public TimeSpan? ParseTime(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        var patterns = new List<string> { @"(\d+)\s*:\s*(\d+)\.(\d+)", @"(\d+)\s*:\s*(\d+)", @"(\d+)\.(\d+)" };
+        foreach (var pattern in patterns)
+        {
+            var match = this.regExpService.Match(text, pattern);
+            if (match != null)
+            {
+                var formats = new string[] { "mm\\:ss", "mm\\:s", "m\\:ss", "m\\:s", "mm\\:ss\\.fff", "mm\\:ss\\.ff", "mm\\:ss\\.f", "m\\:ss\\.fff", "m\\:ss\\.f", "m\\:ss\\.f", "m\\:s\\.fff", "m\\:s\\.ff", "m\\:s\\.f", "ss\\.fff", "ss\\.ff", "ss\\.f", "s\\.fff", "s\\.ff", "s\\.f" };
+                if (TimeSpan.TryParseExact(match.Groups[0].Value, formats, null, out TimeSpan timeResult))
+                {
+                    return timeResult;
+                }
+            }
         }
 
         return null;
