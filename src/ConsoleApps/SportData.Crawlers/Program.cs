@@ -9,10 +9,12 @@ using SportData.Common.Constants;
 using SportData.Crawlers.Countries;
 using SportData.Crawlers.Olympedia;
 using SportData.Data.Contexts;
+using SportData.Data.Factories;
+using SportData.Data.Factories.Interfaces;
 using SportData.Data.Repositories;
 using SportData.Services;
-using SportData.Services.Data.CrawlerStorage;
-using SportData.Services.Data.CrawlerStorage.Interfaces;
+using SportData.Services.Data.CrawlerStorageDb;
+using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Interfaces;
 
 public class Program
@@ -25,13 +27,13 @@ public class Program
 
     private static async Task StartCrawlersAsync(ServiceProvider services)
     {
-        await services.GetService<CountryDataCrawler>().StartAsync();
-        await services.GetService<NOCCrawler>().StartAsync();
-        await services.GetService<GameCrawler>().StartAsync();
-        await services.GetService<SportDisciplineCrawler>().StartAsync();
+        //await services.GetService<CountryDataCrawler>().StartAsync();
+        //await services.GetService<NOCCrawler>().StartAsync();
+        //await services.GetService<GameCrawler>().StartAsync();
+        //await services.GetService<SportDisciplineCrawler>().StartAsync();
         await services.GetService<ResultCrawler>().StartAsync();
-        await services.GetService<AthleteCrawler>().StartAsync();
-        await services.GetService<VenueCrawler>().StartAsync();
+        //await services.GetService<AthleteCrawler>().StartAsync();
+        //await services.GetService<VenueCrawler>().StartAsync();
     }
 
     private static ServiceProvider ConfigureServices()
@@ -54,6 +56,19 @@ public class Program
         });
 
         // DATABASE
+        var sportDataDbOptions = new DbContextOptionsBuilder<SportDataDbContext>()
+            .UseLazyLoadingProxies(true)
+            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING))
+            .Options;
+
+        var crawlerStorageDbOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
+            .UseLazyLoadingProxies(true)
+            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING))
+            .Options;
+
+        var dbContextFactory = new DbContextFactory(crawlerStorageDbOptions, sportDataDbOptions);
+        services.AddSingleton<IDbContextFactory>(dbContextFactory);
+
         services.AddDbContext<CrawlerStorageDbContext>(options =>
         {
             options.UseLazyLoadingProxies();
