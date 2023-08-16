@@ -97,4 +97,14 @@ public static class ConverterConstants
     public const string INDEX_SHOT_PUT_POINTS = "shot put points";
     public const string INDEX_TEAM_DRILL_POINTS = "team drill points";
     public const string INDEX_TEAM_PRECISION_POINTS = "team precision points";
+    public const string INDEX_30_METERS_POINTS = "30 m";
+    public const string INDEX_50_METERS_POINTS = "50 m";
+    public const string INDEX_70_METERS_POINTS = "70 m";
+    public const string INDEX_90_METERS_POINTS = "90 m";
+    public const string INDEX_30_YARDS = "30 y";
+    public const string INDEX_40_YARDS = "40 y";
+    public const string INDEX_50_YARDS = "50 y";
+    public const string INDEX_60_YARDS = "60 y";
+    public const string INDEX_80_YARDS = "80 y";
+    public const string INDEX_100_YARDS = "100 y";
 }
