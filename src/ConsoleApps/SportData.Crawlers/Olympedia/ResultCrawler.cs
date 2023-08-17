@@ -50,9 +50,9 @@ public class ResultCrawler : BaseOlympediaCrawler
                                         var resultUrls = this.ExtractResultUrls(mainResultHttpModel);
 
                                         var documents = new List<Document>
-                                    {
-                                        this.CreateDocument(mainResultHttpModel)
-                                    };
+                                        {
+                                            this.CreateDocument(mainResultHttpModel)
+                                        };
                                         var order = 2;
 
                                         foreach (var resultUrl in resultUrls)
