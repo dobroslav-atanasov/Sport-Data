@@ -12,19 +12,17 @@ using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Data.SportDataDb.Interfaces;
 using SportData.Services.Interfaces;
 
-public class GameConverter : BaseConverter
+public class GameConverter : BaseOlympediaConverter
 {
-    private readonly IDataCacheService dataCacheService;
     private readonly ICitiesService citiesService;
     private readonly IGamesService gamesService;
     private readonly IHostsService hostsService;
 
     public GameConverter(ILogger<BaseConverter> logger, ICrawlersService crawlersService, ILogsService logsService, IGroupsService groupsService, IZipService zipService,
-        IRegExpService regExpService, INormalizeService normalizeService, IDataCacheService dataCacheService, ICitiesService citiesService, IGamesService gamesService,
-        IHostsService hostsService)
-        : base(logger, crawlersService, logsService, groupsService, zipService, regExpService, normalizeService)
+        IRegExpService regExpService, INormalizeService normalizeService, IDataCacheService dataCacheService, IOlympediaService olympediaService, ICitiesService citiesService,
+        IGamesService gamesService, IHostsService hostsService)
+        : base(logger, crawlersService, logsService, groupsService, zipService, regExpService, normalizeService, dataCacheService, olympediaService)
     {
-        this.dataCacheService = dataCacheService;
         this.citiesService = citiesService;
         this.gamesService = gamesService;
         this.hostsService = hostsService;
@@ -114,7 +112,7 @@ public class GameConverter : BaseConverter
     private async Task<City> ProceccCityAsync(string cityName, int year, OlympicGameType type)
     {
         var nocCode = this.NormalizeService.MapCityNameAndYearToNOCCode(cityName, year);
-        var noc = this.dataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+        var noc = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
         if (noc != null)
         {
             var city = new City
