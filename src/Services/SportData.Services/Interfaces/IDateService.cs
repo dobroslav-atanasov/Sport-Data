@@ -8,7 +8,7 @@ public interface IDateService
 
     //DateTime? MatchDate(string text);
 
-    DateTime? MatchDate(string text, int year);
+    //DateTime? MatchDate(string text, int year);
 
     //DateTime? MatchDateTime(string text);
 
