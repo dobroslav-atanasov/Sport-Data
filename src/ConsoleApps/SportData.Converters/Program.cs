@@ -81,14 +81,14 @@ public class Program
 
         services.AddDbContext<SportDataDbContext>(options =>
         {
-            options.UseLazyLoadingProxies();
             options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING));
+            options.UseLazyLoadingProxies();
         });
 
         services.AddDbContext<CrawlerStorageDbContext>(options =>
         {
-            options.UseLazyLoadingProxies();
             options.UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING));
+            options.UseLazyLoadingProxies();
         });
 
         services.AddScoped(typeof(SportDataRepository<>));
