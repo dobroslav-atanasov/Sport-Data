@@ -167,13 +167,20 @@ public class DateService : IDateService
             return dateModel;
         }
 
+        if (year == 2020)
+        {
+            year = 2021;
+        }
+
         var patternsDictionary = new Dictionary<int, string>
-            {
-                { 1, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*–\s*(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
-                { 2, @"(\d+)\s*–\s*(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
-                { 3, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})\s*(?:-|—)\s*(\d+)\s*:\s*(\d+)" },
-                { 4, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" }
-            };
+        {
+            { 1, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*–\s*(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
+            { 2, @"(\d+)\s*–\s*(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
+            { 3, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})\s*(?:-|—)\s*(\d+)\s*:\s*(\d+)" },
+            { 4, @"(\d+)\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s*(\d{4})" },
+            { 5, @"(\d+)\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*(\d+)(?::)(\d+)" },
+            { 6, @"(\d+)\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)" },
+        };
 
         var formats = new string[] { "dd-MM-yyyy", "dd-M-yyyy", "d-MM-yyyy", "d-M-yyyy", "dd-MM-yyyy HH:mm", "dd-M-yyyy HH:mm", "d-MM-yyyy HH:mm", "d-M-yyyy HH:mm", };
         foreach (var kvp in patternsDictionary)
@@ -198,6 +205,12 @@ public class DateService : IDateService
                         break;
                     case 4:
                         startDate = $"{match.Groups[1].Value}-{match.Groups[2].Value.GetMonthNumber()}-{match.Groups[3].Value}";
+                        break;
+                    case 5:
+                        startDate = $"{match.Groups[1].Value}-{match.Groups[2].Value.GetMonthNumber()}-{year} {match.Groups[3].Value}:{match.Groups[4].Value}";
+                        break;
+                    case 6:
+                        startDate = $"{match.Groups[1].Value}-{match.Groups[2].Value.GetMonthNumber()}-{year}";
                         break;
                 }
 
