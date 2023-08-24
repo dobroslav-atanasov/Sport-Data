@@ -77,7 +77,7 @@ public static class ConverterConstants
     public const string INDEX_OTHER_PENALTY = "other penalty";
     public const string INDEX_PENALTY = "penalty";
     public const string INDEX_TIME_PENALTY = "time penalty";
-    public const string INDEX_QUALIFICATION_POINTS = "qualification points";
+    public const string INDEX_QUALIFICATION_HALF_POINTS = "qualification half points";
     public const string INDEX_EXERCISE_POINTS_1 = "exercise points 1";
     public const string INDEX_EXERCISE_POINTS_2 = "exercise points 2";
     public const string INDEX_TRIAL_TIME_1 = "trial time 1";
