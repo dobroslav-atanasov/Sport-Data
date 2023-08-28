@@ -50,7 +50,7 @@ public class RegExpService : IRegExpService
             return null;
         }
 
-        text = text.Replace(",", string.Empty);
+        text = text.Replace(",", ".");
 
         var match = Regex.Match(text, @"(\d+)\.(\d+)\.(\d+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         if (match.Success)
@@ -58,7 +58,7 @@ public class RegExpService : IRegExpService
             return double.Parse($"{match.Groups[1].Value}{match.Groups[2].Value},{match.Groups[3].Value}");
         }
 
-        match = Regex.Match(text, @"([.\d]+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        match = Regex.Match(text, @"([-.\d]+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         if (match.Success)
         {
             var number = match.Groups[1].Value.Replace(".", ",");
