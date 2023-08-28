@@ -21,4 +21,8 @@
     <ProjectReference Include="..\SportData.Data.Entities\SportData.Data.Entities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="OlympicGames\ArtisticGymnastics\Team\" />
+  </ItemGroup>
+
 </Project>
