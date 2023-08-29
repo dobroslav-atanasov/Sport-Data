@@ -71,7 +71,9 @@ public static class ConverterConstants
     public const string INDEX_OPTIONAL_EXERCISES_POINTS_1 = "oep1";
     public const string INDEX_OPTIONAL_EXERCISES_POINTS_2 = "oep2";
     public const string INDEX_VAULT_1 = "vault 1";
+    public const string INDEX_VAULT_OFF_1 = "vault off 1";
     public const string INDEX_VAULT_2 = "vault 2";
+    public const string INDEX_VAULT_OFF_2 = "vault off 2";
     public const string INDEX_FINAL_POINTS = "final points";
     public const string INDEX_LINE_PENALTY = "line penalty";
     public const string INDEX_OTHER_PENALTY = "other penalty";
@@ -83,7 +85,7 @@ public static class ConverterConstants
     public const string INDEX_TRIAL_TIME_1 = "trial time 1";
     public const string INDEX_TRIAL_TIME_2 = "trial time 2";
     public const string INDEX_TRIAL_TIME_3 = "trial time 3";
-    public const string INDEX_JUMP_OFF_POINTS = "jump off points";
+    public const string INDEX_VAULT_OFF_POINTS = "jump off points";
     public const string INDEX_D_SCORE = "d score";
     public const string INDEX_E_SCORE = "e score";
     public const string INDEX_DISTANCE = "distance";
