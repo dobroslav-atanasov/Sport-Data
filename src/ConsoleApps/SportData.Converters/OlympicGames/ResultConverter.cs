@@ -23,6 +23,8 @@ using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Data.SportDataDb.Interfaces;
 using SportData.Services.Interfaces;
 
+using Document = Data.Entities.Crawlers.Document;
+
 public class ResultConverter : BaseOlympediaConverter
 {
     private readonly IDateService dateService;
@@ -224,88 +226,146 @@ public class ResultConverter : BaseOlympediaConverter
         var dateModel = this.dateService.ParseDate(dateString);
         var eventType = this.NormalizeService.MapArtisticGymnasticsEvent(options.Event.Name);
 
-        if (eventType == GAREventType.Individual)
+        if (eventType == GAREventType.Vault)
         {
-            await Console.Out.WriteLineAsync($"{options.Game.Year}");
-            var standingHeaders = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-            foreach (var item in standingHeaders)
-            {
-                Console.WriteLine(item);
-            }
+            //await Console.Out.WriteLineAsync($"{options.Game.Year}");
+            //var standingHeaders = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
+            //foreach (var item in standingHeaders)
+            //{
+            //    Console.WriteLine(item);
+            //}
 
-            foreach (var table in options.Tables)
-            {
-                var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-                foreach (var item in headers)
-                {
-                    Console.WriteLine(item);
-                }
-            }
+            //foreach (var table in options.Tables)
+            //{
+            //    var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
+            //    foreach (var item in headers)
+            //    {
+            //        Console.WriteLine(item);
+            //    }
+            //}
+            ;
         }
 
-        //if (!options.Event.IsTeamEvent)
-        //{
-        //    var @event = new GARIndividualEvent { EventType = eventType };
+        if (!options.Event.IsTeamEvent)
+        {
+            var @event = new GARIndividualEvent { EventType = eventType };
 
-        //    if (options.Tables.Count == 0)
-        //    {
-        //        //@event.FinalStartDate = dateModel.StartDateTime;
-        //        //@event.FinalEndDate = dateModel.EndDateTime;
-        //        //await this.ConvertGARIndividualAsync(@event, options.StandingTable, RoundType.Final, options.Event.Id, false, false);
-        //    }
-        //    else
-        //    {
-        //        if (@event.EventType == GAREventType.Triathlon)
-        //        {
-        //            //@event.FinalStartDate = dateModel.StartDateTime;
-        //            //@event.FinalEndDate = dateModel.EndDateTime;
-        //            //foreach (var table in options.Tables)
-        //            //{
-        //            //    await this.ConvertGARIndividualAsync(@event, table, RoundType.Final, options.Event.Id, false, true);
-        //            //}
-        //            //await this.ConvertGARIndividualAsync(@event, options.StandingTable, RoundType.Final, options.Event.Id, false, true);
-        //        }
-        //        else if (@event.EventType != GAREventType.Individual)
-        //        {
-        //            foreach (var table in options.Tables)
-        //            {
-        //                if (table.Round == RoundType.Final)
-        //                {
-        //                    @event.FinalStartDate = table.FromDate;
-        //                    @event.FinalEndDate = table.ToDate;
-        //                }
-        //                else if (table.Round == RoundType.Qualification)
-        //                {
-        //                    @event.QualificationStartDate = table.FromDate;
-        //                    @event.QualificationEndDate = table.ToDate;
-        //                }
+            if (options.Tables.Count == 0)
+            {
+                @event.FinalStartDate = dateModel.StartDateTime;
+                @event.FinalEndDate = dateModel.EndDateTime;
+                await this.ConvertGARIndividualAsync(@event, options.StandingTable, RoundType.Final, options.Event, eventType, false, null);
+            }
+            else
+            {
+                if (@event.EventType != GAREventType.Individual)
+                {
+                    foreach (var table in options.Tables)
+                    {
+                        string info = null;
+                        if (@event.EventType == GAREventType.Triathlon)
+                        {
+                            table.Round = RoundType.Final;
+                            info = table.Title;
+                        }
 
-        //                await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event.Id, false, false);
-        //            }
+                        this.SetGAREventDates(table, @event);
 
-        //            if (options.Game.Year >= 2012)
-        //            {
-        //                await this.ConvertGARIndividualAsync(@event, options.StandingTable, options.StandingTable.Round, options.Event.Id, true, false);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            ;
-        //        }
-        //    }
+                        await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event, eventType, false, info);
+                    }
 
-        //    var json = JsonSerializer.Serialize(@event);
-        //    //    //var result = new Result
-        //    //    //{
-        //    //    //    EventId = options.Event.Id,
-        //    //    //    Json = json
-        //    //    //};
+                    if (options.Game.Year >= 2012 && @event.EventType == GAREventType.Vault)
+                    {
+                        foreach (var document in options.Documents)
+                        {
+                            await this.ConvertGARIndividualDocumentsAsync(document, options.Event, @event);
+                        }
+                    }
+                }
+                else
+                {
+                    if (options.Documents.Any())
+                    {
+                        foreach (var table in options.Tables)
+                        {
+                            this.SetGAREventDates(table, @event);
+                        }
 
-        //    //    //await this.resultsService.AddOrUpdateAsync(result);
-        //}
+                        foreach (var document in options.Documents)
+                        {
+                            await this.ConvertGARIndividualDocumentsAsync(document, options.Event, @event);
+                        }
+                    }
+                    else
+                    {
+                        @event.FinalStartDate = dateModel.StartDateTime;
+                        @event.FinalEndDate = dateModel.EndDateTime;
+
+                        foreach (var table in options.Tables)
+                        {
+                            this.SetGAREventDates(table, @event);
+                            var currentEventType = this.NormalizeService.MapArtisticGymnasticsEvent(table.Title);
+                            await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event, currentEventType, false, table.Title);
+                        }
+                    }
+                }
+
+                if (options.Game.Year >= 2012)
+                {
+                    await this.ConvertGARIndividualAsync(@event, options.StandingTable, options.StandingTable.Round, options.Event, eventType, true, null);
+                }
+            }
+
+            this.CalculateGARIndividualTotalPoints(@event);
+
+            var json = JsonSerializer.Serialize(@event);
+            //    //var result = new Result
+            //    //{
+            //    //    EventId = options.Event.Id,
+            //    //    Json = json
+            //    //};
+
+            //    //await this.resultsService.AddOrUpdateAsync(result);
+        }
     }
 
-    private async Task ConvertGARIndividualAsync(GARIndividualEvent @event, TableModel table, RoundType round, int eventId, bool isOnlyNumber, bool isExist)
+    private void SetGAREventDates(TableModel table, GARIndividualEvent @event)
+    {
+        if (table.Round == RoundType.Final)
+        {
+            @event.FinalStartDate = table.FromDate;
+            @event.FinalEndDate = table.ToDate;
+        }
+        else if (table.Round == RoundType.Qualification)
+        {
+            @event.QualificationStartDate = table.FromDate;
+            @event.QualificationEndDate = table.ToDate;
+        }
+    }
+
+    private async Task ConvertGARIndividualDocumentsAsync(Document document, EventCacheModel eventCache, GARIndividualEvent @event)
+    {
+        var htmlDocument = this.CreateHtmlDocument(document);
+        var table = this.GetStandingTable(htmlDocument, eventCache);
+        var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+        title = title.Replace(eventCache.OriginalName, string.Empty).Replace("–", string.Empty).Trim();
+        var parts = title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        var round = this.NormalizeService.MapRoundType(parts.FirstOrDefault());
+        var eventType = this.NormalizeService.MapArtisticGymnasticsEvent(parts.LastOrDefault());
+
+        await this.ConvertGARIndividualAsync(@event, table, round, eventCache, eventType, false, parts.LastOrDefault().Trim());
+    }
+
+    private void CalculateGARIndividualTotalPoints(GARIndividualEvent @event)
+    {
+        @event.Gymnasts
+            .ForEach(x =>
+            {
+                x.Points = x.Scores.Sum(x => x.Points);
+            });
+    }
+
+    private async Task ConvertGARIndividualAsync(GARIndividualEvent @event, TableModel table, RoundType round, EventCacheModel eventCache, GAREventType eventType, bool isOnlyNumber, string info)
     {
         var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
         var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
@@ -324,16 +384,43 @@ public class ResultConverter : BaseOlympediaConverter
                         x.Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null;
                     });
 
-                return;
+                continue;
             }
 
-            GARIndividual gymnast = null;
-            var isAdded = false;
-            if (isExist)
+            var score = new GARIndividualScore
             {
-                gymnast = @event.Gymnasts.FirstOrDefault(x => x.ParticipantNumber == athleteNumber);
+                EventType = eventType,
+                Info = info,
+                Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null,
+                CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value2) ? this.RegExpService.MatchDouble(data[value2].InnerText) : null,
+                OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value3) ? this.RegExpService.MatchDouble(data[value3].InnerText) : null,
+                QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value4) ? this.RegExpService.MatchDouble(data[value4].InnerText) : null,
+                FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value5) ? this.RegExpService.MatchDouble(data[value5].InnerText) : null,
+                QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value6) ? this.RegExpService.MatchDouble(data[value6].InnerText) : null,
+                DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value7) ? this.RegExpService.MatchDouble(data[value7].InnerText) : null,
+                EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value8) ? this.RegExpService.MatchDouble(data[value8].InnerText) : null,
+                LinePenalty = indexes.TryGetValue(ConverterConstants.INDEX_LINE_PENALTY, out int value9) ? this.RegExpService.MatchDouble(data[value9].InnerText) : null,
+                TimePenalty = indexes.TryGetValue(ConverterConstants.INDEX_TIME_PENALTY, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null,
+                OtherPenalty = indexes.TryGetValue(ConverterConstants.INDEX_OTHER_PENALTY, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null,
+                Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null,
+                Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value13) ? this.RegExpService.MatchDouble(data[value13].InnerText) : null,
+                Vault1 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_1, out int value14) ? this.RegExpService.MatchDouble(data[value14].InnerText) : null,
+                Vault2 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_2, out int value15) ? this.RegExpService.MatchDouble(data[value15].InnerText) : null,
+                VaultOff1 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_OFF_1, out int value16) ? this.RegExpService.MatchDouble(data[value16].InnerText) : null,
+                VaultOff2 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_OFF_2, out int value17) ? this.RegExpService.MatchDouble(data[value17].InnerText) : null,
+                VaultOffPoints = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_OFF_POINTS, out int value18) ? this.RegExpService.MatchDouble(data[value18].InnerText) : null,
+                Height = indexes.TryGetValue(ConverterConstants.INDEX_HEIGHT, out int value19) ? this.RegExpService.MatchDouble(data[value19].InnerText) : null,
+                Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+            };
+
+            switch (eventType)
+            {
+                case GAREventType.Triathlon:
+                    score.Info = table.Title;
+                    break;
             }
 
+            var gymnast = @event.Gymnasts.FirstOrDefault(x => x.ParticipantNumber == athleteNumber && x.Round == round);
             if (gymnast is null)
             {
                 var nocCode = this.OlympediaService.FindCountryCode(data[indexes[ConverterConstants.INDEX_NOC]].OuterHtml);
@@ -343,249 +430,84 @@ public class ResultConverter : BaseOlympediaConverter
                     continue;
                 }
 
-                var participant = await this.participantsService.GetAsync(athleteNumber, eventId, nocCacheModel.Id);
+                var participant = await this.participantsService.GetAsync(athleteNumber, eventCache.Id, nocCacheModel.Id);
                 if (participant == null)
                 {
                     continue;
                 }
 
-                isAdded = true;
                 gymnast = new GARIndividual
                 {
                     ParticipantId = participant.Id,
                     ParticipantNumber = athleteNumber,
                     Name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText,
-                    Round = round
+                    Round = round,
+                    Scores = new List<GARIndividualScore> { score }
                 };
-            }
 
-            gymnast.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null;
-            gymnast.CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value2) ? this.RegExpService.MatchDouble(data[value2].InnerText) : null;
-            gymnast.OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value3) ? this.RegExpService.MatchDouble(data[value3].InnerText) : null;
-            gymnast.QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value4) ? this.RegExpService.MatchDouble(data[value4].InnerText) : null;
-            gymnast.FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value5) ? this.RegExpService.MatchDouble(data[value5].InnerText) : null;
-            gymnast.QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value6) ? this.RegExpService.MatchDouble(data[value6].InnerText) : null;
-            gymnast.DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value7) ? this.RegExpService.MatchDouble(data[value7].InnerText) : null;
-            gymnast.EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value8) ? this.RegExpService.MatchDouble(data[value8].InnerText) : null;
-            gymnast.LinePenalty = indexes.TryGetValue(ConverterConstants.INDEX_LINE_PENALTY, out int value9) ? this.RegExpService.MatchDouble(data[value9].InnerText) : null;
-            gymnast.TimePenalty = indexes.TryGetValue(ConverterConstants.INDEX_TIME_PENALTY, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null;
-            gymnast.OtherPenalty = indexes.TryGetValue(ConverterConstants.INDEX_OTHER_PENALTY, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null;
-            gymnast.Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null;
-            gymnast.Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value13) ? this.RegExpService.MatchDouble(data[value13].InnerText) : null;
-            gymnast.Vault1 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_1, out int value14) ? this.RegExpService.MatchDouble(data[value14].InnerText) : null;
-            gymnast.Vault2 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_2, out int value15) ? this.RegExpService.MatchDouble(data[value15].InnerText) : null;
-            gymnast.VaultOff1 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_OFF_1, out int value16) ? this.RegExpService.MatchDouble(data[value16].InnerText) : null;
-            gymnast.VaultOff2 = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_OFF_2, out int value17) ? this.RegExpService.MatchDouble(data[value17].InnerText) : null;
-            gymnast.VaultOffPoints = indexes.TryGetValue(ConverterConstants.INDEX_VAULT_OFF_POINTS, out int value18) ? this.RegExpService.MatchDouble(data[value18].InnerText) : null;
-
-            gymnast.Qualification = this.OlympediaService.FindQualification(row.OuterHtml);
-
-            switch (@event.EventType)
-            {
-                case GAREventType.Triathlon:
-                    if (table.Title == "Parallel Bars")
-                    {
-                        gymnast.ParallelBarsPoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value31) ? this.RegExpService.MatchDouble(data[value31].InnerText) : null;
-                    }
-                    else if (table.Title == "Horizontal Bar")
-                    {
-                        gymnast.HorizontalBarPoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value31) ? this.RegExpService.MatchDouble(data[value31].InnerText) : null;
-                    }
-                    else if (table.Title == "Side Horse")
-                    {
-                        gymnast.SideHorsePoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value31) ? this.RegExpService.MatchDouble(data[value31].InnerText) : null;
-                    }
-                    else
-                    {
-                        gymnast.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value31) ? this.RegExpService.MatchDouble(data[value31].InnerText) : null;
-                    }
-                    break;
-            }
-
-            if (isAdded)
-            {
                 @event.Gymnasts.Add(gymnast);
+            }
+            else
+            {
+                gymnast.Scores.Add(score);
+            }
+
+            if (eventType == GAREventType.RopeClimbing && @event.FinalStartDate.HasValue && @event.FinalStartDate.Value.Year == 1932)
+            {
+                gymnast.Scores.Add(new GARIndividualScore
+                {
+                    Time = indexes.TryGetValue(ConverterConstants.INDEX_TRIAL_TIME_1, out int value30) ? this.RegExpService.MatchDouble(data[value30].InnerText) : null,
+                    Info = "TT1"
+                });
+
+                gymnast.Scores.Add(new GARIndividualScore
+                {
+                    Time = indexes.TryGetValue(ConverterConstants.INDEX_TRIAL_TIME_2, out int value31) ? this.RegExpService.MatchDouble(data[value31].InnerText) : null,
+                    Info = "TT2"
+                });
+
+                gymnast.Scores.Add(new GARIndividualScore
+                {
+                    Time = indexes.TryGetValue(ConverterConstants.INDEX_TRIAL_TIME_3, out int value32) ? this.RegExpService.MatchDouble(data[value32].InnerText) : null,
+                    Info = "TT3"
+                });
+            }
+            else if (eventType == GAREventType.Individual && @event.FinalStartDate.HasValue && @event.FinalStartDate.Value.Year == 2008)
+            {
+                var floorExercise = indexes.TryGetValue(ConverterConstants.INDEX_FLOOR_EXERCISE, out int value41) ? this.RegExpService.MatchDouble(data[value41].InnerText) : null;
+                var vault = indexes.TryGetValue(ConverterConstants.INDEX_HORSE_VAULT, out int value42) ? this.RegExpService.MatchDouble(data[value42].InnerText) : null;
+                var parallelBars = indexes.TryGetValue(ConverterConstants.INDEX_PARALLEL_BARS, out int value43) ? this.RegExpService.MatchDouble(data[value43].InnerText) : null;
+                var horizontalBar = indexes.TryGetValue(ConverterConstants.INDEX_HORIZONTAL_BAR, out int value44) ? this.RegExpService.MatchDouble(data[value44].InnerText) : null;
+                var rings = indexes.TryGetValue(ConverterConstants.INDEX_RINGS, out int value45) ? this.RegExpService.MatchDouble(data[value45].InnerText) : null;
+                var pommelHorse = indexes.TryGetValue(ConverterConstants.INDEX_POMMELLED_HORSE, out int value46) ? this.RegExpService.MatchDouble(data[value46].InnerText) : null;
+                var unevenBars = indexes.TryGetValue(ConverterConstants.INDEX_UNEVEN_BARS, out int value47) ? this.RegExpService.MatchDouble(data[value47].InnerText) : null;
+                var balanceBeam = indexes.TryGetValue(ConverterConstants.INDEX_BALANCE_BEAM, out int value48) ? this.RegExpService.MatchDouble(data[value48].InnerText) : null;
+
+                if (eventCache.Name.StartsWith("Men"))
+                {
+                    gymnast.Scores = new List<GARIndividualScore>
+                    {
+                        new GARIndividualScore { Points = floorExercise, EventType = GAREventType.FloorExercise },
+                        new GARIndividualScore { Points = vault, EventType = GAREventType.Vault },
+                        new GARIndividualScore { Points = parallelBars, EventType = GAREventType.ParallelBars },
+                        new GARIndividualScore { Points = horizontalBar, EventType = GAREventType.HorizontalBar },
+                        new GARIndividualScore { Points = rings, EventType = GAREventType.Rings },
+                        new GARIndividualScore { Points = pommelHorse, EventType = GAREventType.PommelHorse }
+                    };
+                }
+                else
+                {
+                    gymnast.Scores = new List<GARIndividualScore>
+                    {
+                        new GARIndividualScore { Points = floorExercise, EventType = GAREventType.FloorExercise },
+                        new GARIndividualScore { Points = vault, EventType = GAREventType.Vault },
+                        new GARIndividualScore { Points = unevenBars, EventType = GAREventType.UnevenBars },
+                        new GARIndividualScore { Points = balanceBeam, EventType = GAREventType.BalanceBeam },
+                    };
+                }
             }
         }
     }
-
-    //private async Task<List<GARIndividual>> ConvertGARIndividualGymnastsAsync(TableModel table, int eventId, GAREventType eventType, bool isOnlyNumber, bool isExist, List<GARIndividual> gymnasts = null)
-    //{
-    //    gymnasts ??= new List<GARIndividual>();
-
-    //    var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
-    //    var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
-    //    var indexes = this.OlympediaService.FindIndexes(headers);
-    //    foreach (var row in rows.Skip(1))
-    //    {
-    //        var data = row.Elements("td").ToList();
-    //        var athleteNumber = this.OlympediaService.FindAthleteNumber(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-    //        GARIndividual gymnast = null;
-    //        var isAdded = false;
-    //        if (isExist)
-    //        {
-    //            gymnast = gymnasts.FirstOrDefault(x => x.ParticipantNumber == athleteNumber);
-    //        }
-
-    //        if (gymnast is null)
-    //        {
-    //            var nocCode = this.OlympediaService.FindCountryCode(data[indexes[ConverterConstants.INDEX_NOC]].OuterHtml);
-    //            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
-    //            if (nocCacheModel is null)
-    //            {
-    //                continue;
-    //            }
-
-    //            var participant = await this.participantsService.GetAsync(athleteNumber, eventId, nocCacheModel.Id);
-    //            if (participant == null)
-    //            {
-    //                continue;
-    //            }
-
-    //            isAdded = true;
-    //            gymnast = new GARIndividual
-    //            {
-    //                ParticipantId = participant.Id,
-    //                ParticipantNumber = athleteNumber,
-    //                Name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText
-    //            };
-    //        }
-
-    //        if (isOnlyNumber)
-    //        {
-    //            gymnast.Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null;
-    //        }
-    //        else
-    //        {
-    //            switch (eventType)
-    //            {
-    //                case GAREventType.Individual:
-    //                    break;
-    //                case GAREventType.Team:
-    //                    break;
-    //                case GAREventType.FloorExercise:
-    //                    gymnast.FloorExercise.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null;
-    //                    gymnast.FloorExercise.CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value2) ? this.RegExpService.MatchDouble(data[value2].InnerText) : null;
-    //                    gymnast.FloorExercise.OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value3) ? this.RegExpService.MatchDouble(data[value3].InnerText) : null;
-    //                    gymnast.FloorExercise.QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value4) ? this.RegExpService.MatchDouble(data[value4].InnerText) : null;
-    //                    gymnast.FloorExercise.FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value5) ? this.RegExpService.MatchDouble(data[value5].InnerText) : null;
-    //                    gymnast.FloorExercise.QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value6) ? this.RegExpService.MatchDouble(data[value6].InnerText) : null;
-    //                    gymnast.FloorExercise.DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value7) ? this.RegExpService.MatchDouble(data[value7].InnerText) : null;
-    //                    gymnast.FloorExercise.EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value8) ? this.RegExpService.MatchDouble(data[value8].InnerText) : null;
-    //                    gymnast.FloorExercise.LinePenalty = indexes.TryGetValue(ConverterConstants.INDEX_LINE_PENALTY, out int value9) ? this.RegExpService.MatchDouble(data[value9].InnerText) : null;
-    //                    gymnast.FloorExercise.TimePenalty = indexes.TryGetValue(ConverterConstants.INDEX_TIME_PENALTY, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null;
-    //                    gymnast.FloorExercise.OtherPenalty = indexes.TryGetValue(ConverterConstants.INDEX_OTHER_PENALTY, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null;
-    //                    gymnast.FloorExercise.Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null;
-    //                    gymnast.FloorExercise.Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value14) ? this.RegExpService.MatchDouble(data[value14].InnerText) : null;
-    //                    gymnast.FloorExercise.Qualification = this.OlympediaService.FindQualification(row.OuterHtml);
-    //                    break;
-    //                case GAREventType.HorizontalBar:
-    //                    gymnast.HorizontalBar.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value21) ? this.RegExpService.MatchDouble(data[value21].InnerText) : null;
-    //                    gymnast.HorizontalBar.CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value22) ? this.RegExpService.MatchDouble(data[value22].InnerText) : null;
-    //                    gymnast.HorizontalBar.OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value23) ? this.RegExpService.MatchDouble(data[value23].InnerText) : null;
-    //                    gymnast.HorizontalBar.QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value24) ? this.RegExpService.MatchDouble(data[value24].InnerText) : null;
-    //                    gymnast.HorizontalBar.FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value25) ? this.RegExpService.MatchDouble(data[value25].InnerText) : null;
-    //                    gymnast.HorizontalBar.QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value26) ? this.RegExpService.MatchDouble(data[value26].InnerText) : null;
-    //                    gymnast.HorizontalBar.DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value27) ? this.RegExpService.MatchDouble(data[value27].InnerText) : null;
-    //                    gymnast.HorizontalBar.EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value28) ? this.RegExpService.MatchDouble(data[value28].InnerText) : null;
-    //                    gymnast.HorizontalBar.Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value29) ? this.RegExpService.MatchDouble(data[value29].InnerText) : null;
-    //                    gymnast.HorizontalBar.Qualification = this.OlympediaService.FindQualification(row.OuterHtml);
-    //                    break;
-    //                case GAREventType.ParallelBars:
-    //                    gymnast.ParallelBars.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value31) ? this.RegExpService.MatchDouble(data[value31].InnerText) : null;
-    //                    gymnast.ParallelBars.CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value32) ? this.RegExpService.MatchDouble(data[value32].InnerText) : null;
-    //                    gymnast.ParallelBars.OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value33) ? this.RegExpService.MatchDouble(data[value33].InnerText) : null;
-    //                    gymnast.ParallelBars.QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value34) ? this.RegExpService.MatchDouble(data[value34].InnerText) : null;
-    //                    gymnast.ParallelBars.FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value35) ? this.RegExpService.MatchDouble(data[value35].InnerText) : null;
-    //                    gymnast.ParallelBars.QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value36) ? this.RegExpService.MatchDouble(data[value36].InnerText) : null;
-    //                    gymnast.ParallelBars.DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value37) ? this.RegExpService.MatchDouble(data[value37].InnerText) : null;
-    //                    gymnast.ParallelBars.EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value38) ? this.RegExpService.MatchDouble(data[value38].InnerText) : null;
-    //                    gymnast.ParallelBars.Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value39) ? this.RegExpService.MatchDouble(data[value39].InnerText) : null;
-    //                    gymnast.ParallelBars.Qualification = this.OlympediaService.FindQualification(row.OuterHtml);
-    //                    break;
-    //                case GAREventType.PommelHorse:
-    //                    gymnast.PommelHorse.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value41) ? this.RegExpService.MatchDouble(data[value41].InnerText) : null;
-    //                    gymnast.PommelHorse.CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value42) ? this.RegExpService.MatchDouble(data[value42].InnerText) : null;
-    //                    gymnast.PommelHorse.OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value43) ? this.RegExpService.MatchDouble(data[value43].InnerText) : null;
-    //                    gymnast.PommelHorse.QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value44) ? this.RegExpService.MatchDouble(data[value44].InnerText) : null;
-    //                    gymnast.PommelHorse.FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value45) ? this.RegExpService.MatchDouble(data[value45].InnerText) : null;
-    //                    gymnast.PommelHorse.QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value46) ? this.RegExpService.MatchDouble(data[value46].InnerText) : null;
-    //                    gymnast.PommelHorse.DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value47) ? this.RegExpService.MatchDouble(data[value47].InnerText) : null;
-    //                    gymnast.PommelHorse.EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value48) ? this.RegExpService.MatchDouble(data[value48].InnerText) : null;
-    //                    gymnast.PommelHorse.Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value49) ? this.RegExpService.MatchDouble(data[value49].InnerText) : null;
-    //                    gymnast.PommelHorse.Qualification = this.OlympediaService.FindQualification(row.OuterHtml);
-    //                    break;
-    //                case GAREventType.Rings:
-    //                    gymnast.Rings.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value51) ? this.RegExpService.MatchDouble(data[value51].InnerText) : null;
-    //                    gymnast.Rings.CompulsoryPoints = indexes.TryGetValue(ConverterConstants.INDEX_COMPULSORY_EXERCISES_POINTS, out int value52) ? this.RegExpService.MatchDouble(data[value52].InnerText) : null;
-    //                    gymnast.Rings.OptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_OPTIONAL_EXERCISES_POINTS, out int value53) ? this.RegExpService.MatchDouble(data[value53].InnerText) : null;
-    //                    gymnast.Rings.QualificationHalfPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFICATION_HALF_POINTS, out int value54) ? this.RegExpService.MatchDouble(data[value54].InnerText) : null;
-    //                    gymnast.Rings.FinalPoints = indexes.TryGetValue(ConverterConstants.INDEX_FINAL_POINTS, out int value55) ? this.RegExpService.MatchDouble(data[value55].InnerText) : null;
-    //                    gymnast.Rings.QualificationOptionalPoints = indexes.TryGetValue(ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS, out int value56) ? this.RegExpService.MatchDouble(data[value56].InnerText) : null;
-    //                    gymnast.Rings.DScore = indexes.TryGetValue(ConverterConstants.INDEX_D_SCORE, out int value57) ? this.RegExpService.MatchDouble(data[value57].InnerText) : null;
-    //                    gymnast.Rings.EScore = indexes.TryGetValue(ConverterConstants.INDEX_E_SCORE, out int value58) ? this.RegExpService.MatchDouble(data[value58].InnerText) : null;
-    //                    gymnast.Rings.Penalty = indexes.TryGetValue(ConverterConstants.INDEX_PENALTY, out int value59) ? this.RegExpService.MatchDouble(data[value59].InnerText) : null;
-    //                    gymnast.Rings.Qualification = this.OlympediaService.FindQualification(row.OuterHtml);
-    //                    break;
-    //                case GAREventType.Vault:
-    //                    break;
-    //                case GAREventType.BalanceBeam:
-    //                    break;
-    //                case GAREventType.UnevenBars:
-    //                    break;
-    //                case GAREventType.ClubSwinging:
-    //                    break;
-    //                case GAREventType.Combined:
-    //                    break;
-    //                case GAREventType.RopeClimbing:
-    //                    break;
-    //                case GAREventType.SideHorse:
-    //                    break;
-    //                case GAREventType.SideVault:
-    //                    break;
-    //                case GAREventType.Triathlon:
-    //                    if (table.Title == "Parallel Bars")
-    //                    {
-    //                        gymnast.Triathlon.ParallelBarsPoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value13) ? this.RegExpService.MatchDouble(data[value13].InnerText) : null;
-    //                    }
-    //                    else if (table.Title == "Horizontal Bar")
-    //                    {
-    //                        gymnast.Triathlon.HorizontalBarPoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value13) ? this.RegExpService.MatchDouble(data[value13].InnerText) : null;
-    //                    }
-    //                    else if (table.Title == "Side Horse")
-    //                    {
-    //                        gymnast.Triathlon.SideHorsePoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value13) ? this.RegExpService.MatchDouble(data[value13].InnerText) : null;
-    //                    }
-    //                    else
-    //                    {
-    //                        gymnast.Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value13) ? this.RegExpService.MatchDouble(data[value13].InnerText) : null;
-    //                    }
-    //                    break;
-    //                case GAREventType.Tumbling:
-    //                    break;
-    //                case GAREventType.TeamFreeSystem:
-    //                    break;
-    //                case GAREventType.TeamSwedishSystem:
-    //                    break;
-    //                case GAREventType.TeamHorizontalBar:
-    //                    break;
-    //                case GAREventType.TeamParallelBars:
-    //                    break;
-    //                case GAREventType.TeamPortableApparatus:
-    //                    break;
-    //                default:
-    //                    break;
-    //            }
-    //        }
-
-    //        if (isAdded)
-    //        {
-    //            gymnasts.Add(gymnast);
-    //        }
-    //    }
-
-    //    return gymnasts;
-    //}
     #endregion
 
     #region ARCHERY
