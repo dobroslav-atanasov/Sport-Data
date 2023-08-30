@@ -18,6 +18,7 @@ using SportData.Data.Models.OlympicGames.AlpineSkiing;
 using SportData.Data.Models.OlympicGames.Archery;
 using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.ArtisticGymnastics.Individual;
+using SportData.Data.Models.OlympicGames.ArtisticGymnastics.Team;
 using SportData.Data.Models.OlympicGames.Basketball;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Data.SportDataDb.Interfaces;
@@ -226,8 +227,106 @@ public class ResultConverter : BaseOlympediaConverter
         var dateModel = this.dateService.ParseDate(dateString);
         var eventType = this.NormalizeService.MapArtisticGymnasticsEvent(options.Event.Name);
 
-        if (eventType == GAREventType.Vault)
+        if (!options.Event.IsTeamEvent)
         {
+            //var @event = new GARIndividualEvent { EventType = eventType };
+
+            //if (options.Tables.Count == 0)
+            //{
+            //    @event.FinalStartDate = dateModel.StartDateTime;
+            //    @event.FinalEndDate = dateModel.EndDateTime;
+            //    await this.ConvertGARIndividualAsync(@event, options.StandingTable, RoundType.Final, options.Event, eventType, false, null);
+            //}
+            //else
+            //{
+            //    if (@event.EventType != GAREventType.Individual)
+            //    {
+            //        foreach (var table in options.Tables)
+            //        {
+            //            string info = null;
+            //            if (@event.EventType == GAREventType.Triathlon)
+            //            {
+            //                table.Round = RoundType.Final;
+            //                info = table.Title;
+            //            }
+
+            //            this.SetGAREventDates(table, @event);
+
+            //            await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event, eventType, false, info);
+            //        }
+
+            //        if (options.Game.Year >= 2012 && @event.EventType == GAREventType.Vault)
+            //        {
+            //            foreach (var document in options.Documents)
+            //            {
+            //                await this.ConvertGARIndividualDocumentsAsync(document, options.Event, @event);
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (options.Documents.Any())
+            //        {
+            //            foreach (var table in options.Tables)
+            //            {
+            //                this.SetGAREventDates(table, @event);
+            //            }
+
+            //            foreach (var document in options.Documents)
+            //            {
+            //                await this.ConvertGARIndividualDocumentsAsync(document, options.Event, @event);
+            //            }
+            //        }
+            //        else
+            //        {
+            //            @event.FinalStartDate = dateModel.StartDateTime;
+            //            @event.FinalEndDate = dateModel.EndDateTime;
+
+            //            foreach (var table in options.Tables)
+            //            {
+            //                this.SetGAREventDates(table, @event);
+            //                var currentEventType = this.NormalizeService.MapArtisticGymnasticsEvent(table.Title);
+            //                await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event, currentEventType, false, table.Title);
+            //            }
+            //        }
+            //    }
+
+            //    if (options.Game.Year >= 2012)
+            //    {
+            //        await this.ConvertGARIndividualAsync(@event, options.StandingTable, options.StandingTable.Round, options.Event, eventType, true, null);
+            //    }
+            //}
+
+            //this.CalculateGARIndividualTotalPoints(@event);
+
+            //var json = JsonSerializer.Serialize(@event);
+            ////    //var result = new Result
+            ////    //{
+            ////    //    EventId = options.Event.Id,
+            ////    //    Json = json
+            ////    //};
+
+            ////    //await this.resultsService.AddOrUpdateAsync(result);
+        }
+        else
+        {
+            var @event = new GARTeamEvent { EventType = eventType };
+
+            await this.SetGARTeamsAsync(options.StandingTable, @event, options.Event.Id);
+
+
+            ;
+
+            if (options.Game.Year <= 1996)
+            {
+
+            }
+            else
+            {
+                ;
+            }
+
+            //await Console.Out.WriteLineAsync($"{options.Event.Name} - {options.Event.OriginalName}");
             //await Console.Out.WriteLineAsync($"{options.Game.Year}");
             //var standingHeaders = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
             //foreach (var item in standingHeaders)
@@ -243,89 +342,67 @@ public class ResultConverter : BaseOlympediaConverter
             //        Console.WriteLine(item);
             //    }
             //}
-            ;
+            //Console.WriteLine("--------------------");
+            //foreach (var document in options.Documents)
+            //{
+            //    var htmlDocument = this.CreateHtmlDocument(document);
+            //    var table = this.GetStandingTable(htmlDocument, options.Event);
+            //    var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+            //    Console.WriteLine(title);
+            //    var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
+            //    foreach (var item in headers)
+            //    {
+            //        Console.WriteLine(item);
+            //    }
+            //}
+            //await Console.Out.WriteLineAsync("=======================================================================")
+            //;
         }
+    }
 
-        if (!options.Event.IsTeamEvent)
+    private async Task SetGARTeamsAsync(TableModel table, GARTeamEvent @event, int eventId)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        GARTeam eventTeam = null;
+        foreach (var row in rows.Skip(1))
         {
-            var @event = new GARIndividualEvent { EventType = eventType };
-
-            if (options.Tables.Count == 0)
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindCountryCode(row.OuterHtml);
+            if (nocCode != null)
             {
-                @event.FinalStartDate = dateModel.StartDateTime;
-                @event.FinalEndDate = dateModel.EndDateTime;
-                await this.ConvertGARIndividualAsync(@event, options.StandingTable, RoundType.Final, options.Event, eventType, false, null);
+                var teamName = data[indexes[ConverterConstants.INDEX_NAME]].InnerHtml;
+                var noc = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(teamName, noc.Id, eventId);
+
+                eventTeam = new GARTeam
+                {
+                    Name = teamName,
+                    TeamId = team.Id,
+                    NOCCode = nocCode,
+                };
+
+                @event.Teams.Add(eventTeam);
             }
             else
             {
-                if (@event.EventType != GAREventType.Individual)
+                var athleteNumbers = this.OlympediaService.FindAthleteNumbers(row.OuterHtml);
+                foreach (var number in athleteNumbers)
                 {
-                    foreach (var table in options.Tables)
+                    var participant = await this.participantsService.GetAsync(number, eventId);
+                    if (participant != null)
                     {
-                        string info = null;
-                        if (@event.EventType == GAREventType.Triathlon)
+                        @event.Teams.Last().Gymnasts.Add(new GARIndividual
                         {
-                            table.Round = RoundType.Final;
-                            info = table.Title;
-                        }
-
-                        this.SetGAREventDates(table, @event);
-
-                        await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event, eventType, false, info);
+                            ParticipantNumber = number,
+                            ParticipantId = participant.Id,
+                            Name = this.OlympediaService.FindAthleteName(row.OuterHtml, number)
+                        });
                     }
-
-                    if (options.Game.Year >= 2012 && @event.EventType == GAREventType.Vault)
-                    {
-                        foreach (var document in options.Documents)
-                        {
-                            await this.ConvertGARIndividualDocumentsAsync(document, options.Event, @event);
-                        }
-                    }
-                }
-                else
-                {
-                    if (options.Documents.Any())
-                    {
-                        foreach (var table in options.Tables)
-                        {
-                            this.SetGAREventDates(table, @event);
-                        }
-
-                        foreach (var document in options.Documents)
-                        {
-                            await this.ConvertGARIndividualDocumentsAsync(document, options.Event, @event);
-                        }
-                    }
-                    else
-                    {
-                        @event.FinalStartDate = dateModel.StartDateTime;
-                        @event.FinalEndDate = dateModel.EndDateTime;
-
-                        foreach (var table in options.Tables)
-                        {
-                            this.SetGAREventDates(table, @event);
-                            var currentEventType = this.NormalizeService.MapArtisticGymnasticsEvent(table.Title);
-                            await this.ConvertGARIndividualAsync(@event, table, table.Round, options.Event, currentEventType, false, table.Title);
-                        }
-                    }
-                }
-
-                if (options.Game.Year >= 2012)
-                {
-                    await this.ConvertGARIndividualAsync(@event, options.StandingTable, options.StandingTable.Round, options.Event, eventType, true, null);
                 }
             }
-
-            this.CalculateGARIndividualTotalPoints(@event);
-
-            var json = JsonSerializer.Serialize(@event);
-            //    //var result = new Result
-            //    //{
-            //    //    EventId = options.Event.Id,
-            //    //    Json = json
-            //    //};
-
-            //    //await this.resultsService.AddOrUpdateAsync(result);
         }
     }
 
