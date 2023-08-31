@@ -17,6 +17,7 @@ public enum RoundType
     RankingRound = 12,
     Final = 13,
     Qualification = 14,
+    Figures = 15
 
     //GoldMedal = 1,
     //BronzeMedal = 2,
