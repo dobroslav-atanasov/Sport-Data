@@ -1,6 +1,8 @@
 ﻿namespace SportData.Services.Interfaces;
 
 using SportData.Data.Entities.Enumerations;
+using SportData.Data.Models.Converters;
+using SportData.Data.Models.Enumerations;
 using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.ArtisticSwimming;
 
@@ -23,4 +25,8 @@ public interface INormalizeService
     GAREventType MapArtisticGymnasticsEvent(string text);
 
     SWAEventType MapArtisticSwimmingEvent(string name);
+
+    Gender MapGenderType(string text);
+
+    AthleticsEventModel MapAthleticsEvent(string text);
 }
