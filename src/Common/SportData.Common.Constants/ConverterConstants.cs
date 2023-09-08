@@ -156,4 +156,13 @@ public static class ConverterConstants
     public const string INDEX_SWA_DIFFICULTY_JUDGE_3_POINTS = "difficulty judge 3 points";
     public const string INDEX_SWA_DIFFICULTY_JUDGE_4_POINTS = "difficulty judge 4 points";
     public const string INDEX_SWA_DIFFICULTY_JUDGE_5_POINTS = "difficulty judge 5 points";
+    public const string INDEX_ORDER = "order";
+    public const string INDEX_REACTION_TIME = "reaction time";
+    public const string INDEX_TIE_BREAKING_TIME = "tie breaking time";
+    public const string INDEX_TIME_AUTOMATIC = "time automatic";
+    public const string INDEX_TIME_HAND = "time hand";
+    public const string INDEX_EXCHANGE_TIME = "exchange time";
+    public const string INDEX_SPLIT_TIME = "split time";
+    public const string INDEX_SPLIT_RANK = "split rank";
+    public const string INDEX_RESULT = "result";
 }
