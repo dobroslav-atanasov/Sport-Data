@@ -50,7 +50,7 @@ public class RegExpService : IRegExpService
             return null;
         }
 
-        text = text.Replace(",", ".");
+        text = text.Replace(",", ".").Replace("+", string.Empty);
 
         var match = Regex.Match(text, @"(\d+)\.(\d+)\.(\d+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         if (match.Success)
