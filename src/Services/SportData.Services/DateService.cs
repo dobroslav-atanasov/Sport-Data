@@ -250,13 +250,18 @@ public class DateService : IDateService
             return null;
         }
 
-        var patterns = new List<string> { @"(\d+)\s*:\s*(\d+)\.(\d+)", @"(\d+)\s*:\s*(\d+)", @"(\d+)\.(\d+)" };
+        var patterns = new List<string> { @"(\d+)-(\d+)\s*:\s*(\d+)\.(\d+)", @"(\d+)-(\d+)\s*:\s*(\d+)", @"(\d+)\s*:\s*(\d+)\.(\d+)", @"(\d+)\s*:\s*(\d+)", @"(\d+)\.(\d+)", @"(\d+)" };
         foreach (var pattern in patterns)
         {
             var match = this.regExpService.Match(text, pattern);
             if (match != null)
             {
-                var formats = new string[] { "mm\\:ss", "mm\\:s", "m\\:ss", "m\\:s", "mm\\:ss\\.fff", "mm\\:ss\\.ff", "mm\\:ss\\.f", "m\\:ss\\.fff", "m\\:ss\\.f", "m\\:ss\\.f", "m\\:s\\.fff", "m\\:s\\.ff", "m\\:s\\.f", "ss\\.fff", "ss\\.ff", "ss\\.f", "s\\.fff", "s\\.ff", "s\\.f" };
+                var formats = new string[] { "h\\-mm\\:ss.fff", "h\\-mm\\:s.fff", "h\\-m\\:ss.fff", "h\\-m\\:s.fff",
+                    "h\\-mm\\:ss.ff", "h\\-mm\\:s.ff", "h\\-m\\:ss.ff", "h\\-m\\:s.ff",
+                    "h\\-mm\\:ss.f", "h\\-mm\\:s.f", "h\\-m\\:ss.f", "h\\-m\\:s.f",
+                    "h\\-mm\\:ss", "h\\-mm\\:s", "h\\-m\\:ss", "h\\-m\\:s",
+                    "mm\\:ss", "mm\\:s", "m\\:ss", "m\\:s", "mm\\:ss\\.fff", "mm\\:ss\\.ff", "mm\\:ss\\.f", "m\\:ss\\.fff",
+                    "m\\:ss\\.f", "m\\:ss\\.f", "m\\:s\\.fff", "m\\:s\\.ff", "m\\:s\\.f", "ss\\.fff", "ss\\.ff", "ss\\.f", "s\\.fff", "s\\.ff", "s\\.f", "ss", "s" };
                 if (TimeSpan.TryParseExact(match.Groups[0].Value, formats, null, out TimeSpan timeResult))
                 {
                     return timeResult;
