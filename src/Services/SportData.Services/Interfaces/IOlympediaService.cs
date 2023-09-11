@@ -5,7 +5,7 @@ using SportData.Data.Models.Converters;
 
 public interface IOlympediaService
 {
-    IList<int> FindAthleteNumbers(string text);
+    List<int> FindAthleteNumbers(string text);
 
     IList<string> FindCountryCodes(string text);
 

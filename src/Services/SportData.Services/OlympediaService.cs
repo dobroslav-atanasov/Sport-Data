@@ -30,7 +30,7 @@ public class OlympediaService : IOlympediaService
         return 0;
     }
 
-    public IList<int> FindAthleteNumbers(string text)
+    public List<int> FindAthleteNumbers(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -612,6 +612,166 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "difficulty judge 5 points":
                     indexes[ConverterConstants.INDEX_SWA_DIFFICULTY_JUDGE_5_POINTS] = i;
+                    break;
+                case "ord":
+                    indexes[ConverterConstants.INDEX_ORDER] = i;
+                    break;
+                case "reaction time":
+                    indexes[ConverterConstants.INDEX_REACTION_TIME] = i;
+                    break;
+                case "tie-breaking time":
+                    indexes[ConverterConstants.INDEX_TIE_BREAKING_TIME] = i;
+                    break;
+                case "time (a)":
+                case "time (automatic)":
+                    indexes[ConverterConstants.INDEX_TIME_AUTOMATIC] = i;
+                    break;
+                case "time (h)":
+                case "time (hand)":
+                    indexes[ConverterConstants.INDEX_TIME_HAND] = i;
+                    break;
+                case "exchange":
+                    indexes[ConverterConstants.INDEX_EXCHANGE_TIME] = i;
+                    break;
+                case "split (pos)":
+                    indexes[ConverterConstants.INDEX_SPLIT_TIME] = i;
+                    break;
+                case "split rank":
+                    indexes[ConverterConstants.INDEX_SPLIT_RANK] = i;
+                    break;
+                case "result":
+                    indexes[ConverterConstants.INDEX_RESULT] = i;
+                    break;
+                case "bent knee":
+                case "bent knee warnings":
+                    indexes[ConverterConstants.INDEX_BENT_KNEE] = i;
+                    break;
+                case "loss of contact":
+                case "loss of contact warnings":
+                    indexes[ConverterConstants.INDEX_LOST_OF_CONTACT] = i;
+                    break;
+                case "total warnings":
+                case "warnings":
+                    indexes[ConverterConstants.INDEX_WARNINGS] = i;
+                    break;
+                case "half (pos)":
+                case "half-marathon":
+                    indexes[ConverterConstants.INDEX_HALF_SPLIT] = i;
+                    break;
+                case "1 km split (1 km rank)":
+                    indexes[ConverterConstants.INDEX_KM1_SPLIT] = i;
+                    break;
+                case "2 km (pos)":
+                case "2 km split (2 km rank)":
+                    indexes[ConverterConstants.INDEX_KM2_SPLIT] = i;
+                    break;
+                case "3 km split (3 km rank)":
+                    indexes[ConverterConstants.INDEX_KM3_SPLIT] = i;
+                    break;
+                case "4 km (pos)":
+                case "4 km split (4 km rank)":
+                    indexes[ConverterConstants.INDEX_KM4_SPLIT] = i;
+                    break;
+                case "5 km":
+                case "5 km (pos)":
+                case "5 km split (5 km rank)":
+                    indexes[ConverterConstants.INDEX_KM5_SPLIT] = i;
+                    break;
+                case "6 km (pos)":
+                case "6 km split (6 km rank)":
+                    indexes[ConverterConstants.INDEX_KM6_SPLIT] = i;
+                    break;
+                case "7 km split (7 km rank)":
+                    indexes[ConverterConstants.INDEX_KM7_SPLIT] = i;
+                    break;
+                case "8 km (pos)":
+                case "8 km split (8 km rank)":
+                    indexes[ConverterConstants.INDEX_KM8_SPLIT] = i;
+                    break;
+                case "9 km split (9 km rank)":
+                    indexes[ConverterConstants.INDEX_KM9_SPLIT] = i;
+                    break;
+                case "10 km":
+                case "10 km (pos)":
+                case "10 km split (10 km rank)":
+                    indexes[ConverterConstants.INDEX_KM10_SPLIT] = i;
+                    break;
+                case "11 km split (11 km rank)":
+                    indexes[ConverterConstants.INDEX_KM11_SPLIT] = i;
+                    break;
+                case "12 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM12_SPLIT] = i;
+                    break;
+                case "13 km split (13 km rank)":
+                    indexes[ConverterConstants.INDEX_KM13_SPLIT] = i;
+                    break;
+                case "14 km (pos)":
+                case "14 km split (14 km rank)":
+                    indexes[ConverterConstants.INDEX_KM14_SPLIT] = i;
+                    break;
+                case "15 km":
+                case "15 km (pos)":
+                case "15 km split (15 km rank)":
+                    indexes[ConverterConstants.INDEX_KM15_SPLIT] = i;
+                    break;
+                case "16 km (pos)":
+                case "16 km split (16 km rank)":
+                    indexes[ConverterConstants.INDEX_KM16_SPLIT] = i;
+                    break;
+                case "17 km split (17 km rank)":
+                    indexes[ConverterConstants.INDEX_KM17_SPLIT] = i;
+                    break;
+                case "18 km (pos)":
+                case "18 km split (18 km rank)":
+                    indexes[ConverterConstants.INDEX_KM18_SPLIT] = i;
+                    break;
+                case "19 km split (19 km rank)":
+                    indexes[ConverterConstants.INDEX_KM19_SPLIT] = i;
+                    break;
+                case "20 km":
+                case "20 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM20_SPLIT] = i;
+                    break;
+                case "25 km":
+                case "25 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM25_SPLIT] = i;
+                    break;
+                case "26 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM26_SPLIT] = i;
+                    break;
+                case "28 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM28_SPLIT] = i;
+                    break;
+                case "30 km":
+                case "30 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM30_SPLIT] = i;
+                    break;
+                case "31 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM31_SPLIT] = i;
+                    break;
+                case "35 km":
+                case "35 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM35_SPLIT] = i;
+                    break;
+                case "36 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM36_SPLIT] = i;
+                    break;
+                case "37 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM37_SPLIT] = i;
+                    break;
+                case "38 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM38_SPLIT] = i;
+                    break;
+                case "40 km":
+                case "40 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM40_SPLIT] = i;
+                    break;
+                case "45 km":
+                case "45 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM45_SPLIT] = i;
+                    break;
+                case "46 km (pos)":
+                    indexes[ConverterConstants.INDEX_KM46_SPLIT] = i;
                     break;
                 case "":
                     // TODO
