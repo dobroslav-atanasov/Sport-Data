@@ -3,6 +3,7 @@
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
+using SportData.Data.Models.OlympicGames;
 using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.ArtisticSwimming;
 
@@ -29,4 +30,6 @@ public interface INormalizeService
     Gender MapGenderType(string text);
 
     AthleticsEventModel MapAthleticsEvent(string text);
+
+    HeatType MapHeats(string text);
 }

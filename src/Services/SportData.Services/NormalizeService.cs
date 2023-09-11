@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
+using SportData.Data.Models.OlympicGames;
 using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.ArtisticSwimming;
 using SportData.Data.Models.OlympicGames.Athletics;
@@ -211,8 +212,8 @@ public class NormalizeService : INormalizeService
             case "Team 3miles": model.EventType = ATHEventType.Miles3Team; break;
             case "Team 4miles": model.EventType = ATHEventType.Miles4Team; break;
             case "Team 5000m": model.EventType = ATHEventType.M5000Team; break;
-            case "Team Cross-Country": model.EventType = ATHEventType.IndividualCrossCountry; break;
-            case "Triple Jump": model.EventType = ATHEventType.TeamCrossCountry; break;
+            case "Team Cross-Country": model.EventType = ATHEventType.TeamCrossCountry; break;
+            case "Triple Jump": model.EventType = ATHEventType.TripleJump; break;
         }
 
         switch (model.EventType)
@@ -245,15 +246,15 @@ public class NormalizeService : INormalizeService
             case ATHEventType.Miles3Team:
             case ATHEventType.Miles4Team:
             case ATHEventType.Miles5:
+            case ATHEventType.RaceWalk3500M:
+            case ATHEventType.RaceWalk10Miles:
+            case ATHEventType.RaceWalk10Km:
+            case ATHEventType.RaceWalk3000M:
                 model.GroupEventType = ATHGroupEventType.TrackEvents;
                 break;
             case ATHEventType.Marathon:
             case ATHEventType.RaceWalk20km:
             case ATHEventType.RaceWalk50km:
-            case ATHEventType.RaceWalk3000M:
-            case ATHEventType.RaceWalk3500M:
-            case ATHEventType.RaceWalk10Km:
-            case ATHEventType.RaceWalk10Miles:
                 model.GroupEventType = ATHGroupEventType.RoadEvents;
                 break;
             case ATHEventType.HighJump:
@@ -380,6 +381,63 @@ public class NormalizeService : INormalizeService
         }
 
         return Gender.None;
+    }
+
+    public HeatType MapHeats(string text)
+    {
+        var heat = HeatType.None;
+        switch (text.ToLower().Trim())
+        {
+            case "heat one":
+            case "heat #1":
+                heat = HeatType.One; break;
+            case "heat two":
+            case "heat #2":
+            case "re-run of heat two":
+                heat = HeatType.Two; break;
+            case "heat three":
+            case "heat #3":
+                heat = HeatType.Three; break;
+            case "heat four":
+            case "heat #4":
+                heat = HeatType.Four; break;
+            case "heat five":
+            case "heat #5":
+                heat = HeatType.Five; break;
+            case "heat six":
+            case "heat #6":
+            case "heat six re-run":
+                heat = HeatType.Six; break;
+            case "heat seven":
+            case "heat #7":
+                heat = HeatType.Seven; break;
+            case "heat eight":
+            case "heat #8":
+                heat = HeatType.Eight; break;
+            case "heat nine":
+            case "heat #9":
+                heat = HeatType.Nine; break;
+            case "heat ten":
+                heat = HeatType.Ten; break;
+            case "heat eleven":
+                heat = HeatType.Eleven; break;
+            case "heat twelve":
+                heat = HeatType.Twelve; break;
+            case "heat thirteen":
+                heat = HeatType.Thirteen; break;
+            case "heat fourteen":
+                heat = HeatType.Fourteen; break;
+            case "heat fifteen":
+                heat = HeatType.Fifteen; break;
+            case "heat sixteen":
+                heat = HeatType.Sixteen; break;
+            case "heat seventeen":
+                heat = HeatType.Seventeen; break;
+            case "heat eighteen":
+                heat = HeatType.Eighteen; break;
+        }
+
+        return heat;
     }
 
     public string MapOlympicGamesCountriesAndWorldCountries(string code)
