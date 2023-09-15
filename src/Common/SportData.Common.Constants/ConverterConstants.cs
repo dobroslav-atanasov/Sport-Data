@@ -201,4 +201,15 @@ public static class ConverterConstants
     public const string INDEX_KM40_SPLIT = "40 km split";
     public const string INDEX_KM45_SPLIT = "45 km split";
     public const string INDEX_KM46_SPLIT = "46 km split";
+    public const string INDEX_SECOND_DISTANCE = "second distance";
+    public const string INDEX_TOTAL_ATTEMPTS = "total attempts";
+    public const string INDEX_TOTAL_MISSES = "total misses";
+    public const string INDEX_MISSES = "misses";
+    public const string INDEX_ATH_ROUND_1 = "ath round 1";
+    public const string INDEX_ATH_ROUND_2 = "ath round 2";
+    public const string INDEX_ATH_ROUND_3 = "ath round 3";
+    public const string INDEX_ATH_ROUND_4 = "ath round 4";
+    public const string INDEX_ATH_ROUND_5 = "ath round 5";
+    public const string INDEX_ATH_ROUND_6 = "ath round 6";
+    public const string INDEX_ATH_ORDER = "ath st order";
 }
