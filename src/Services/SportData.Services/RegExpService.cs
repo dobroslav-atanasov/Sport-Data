@@ -50,7 +50,13 @@ public class RegExpService : IRegExpService
             return null;
         }
 
-        text = text.Replace(",", ".").Replace("+", string.Empty);
+        text = Regex.Replace(text, @"\(.*?\)", string.Empty);
+        if (string.IsNullOrEmpty(text) || !text.Any(char.IsDigit))
+        {
+            return null;
+        }
+
+        text = text.Replace(",", ".").Replace("+", string.Empty).Trim();
 
         var match = Regex.Match(text, @"(\d+)\.(\d+)\.(\d+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         if (match.Success)
