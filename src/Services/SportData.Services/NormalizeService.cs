@@ -157,14 +157,25 @@ public class NormalizeService : INormalizeService
         switch (text)
         {
             case "10000m": model.EventType = ATHEventType.M10000; break;
-            case "100m": model.EventType = ATHEventType.M100; break;
-            case "100m Hurdles": model.EventType = ATHEventType.M100Hurdles; break;
+            case "100m":
+            case "100 metres":
+                model.EventType = ATHEventType.M100; break;
+            case "100m Hurdles":
+            case "100 metres Hurdles":
+                model.EventType = ATHEventType.M100Hurdles; break;
             case "10km Race Walk": model.EventType = ATHEventType.RaceWalk10Km; break;
             case "10miles Race Walk": model.EventType = ATHEventType.RaceWalk10Miles; break;
-            case "110m Hurdles": model.EventType = ATHEventType.M110Hurdles; break;
-            case "1500m": model.EventType = ATHEventType.M1500; break;
+            case "110m Hurdles":
+            case "110 metres Hurdles":
+            case "110 metres Hurdles1":
+                model.EventType = ATHEventType.M110Hurdles; break;
+            case "1500m":
+            case "1,500 metres":
+                model.EventType = ATHEventType.M1500; break;
             case "1600m Medley Relay": model.EventType = ATHEventType.Relay1600; break;
-            case "200m": model.EventType = ATHEventType.M200; break;
+            case "200m":
+            case "200 metres":
+                model.EventType = ATHEventType.M200; break;
             case "200m Hurdles": model.EventType = ATHEventType.M200Hurdels; break;
             case "20km Race Walk": model.EventType = ATHEventType.RaceWalk20km; break;
             case "2500m Steeplechase": model.EventType = ATHEventType.M2500Steeplechase; break;
@@ -175,18 +186,26 @@ public class NormalizeService : INormalizeService
             case "3200m Steeplechase": model.EventType = ATHEventType.M3200Steeplechase; break;
             case "3500m Race Walk": model.EventType = ATHEventType.RaceWalk3500M; break;
             case "4000m Steeplechase": model.EventType = ATHEventType.M4000Steeplechase; break;
-            case "400m": model.EventType = ATHEventType.M400; break;
+            case "400m":
+            case "400 metres":
+                model.EventType = ATHEventType.M400; break;
             case "400m Hurdles": model.EventType = ATHEventType.M400Hurdles; break;
             case "4x100m Relay": model.EventType = ATHEventType.Relay4x100; break;
             case "4x400m Relay": model.EventType = ATHEventType.Relay4x400; break;
             case "Mixed 4x400m Relay": model.EventType = ATHEventType.Relay4x400; model.Gender = Gender.Mixed; break;
             case "5000m": model.EventType = ATHEventType.M5000; break;
             case "50km Race Walk": model.EventType = ATHEventType.RaceWalk50km; break;
-            case "56-pound Weight Throw": model.EventType = ATHEventType.Pound56WeightThrow; break;
+            case "56-pound Weight Throw":
+            case "56 lb Weight Throw":
+                model.EventType = ATHEventType.Pound56WeightThrow; break;
             case "5miles": model.EventType = ATHEventType.Miles5; break;
             case "60m": model.EventType = ATHEventType.M60; break;
-            case "800m": model.EventType = ATHEventType.M800; break;
-            case "80m Hurdles": model.EventType = ATHEventType.M80Hurdels; break;
+            case "800m":
+            case "800 metres":
+                model.EventType = ATHEventType.M800; break;
+            case "80m Hurdles":
+            case "80 metres Hurdles":
+                model.EventType = ATHEventType.M80Hurdels; break;
             case "All-Around Championship": model.EventType = ATHEventType.AllRound; break;
             case "Decathlon": model.EventType = ATHEventType.Decathlon; break;
             case "Discus Throw": model.EventType = ATHEventType.DiscusThrow; break;
@@ -214,6 +233,10 @@ public class NormalizeService : INormalizeService
             case "Team 5000m": model.EventType = ATHEventType.M5000Team; break;
             case "Team Cross-Country": model.EventType = ATHEventType.TeamCrossCountry; break;
             case "Triple Jump": model.EventType = ATHEventType.TripleJump; break;
+            case "100 yards": model.EventType = ATHEventType.Y100; break;
+            case "1 mile": model.EventType = ATHEventType.Mile1; break;
+            case "120 yards hurdles": model.EventType = ATHEventType.Y120Hurdles; break;
+            case "880 yards Walk": model.EventType = ATHEventType.Y880Walk; break;
         }
 
         switch (model.EventType)
@@ -250,6 +273,10 @@ public class NormalizeService : INormalizeService
             case ATHEventType.RaceWalk10Miles:
             case ATHEventType.RaceWalk10Km:
             case ATHEventType.RaceWalk3000M:
+            case ATHEventType.Y100:
+            case ATHEventType.Mile1:
+            case ATHEventType.Y120Hurdles:
+            case ATHEventType.Y880Walk:
                 model.GroupEventType = ATHGroupEventType.TrackEvents;
                 break;
             case ATHEventType.Marathon:
@@ -381,6 +408,38 @@ public class NormalizeService : INormalizeService
         }
 
         return Gender.None;
+    }
+
+    public GroupType MapGroupType(string text)
+    {
+        var group = GroupType.None;
+        switch (text.ToLower().Trim())
+        {
+            case "group a":
+            case "group a1":
+            case "group one":
+                group = GroupType.A;
+                break;
+            case "group b":
+            case "group b1":
+            case "group two":
+                group = GroupType.B;
+                break;
+            case "group c":
+                group = GroupType.C;
+                break;
+            case "group d":
+                group = GroupType.D;
+                break;
+            case "group e":
+                group = GroupType.E;
+                break;
+            case "group f":
+                group = GroupType.F;
+                break;
+        }
+
+        return group;
     }
 
     public HeatType MapHeats(string text)
@@ -664,6 +723,7 @@ public class NormalizeService : INormalizeService
                 roundType = RoundType.RoundRobin;
                 break;
             case "final round":
+            case "final round2":
                 roundType = RoundType.FinalRound;
                 break;
             case "classification":

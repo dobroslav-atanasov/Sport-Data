@@ -32,4 +32,6 @@ public interface INormalizeService
     AthleticsEventModel MapAthleticsEvent(string text);
 
     HeatType MapHeats(string text);
+
+    GroupType MapGroupType(string text);
 }
