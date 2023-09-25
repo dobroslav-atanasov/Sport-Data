@@ -166,6 +166,7 @@ public class OlympediaService : IOlympediaService
                 case "total points":
                 case "tp":
                 case "team points":
+                case "final points (raw points)":
                     indexes[ConverterConstants.INDEX_POINTS] = i;
                     break;
                 case "10s":
@@ -402,12 +403,20 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_E_SCORE] = i;
                     break;
                 case "d()":
+                case "distance":
+                case "best mark distance":
                     indexes[ConverterConstants.INDEX_DISTANCE] = i;
+                    break;
+                case "2nd best":
+                case "second best mark distance":
+                    indexes[ConverterConstants.INDEX_SECOND_DISTANCE] = i;
                     break;
                 case "qop":
                     indexes[ConverterConstants.INDEX_QUALIFYING_OPTIONAL_POINTS] = i;
                     break;
                 case "height":
+                case "best height cleared":
+                case "bhc":
                     indexes[ConverterConstants.INDEX_HEIGHT] = i;
                     break;
                 case "100p":
@@ -624,10 +633,12 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "time (a)":
                 case "time (automatic)":
+                case "t(a)":
                     indexes[ConverterConstants.INDEX_TIME_AUTOMATIC] = i;
                     break;
                 case "time (h)":
                 case "time (hand)":
+                case "t(h)":
                     indexes[ConverterConstants.INDEX_TIME_HAND] = i;
                     break;
                 case "exchange":
@@ -772,6 +783,75 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "46 km (pos)":
                     indexes[ConverterConstants.INDEX_KM46_SPLIT] = i;
+                    break;
+                case "total attempts":
+                case "total attempts thru best height cleared":
+                    indexes[ConverterConstants.INDEX_TOTAL_ATTEMPTS] = i;
+                    break;
+                case "total misses":
+                case "total misses thru best height cleared":
+                case "total misses at best height cleared":
+                    indexes[ConverterConstants.INDEX_TOTAL_MISSES] = i;
+                    break;
+                case "misses":
+                case "misses at best height cleared":
+                    indexes[ConverterConstants.INDEX_MISSES] = i;
+                    break;
+                case "group b":
+                case "group a":
+                case "r1":
+                case "round #1":
+                case "group a round #1":
+                case "group a round 1":
+                case "group a round one":
+                case "group b round #1":
+                case "group b round 1":
+                case "group b round one":
+                case "group c round one":
+                case "group d round one":
+                case "group e round one":
+                    indexes[ConverterConstants.INDEX_ATH_ROUND_1] = i;
+                    break;
+                case "r2":
+                case "round #2":
+                case "group a round #2":
+                case "group a round 2":
+                case "group a round three":
+                case "group b round #2":
+                case "group b round 2":
+                case "group b round three":
+                case "group c round three":
+                case "group d round three":
+                case "group e round three":
+                    indexes[ConverterConstants.INDEX_ATH_ROUND_2] = i;
+                    break;
+                case "r3":
+                case "round #3":
+                case "group a round #3":
+                case "group a round 3":
+                case "group a round two":
+                case "group b round #3":
+                case "group b round 3":
+                case "group b round two":
+                case "group c round two":
+                case "group d round two":
+                case "group e round two":
+                    indexes[ConverterConstants.INDEX_ATH_ROUND_3] = i;
+                    break;
+                case "r4":
+                case "round #4":
+                    indexes[ConverterConstants.INDEX_ATH_ROUND_4] = i;
+                    break;
+                case "r5":
+                case "round #5":
+                    indexes[ConverterConstants.INDEX_ATH_ROUND_5] = i;
+                    break;
+                case "r6":
+                case "round #6":
+                    indexes[ConverterConstants.INDEX_ATH_ROUND_6] = i;
+                    break;
+                case "st. order":
+                    indexes[ConverterConstants.INDEX_ATH_ORDER] = i;
                     break;
                 case "":
                     // TODO
