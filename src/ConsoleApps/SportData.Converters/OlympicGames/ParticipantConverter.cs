@@ -84,11 +84,11 @@ public class ParticipantConverter : BaseOlympediaConverter
                             }
                             else
                             {
-                                var athleteNumbers = this.OlympediaService.FindAthleteNumbers(trRow.OuterHtml);
+                                var athleteNumbers = this.OlympediaService.FindAthleteModels(trRow.OuterHtml);
                                 var nocCode = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Id == team.NOCId);
-                                foreach (var athleteNumber in athleteNumbers)
+                                foreach (var athleteModel in athleteNumbers)
                                 {
-                                    var participant = await this.CreateParticipantAsync(athleteNumber, nocCode.Code, team.Medal, team.FinishStatus, eventCacheModel, gameCacheModel);
+                                    var participant = await this.CreateParticipantAsync(athleteModel.Number, nocCode.Code, team.Medal, team.FinishStatus, eventCacheModel, gameCacheModel);
 
                                     if (participant != null)
                                     {
