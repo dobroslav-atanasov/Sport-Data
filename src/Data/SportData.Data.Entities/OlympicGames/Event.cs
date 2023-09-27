@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
+using SportData.Data.Entities.Enumerations;
 
 [Table("Events", Schema = "og")]
 public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
@@ -28,6 +29,9 @@ public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
     [Required]
     [MaxLength(200)]
     public string NormalizedName { get; set; }
+
+    [Required]
+    public GenderType Gender { get; set; }
 
     public int DisciplineId { get; set; }
     public virtual Discipline Discipline { get; set; }
@@ -82,6 +86,12 @@ public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
         if (this.OriginalName != other.OriginalName)
         {
             this.OriginalName = other.OriginalName;
+            isUpdated = true;
+        }
+
+        if (this.Gender != other.Gender)
+        {
+            this.Gender = other.Gender;
             isUpdated = true;
         }
 
