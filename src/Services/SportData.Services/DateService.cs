@@ -184,7 +184,8 @@ public class DateService : IDateService
             { 8, @"(\d+)\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)" },
         };
 
-        var formats = new string[] { "dd-MM-yyyy", "dd-M-yyyy", "d-MM-yyyy", "d-M-yyyy", "dd-MM-yyyy HH:mm", "dd-M-yyyy HH:mm", "d-MM-yyyy HH:mm", "d-M-yyyy HH:mm", };
+        var formats = new string[] { "dd-MM-yyyy", "dd-M-yyyy", "d-MM-yyyy", "d-M-yyyy", "dd-MM-yyyy HH:mm", "dd-M-yyyy HH:mm", "d-MM-yyyy HH:mm", "d-M-yyyy HH:mm",
+            "dd-MM-yyyy H:mm", "dd-M-yyyy H:mm", "d-MM-yyyy H:mm", "d-M-yyyy H:mm"};
         foreach (var kvp in patternsDictionary)
         {
             var match = this.regExpService.Match(text, kvp.Value);
