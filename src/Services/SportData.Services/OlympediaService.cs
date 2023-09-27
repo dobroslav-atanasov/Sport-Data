@@ -30,16 +30,16 @@ public class OlympediaService : IOlympediaService
         return 0;
     }
 
-    public List<int> FindAthleteNumbers(string text)
+    public List<AthleteModel> FindAthleteModels(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
-            return new List<int>();
+            return new List<AthleteModel>();
         }
 
         var numbers = this.regExpService
-            .Matches(text, @"<a href=""\/athletes\/(\d+)"">")
-            .Select(x => int.Parse(x.Groups[1].Value))?
+            .Matches(text, @"<a href=""\/athletes\/(\d+)"">(.*?)<\/a>")
+            .Select(x => new AthleteModel { Number = int.Parse(x.Groups[1].Value.Trim()), Name = x.Groups[2].Value.Trim() })?
             .ToList();
 
         return numbers;
