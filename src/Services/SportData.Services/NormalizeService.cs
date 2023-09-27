@@ -3,16 +3,28 @@
 using System.Text.RegularExpressions;
 
 using SportData.Data.Entities.Enumerations;
-using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
-using SportData.Data.Models.OlympicGames;
 using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
-using SportData.Data.Models.OlympicGames.ArtisticSwimming;
 using SportData.Data.Models.OlympicGames.Athletics;
 using SportData.Services.Interfaces;
 
 public class NormalizeService : INormalizeService
 {
+    public string CleanEventName(string text)
+    {
+        var name = string.Empty;
+        if (text.StartsWith("Open"))
+        {
+            name = text.Replace("Open", string.Empty).Trim();
+        }
+        else
+        {
+            name = text.Replace("Men", string.Empty).Replace("Women", string.Empty).Replace("Mixed", string.Empty).Trim();
+        }
+
+        return name;
+    }
+
     public GAREventType MapArtisticGymnasticsEvent(string text)
     {
         text = text.Replace("Men", string.Empty).Replace("Women", string.Empty).Trim();
@@ -46,19 +58,6 @@ public class NormalizeService : INormalizeService
             case "Vault 2":
             case "Horse Vault":
             case "Vault": type = GAREventType.Vault; break;
-        }
-
-        return type;
-    }
-
-    public SWAEventType MapArtisticSwimmingEvent(string text)
-    {
-        text = text.Replace("Men", string.Empty).Replace("Women", string.Empty).Trim();
-        var type = SWAEventType.Duet;
-        switch (text)
-        {
-            case "Solo": type = SWAEventType.Solo; break;
-            case "Team": type = SWAEventType.Team; break;
         }
 
         return type;
@@ -146,176 +145,130 @@ public class NormalizeService : INormalizeService
         return type;
     }
 
-    public AthleticsEventModel MapAthleticsEvent(string text)
+    public string MapAthleticsCombinedEvents(string text)
     {
-        var model = new AthleticsEventModel
+        var name = text;
+        switch (name)
         {
-            Gender = this.MapGenderType(text)
-        };
+            case "1,500 metres":
+                name = "1500m"; break;
+            case "100 metres":
+                name = "100m"; break;
+            case "100 metres Hurdles":
+                name = "100m Hurdles"; break;
+            case "110 metres Hurdles":
+            case "110 metres Hurdles1":
+                name = "110m Hurdles"; break;
+            case "120 yards hurdles":
+                name = "120yards Hurdles"; break;
+            case "200 metres":
+                name = "200m"; break;
+            case "400 metres":
+                name = "400m"; break;
+            case "56 lb Weight Throw":
+                name = "56-pound Weight Throw"; break;
+            case "80 metres Hurdles":
+                name = "80m Hurdles"; break;
+            case "800 metres":
+                name = "800m"; break;
+            case "880 yards Walk":
+                name = "880yards Walk"; break;
+        }
 
+        return name;
+    }
+
+    public ATHEventGroup MapAthleticsEventGroup(string text)
+    {
         text = text.Replace("Men", string.Empty).Replace("Women", string.Empty).Trim();
+        var group = ATHEventGroup.None;
         switch (text)
         {
-            case "10000m": model.EventType = ATHEventType.M10000; break;
+            case "10000m":
             case "100m":
             case "100 metres":
-                model.EventType = ATHEventType.M100; break;
             case "100m Hurdles":
             case "100 metres Hurdles":
-                model.EventType = ATHEventType.M100Hurdles; break;
-            case "10km Race Walk": model.EventType = ATHEventType.RaceWalk10Km; break;
-            case "10miles Race Walk": model.EventType = ATHEventType.RaceWalk10Miles; break;
+            case "10km Race Walk":
+            case "10miles Race Walk":
             case "110m Hurdles":
             case "110 metres Hurdles":
             case "110 metres Hurdles1":
-                model.EventType = ATHEventType.M110Hurdles; break;
             case "1500m":
             case "1,500 metres":
-                model.EventType = ATHEventType.M1500; break;
-            case "1600m Medley Relay": model.EventType = ATHEventType.Relay1600; break;
+            case "1600m Medley Relay":
             case "200m":
             case "200 metres":
-                model.EventType = ATHEventType.M200; break;
-            case "200m Hurdles": model.EventType = ATHEventType.M200Hurdels; break;
-            case "20km Race Walk": model.EventType = ATHEventType.RaceWalk20km; break;
-            case "2500m Steeplechase": model.EventType = ATHEventType.M2500Steeplechase; break;
-            case "2590m Steeplechase": model.EventType = ATHEventType.M2590Steeplechase; break;
-            case "3000m": model.EventType = ATHEventType.M3000; break;
-            case "3000m Race Walk": model.EventType = ATHEventType.RaceWalk3000M; break;
-            case "3000m Steeplechase": model.EventType = ATHEventType.M3000Steeplechase; break;
-            case "3200m Steeplechase": model.EventType = ATHEventType.M3200Steeplechase; break;
-            case "3500m Race Walk": model.EventType = ATHEventType.RaceWalk3500M; break;
-            case "4000m Steeplechase": model.EventType = ATHEventType.M4000Steeplechase; break;
+            case "200m Hurdles":
+            case "2500m Steeplechase":
+            case "2590m Steeplechase":
+            case "3000m":
+            case "3000m Race Walk":
+            case "3000m Steeplechase":
+            case "3200m Steeplechase":
+            case "3500m Race Walk":
+            case "4000m Steeplechase":
             case "400m":
             case "400 metres":
-                model.EventType = ATHEventType.M400; break;
-            case "400m Hurdles": model.EventType = ATHEventType.M400Hurdles; break;
-            case "4x100m Relay": model.EventType = ATHEventType.Relay4x100; break;
-            case "4x400m Relay": model.EventType = ATHEventType.Relay4x400; break;
-            case "Mixed 4x400m Relay": model.EventType = ATHEventType.Relay4x400; model.Gender = Gender.Mixed; break;
-            case "5000m": model.EventType = ATHEventType.M5000; break;
-            case "50km Race Walk": model.EventType = ATHEventType.RaceWalk50km; break;
-            case "56-pound Weight Throw":
-            case "56 lb Weight Throw":
-                model.EventType = ATHEventType.Pound56WeightThrow; break;
-            case "5miles": model.EventType = ATHEventType.Miles5; break;
-            case "60m": model.EventType = ATHEventType.M60; break;
+            case "400m Hurdles":
+            case "4x100m Relay":
+            case "4x400m Relay":
+            case "Mixed 4x400m Relay":
+            case "5000m":
+            case "5miles":
+            case "60m":
             case "800m":
             case "800 metres":
-                model.EventType = ATHEventType.M800; break;
             case "80m Hurdles":
             case "80 metres Hurdles":
-                model.EventType = ATHEventType.M80Hurdels; break;
-            case "All-Around Championship": model.EventType = ATHEventType.AllRound; break;
-            case "Decathlon": model.EventType = ATHEventType.Decathlon; break;
-            case "Discus Throw": model.EventType = ATHEventType.DiscusThrow; break;
-            case "Discus Throw Both Hands": model.EventType = ATHEventType.DiscusThrowBothHands; break;
-            case "Discus Throw Greek Style": model.EventType = ATHEventType.DiscusThrowGreekStyle; break;
-            case "Hammer Throw": model.EventType = ATHEventType.HammerThrow; break;
-            case "Heptathlon": model.EventType = ATHEventType.Heptathlon; break;
-            case "High Jump": model.EventType = ATHEventType.HighJump; break;
-            case "Individual Cross-Country": model.EventType = ATHEventType.IndividualCrossCountry; break;
-            case "Javelin Throw": model.EventType = ATHEventType.JavelinThrow; break;
-            case "Javelin Throw Both Hands": model.EventType = ATHEventType.JavelinThrowBothHands; break;
-            case "Javelin Throw Freestyle": model.EventType = ATHEventType.JavelinThrowFreestyle; break;
-            case "Long Jump": model.EventType = ATHEventType.LongJump; break;
-            case "Marathon": model.EventType = ATHEventType.Marathon; break;
-            case "Pentathlon": model.EventType = ATHEventType.Pentathlon; break;
-            case "Pole Vault": model.EventType = ATHEventType.PoleVault; break;
-            case "Shot Put": model.EventType = ATHEventType.ShotPut; break;
-            case "Shot Put Both Hands": model.EventType = ATHEventType.ShotPutBothHands; break;
-            case "Standing High Jump": model.EventType = ATHEventType.StandingHighJump; break;
-            case "Standing Long Jump": model.EventType = ATHEventType.StandingLongJump; break;
-            case "Standing Triple Jump": model.EventType = ATHEventType.StandingTripleJump; break;
-            case "Team 3000m": model.EventType = ATHEventType.M3000Team; break;
-            case "Team 3miles": model.EventType = ATHEventType.Miles3Team; break;
-            case "Team 4miles": model.EventType = ATHEventType.Miles4Team; break;
-            case "Team 5000m": model.EventType = ATHEventType.M5000Team; break;
-            case "Team Cross-Country": model.EventType = ATHEventType.TeamCrossCountry; break;
-            case "Triple Jump": model.EventType = ATHEventType.TripleJump; break;
-            case "100 yards": model.EventType = ATHEventType.Y100; break;
-            case "1 mile": model.EventType = ATHEventType.Mile1; break;
-            case "120 yards hurdles": model.EventType = ATHEventType.Y120Hurdles; break;
-            case "880 yards Walk": model.EventType = ATHEventType.Y880Walk; break;
-        }
-
-        switch (model.EventType)
-        {
-            case ATHEventType.None:
-            case ATHEventType.M100:
-            case ATHEventType.M200:
-            case ATHEventType.M400:
-            case ATHEventType.M800:
-            case ATHEventType.M1500:
-            case ATHEventType.M5000:
-            case ATHEventType.M10000:
-            case ATHEventType.M100Hurdles:
-            case ATHEventType.M110Hurdles:
-            case ATHEventType.M400Hurdles:
-            case ATHEventType.M3000Steeplechase:
-            case ATHEventType.Relay4x100:
-            case ATHEventType.Relay4x400:
-            case ATHEventType.M60:
-            case ATHEventType.M3000:
-            case ATHEventType.M80Hurdels:
-            case ATHEventType.M200Hurdels:
-            case ATHEventType.M2500Steeplechase:
-            case ATHEventType.M2590Steeplechase:
-            case ATHEventType.M3200Steeplechase:
-            case ATHEventType.M4000Steeplechase:
-            case ATHEventType.Relay1600:
-            case ATHEventType.M3000Team:
-            case ATHEventType.M5000Team:
-            case ATHEventType.Miles3Team:
-            case ATHEventType.Miles4Team:
-            case ATHEventType.Miles5:
-            case ATHEventType.RaceWalk3500M:
-            case ATHEventType.RaceWalk10Miles:
-            case ATHEventType.RaceWalk10Km:
-            case ATHEventType.RaceWalk3000M:
-            case ATHEventType.Y100:
-            case ATHEventType.Mile1:
-            case ATHEventType.Y120Hurdles:
-            case ATHEventType.Y880Walk:
-                model.GroupEventType = ATHGroupEventType.TrackEvents;
+            case "Team 3000m":
+            case "Team 3miles":
+            case "Team 4miles":
+            case "Team 5000m":
+            case "100 yards":
+            case "1 mile":
+            case "120 yards hurdles":
+            case "880 yards Walk":
+                group = ATHEventGroup.TrackEvents;
                 break;
-            case ATHEventType.Marathon:
-            case ATHEventType.RaceWalk20km:
-            case ATHEventType.RaceWalk50km:
-                model.GroupEventType = ATHGroupEventType.RoadEvents;
+            case "Discus Throw":
+            case "Discus Throw Both Hands":
+            case "Discus Throw Greek Style":
+            case "Hammer Throw":
+            case "High Jump":
+            case "Javelin Throw":
+            case "Javelin Throw Both Hands":
+            case "Javelin Throw Freestyle":
+            case "Long Jump":
+            case "Pole Vault":
+            case "Shot Put":
+            case "Shot Put Both Hands":
+            case "Standing High Jump":
+            case "Standing Long Jump":
+            case "Standing Triple Jump":
+            case "Triple Jump":
+            case "56-pound Weight Throw":
+            case "56 lb Weight Throw":
+                group = ATHEventGroup.FieldEvents;
                 break;
-            case ATHEventType.HighJump:
-            case ATHEventType.PoleVault:
-            case ATHEventType.LongJump:
-            case ATHEventType.TripleJump:
-            case ATHEventType.ShotPut:
-            case ATHEventType.DiscusThrow:
-            case ATHEventType.HammerThrow:
-            case ATHEventType.JavelinThrow:
-            case ATHEventType.StandingHighJump:
-            case ATHEventType.StandingLongJump:
-            case ATHEventType.StandingTripleJump:
-            case ATHEventType.Pound56WeightThrow:
-            case ATHEventType.DiscusThrowBothHands:
-            case ATHEventType.DiscusThrowGreekStyle:
-            case ATHEventType.JavelinThrowBothHands:
-            case ATHEventType.JavelinThrowFreestyle:
-            case ATHEventType.ShotPutBothHands:
-                model.GroupEventType = ATHGroupEventType.FieldEvents;
+            case "Marathon":
+            case "20km Race Walk":
+            case "50km Race Walk":
+                group = ATHEventGroup.RoadEvents;
                 break;
-            case ATHEventType.Heptathlon:
-            case ATHEventType.Decathlon:
-            case ATHEventType.AllRound:
-            case ATHEventType.Pentathlon:
-                model.GroupEventType = ATHGroupEventType.CombinedEvents;
+            case "Heptathlon":
+            case "Decathlon":
+            case "All-Around Championship":
+            case "Pentathlon":
+                group = ATHEventGroup.CombinedEvents;
                 break;
-            case ATHEventType.IndividualCrossCountry:
-            case ATHEventType.TeamCrossCountry:
-                model.GroupEventType = ATHGroupEventType.CrossCountryEvents;
+            case "Individual Cross-Country":
+            case "Team Cross-Country":
+                group = ATHEventGroup.CrossCountryEvents;
                 break;
         }
 
-        return model;
+        return group;
     }
 
     public string MapCityNameAndYearToNOCCode(string cityName, int year)
@@ -392,22 +345,22 @@ public class NormalizeService : INormalizeService
         return code;
     }
 
-    public Gender MapGenderType(string text)
+    public GenderType MapGenderType(string text)
     {
         if (text.ToLower().StartsWith("men"))
         {
-            return Gender.Men;
+            return GenderType.Men;
         }
         else if (text.ToLower().StartsWith("women"))
         {
-            return Gender.Women;
+            return GenderType.Women;
         }
-        else if (text.ToLower().StartsWith("mixed"))
+        else if (text.ToLower().StartsWith("mixed") || text.ToLower().StartsWith("open"))
         {
-            return Gender.Mixed;
+            return GenderType.Mixed;
         }
 
-        return Gender.None;
+        return GenderType.None;
     }
 
     public GroupType MapGroupType(string text)
