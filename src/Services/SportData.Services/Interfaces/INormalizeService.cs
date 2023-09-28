@@ -2,8 +2,8 @@
 
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Enumerations;
-using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.Athletics;
+using SportData.Data.Models.OlympicGames.Gymnastics;
 
 public interface INormalizeService
 {
@@ -21,7 +21,7 @@ public interface INormalizeService
 
     RoundType MapRoundType(string text);
 
-    GAREventType MapArtisticGymnasticsEvent(string text);
+    GYMType MapGymnasticsType(string text);
 
     GenderType MapGenderType(string text);
 

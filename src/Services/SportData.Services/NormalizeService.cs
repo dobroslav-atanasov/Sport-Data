@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Enumerations;
-using SportData.Data.Models.OlympicGames.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.Athletics;
+using SportData.Data.Models.OlympicGames.Gymnastics;
 using SportData.Services.Interfaces;
 
 public class NormalizeService : INormalizeService
@@ -25,39 +25,39 @@ public class NormalizeService : INormalizeService
         return name;
     }
 
-    public GAREventType MapArtisticGymnasticsEvent(string text)
+    public GYMType MapGymnasticsType(string text)
     {
         text = text.Replace("Men", string.Empty).Replace("Women", string.Empty).Trim();
-        var type = GAREventType.None;
+        var type = GYMType.None;
         switch (text)
         {
-            case "Balance Beam": type = GAREventType.BalanceBeam; break;
-            case "Club Swinging": type = GAREventType.ClubSwinging; break;
-            case "Combined": type = GAREventType.Combined; break;
-            case "Floor Exercise": type = GAREventType.FloorExercise; break;
-            case "Horizontal Bar": type = GAREventType.HorizontalBar; break;
+            case "Balance Beam": type = GYMType.BalanceBeam; break;
+            case "Club Swinging": type = GYMType.ClubSwinging; break;
+            case "Combined": type = GYMType.Combined; break;
+            case "Floor Exercise": type = GYMType.FloorExercise; break;
+            case "Horizontal Bar": type = GYMType.HorizontalBar; break;
             case "Individual Standings":
-            case "Individual All-Around": type = GAREventType.Individual; break;
-            case "Parallel Bars": type = GAREventType.ParallelBars; break;
+            case "Individual All-Around": type = GYMType.Individual; break;
+            case "Parallel Bars": type = GYMType.ParallelBars; break;
             case "Pommelled Horse":
-            case "Pommel Horse": type = GAREventType.PommelHorse; break;
-            case "Rings": type = GAREventType.Rings; break;
-            case "Rope Climbing": type = GAREventType.RopeClimbing; break;
-            case "Side Horse": type = GAREventType.SideHorse; break;
-            case "Side Vault": type = GAREventType.SideVault; break;
-            case "Team All-Around": type = GAREventType.Team; break;
-            case "Team All-Around Free System": type = GAREventType.TeamFreeSystem; break;
-            case "Team All-Around Swedish System": type = GAREventType.TeamSwedishSystem; break;
-            case "Team Horizontal Bar": type = GAREventType.TeamHorizontalBar; break;
-            case "Team Parallel Bars": type = GAREventType.TeamParallelBars; break;
-            case "Team Portable Apparatus": type = GAREventType.TeamPortableApparatus; break;
-            case "Triathlon": type = GAREventType.Triathlon; break;
-            case "Tumbling": type = GAREventType.Tumbling; break;
-            case "Uneven Bars": type = GAREventType.UnevenBars; break;
+            case "Pommel Horse": type = GYMType.PommelHorse; break;
+            case "Rings": type = GYMType.Rings; break;
+            case "Rope Climbing": type = GYMType.RopeClimbing; break;
+            case "Side Horse": type = GYMType.SideHorse; break;
+            case "Side Vault": type = GYMType.SideVault; break;
+            case "Team All-Around": type = GYMType.Team; break;
+            case "Team All-Around Free System": type = GYMType.TeamFreeSystem; break;
+            case "Team All-Around Swedish System": type = GYMType.TeamSwedishSystem; break;
+            case "Team Horizontal Bar": type = GYMType.TeamHorizontalBar; break;
+            case "Team Parallel Bars": type = GYMType.TeamParallelBars; break;
+            case "Team Portable Apparatus": type = GYMType.TeamPortableApparatus; break;
+            case "Triathlon": type = GYMType.Triathlon; break;
+            case "Tumbling": type = GYMType.Tumbling; break;
+            case "Uneven Bars": type = GYMType.UnevenBars; break;
             case "Vault 1":
             case "Vault 2":
             case "Horse Vault":
-            case "Vault": type = GAREventType.Vault; break;
+            case "Vault": type = GYMType.Vault; break;
         }
 
         return type;
@@ -707,12 +707,14 @@ public class NormalizeService : INormalizeService
                 break;
             case "round one":
             case "round one1":
+            case "part #1":
                 roundType = RoundType.RoundOne;
                 break;
             case "round one repêchage":
                 roundType = RoundType.RoundOneRepechage;
                 break;
             case "round two":
+            case "part #2":
                 roundType = RoundType.RoundTwo;
                 break;
             case "round two repêchage":
