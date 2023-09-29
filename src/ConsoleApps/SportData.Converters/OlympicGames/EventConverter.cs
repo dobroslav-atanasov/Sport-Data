@@ -53,7 +53,8 @@ public class EventConverter : BaseOlympediaConverter
                     GameId = gameCacheModel.Id,
                     Format = format,
                     Description = description != null ? this.RegExpService.CutHtml(description) : null,
-                    IsTeamEvent = isTeamEvent
+                    IsTeamEvent = isTeamEvent,
+                    Gender = this.NormalizeService.MapGenderType(eventModel.Name)
                 };
 
                 var dateMatch = this.RegExpService.Match(document.DocumentNode.OuterHtml, @"<tr>\s*<th>Date<\/th>\s*<td>(.*?)<\/td>\s*<\/tr>");
@@ -93,7 +94,7 @@ public class EventConverter : BaseOlympediaConverter
         var table = document.DocumentNode.SelectSingleNode("//table[@class='table table-striped']");
         //var rows = table.Elements("tr");
 
-        var athletes = this.OlympediaService.FindAthleteNumbers(table.OuterHtml);
+        var athletes = this.OlympediaService.FindAthleteModels(table.OuterHtml);
         var codes = this.OlympediaService.FindCountryCodes(table.OuterHtml);
         var isTeamEvent = false;
         if (athletes.Count != codes.Count)
