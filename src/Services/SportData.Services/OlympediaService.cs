@@ -16,21 +16,25 @@ public class OlympediaService : IOlympediaService
         this.dateService = dateService;
     }
 
-    public int FindAthleteNumber(string text)
+    public AthleteModel FindAthlete(string text)
     {
         if (!string.IsNullOrEmpty(text))
         {
-            var numberMatch = this.regExpService.Match(text, @"<a href=""\/athletes\/(\d+)"">");
-            if (numberMatch != null)
+            var match = this.regExpService.Match(text, @"<a href=""\/athletes\/(\d+)"">(.*?)<\/a>");
+            if (match != null)
             {
-                return int.Parse(numberMatch.Groups[1].Value);
+                return new AthleteModel
+                {
+                    Number = int.Parse(match.Groups[1].Value),
+                    Name = match.Groups[2].Value.Trim()
+                };
             }
         }
 
-        return 0;
+        return null;
     }
 
-    public List<AthleteModel> FindAthleteModels(string text)
+    public List<AthleteModel> FindAthletes(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -45,7 +49,7 @@ public class OlympediaService : IOlympediaService
         return numbers;
     }
 
-    public string FindCountryCode(string text)
+    public string FindNOCCode(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -979,56 +983,56 @@ public class OlympediaService : IOlympediaService
         return 0;
     }
 
-    public ResultModel GetResult(string text)
+    public MatchResult GetMatchResult(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
             return null;
         }
 
-        var result = new ResultModel();
+        var result = new MatchResult();
         var match = this.regExpService.Match(text, @"(\d+)\s*(?:-|–|—)\s*(\d+)");
         if (match != null)
         {
-            result.HomePoints = int.Parse(match.Groups[1].Value.Trim());
-            result.AwayPoints = int.Parse(match.Groups[2].Value.Trim());
+            result.Points1 = int.Parse(match.Groups[1].Value.Trim());
+            result.Points2 = int.Parse(match.Groups[2].Value.Trim());
 
-            if (result.HomePoints > result.AwayPoints)
+            if (result.Points1 > result.Points2)
             {
-                result.HomeResult = ResultType.Win;
-                result.AwayResult = ResultType.Loss;
+                result.Result1 = ResultType.Win;
+                result.Result2 = ResultType.Lose;
             }
-            else if (result.HomePoints < result.AwayPoints)
+            else if (result.Points1 < result.Points2)
             {
-                result.HomeResult = ResultType.Loss;
-                result.AwayResult = ResultType.Win;
+                result.Result1 = ResultType.Lose;
+                result.Result2 = ResultType.Win;
             }
         }
         match = this.regExpService.Match(text, @"(\d+)\.(\d+)\s*(?:-|–|—)\s*(\d+)\.(\d+)");
         if (match != null)
         {
-            result.HomeTime = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
-            result.AwayTime = this.dateService.ParseTime($"{match.Groups[3].Value}.{match.Groups[4].Value}");
+            result.Time1 = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
+            result.Time2 = this.dateService.ParseTime($"{match.Groups[3].Value}.{match.Groups[4].Value}");
 
-            if (result.HomeTime < result.AwayTime)
+            if (result.Time1 < result.Time2)
             {
-                result.HomeResult = ResultType.Win;
-                result.AwayResult = ResultType.Loss;
+                result.Result1 = ResultType.Win;
+                result.Result2 = ResultType.Lose;
             }
-            else if (result.HomeTime > result.AwayTime)
+            else if (result.Time1 > result.Time2)
             {
-                result.HomeResult = ResultType.Loss;
-                result.AwayResult = ResultType.Win;
+                result.Result1 = ResultType.Lose;
+                result.Result2 = ResultType.Win;
             }
         }
         match = this.regExpService.Match(text, @"(\d+)\.(\d+)\s*(?:-|–|—)\s*DNF");
         if (match != null)
         {
-            result.HomeTime = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
-            result.AwayTime = null;
+            result.Time1 = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
+            result.Time2 = null;
 
-            result.HomeResult = ResultType.Win;
-            result.AwayResult = ResultType.Loss;
+            result.Result1 = ResultType.Win;
+            result.Result2 = ResultType.Lose;
         }
 
         if (text.ToLower().Contains("bye"))
@@ -1162,23 +1166,6 @@ public class OlympediaService : IOlympediaService
         }
 
         return decision;
-    }
-
-    public string FindAthleteName(string text, int number)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return null;
-        }
-
-        var match = this.regExpService.Match(text, @$"<a href=""\/athletes\/{number}"">(.*?)<\/a>");
-        if (match != null)
-        {
-            var name = match.Groups[1].Value.Trim();
-            return name;
-        }
-
-        return null;
     }
 
     public bool IsAthleteNumber(string text)

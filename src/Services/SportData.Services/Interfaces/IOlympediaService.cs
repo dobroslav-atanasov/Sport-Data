@@ -5,17 +5,15 @@ using SportData.Data.Models.Converters;
 
 public interface IOlympediaService
 {
-    List<AthleteModel> FindAthleteModels(string text);
+    List<AthleteModel> FindAthletes(string text);
 
     IList<string> FindCountryCodes(string text);
 
     List<int> FindVenues(string text);
 
-    int FindAthleteNumber(string text);
+    AthleteModel FindAthlete(string text);
 
-    string FindCountryCode(string text);
-
-    string FindAthleteName(string text, int number);
+    string FindNOCCode(string text);
 
     Dictionary<string, int> FindIndexes(List<string> headers);
 
@@ -33,7 +31,7 @@ public interface IOlympediaService
 
     int FindResultNumber(string text);
 
-    ResultModel GetResult(string text);
+    MatchResult GetMatchResult(string text);
 
     MatchType FindMatchType(RoundType round, string text);
 
