@@ -1035,15 +1035,15 @@ public class OlympediaService : IOlympediaService
             result.Result2 = ResultType.Lose;
         }
 
-        if (text.ToLower().Contains("bye"))
-        {
-            result.Decision = DecisionType.Buy;
-        }
+        //if (text.ToLower().Contains("bye"))
+        //{
+        //    result.Decision = DecisionType.Buy;
+        //}
 
-        if (text.ToLower().Contains("walkover"))
-        {
-            result.Decision = DecisionType.Walkover;
-        }
+        //if (text.ToLower().Contains("walkover"))
+        //{
+        //    result.Decision = DecisionType.Walkover;
+        //}
 
         return result;
     }
