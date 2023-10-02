@@ -4,5 +4,5 @@ public enum ResultType
 {
     Draw = 0,
     Win = 1,
-    Loss = 2,
+    Lose = 2,
 }
