@@ -228,14 +228,14 @@ public class DateService : IDateService
                 if (DateTime.TryParseExact(startDate, formats, null, DateTimeStyles.None, out DateTime startDateResult)
                     && DateTime.TryParseExact(endDate, formats, null, DateTimeStyles.None, out DateTime endDateResult))
                 {
-                    dateModel.StartDateTime = startDateResult;
-                    dateModel.EndDateTime = endDateResult;
+                    dateModel.From = startDateResult;
+                    dateModel.To = endDateResult;
                     break;
                 }
 
                 if (DateTime.TryParseExact(startDate, formats, null, DateTimeStyles.None, out DateTime startDateTimeResult))
                 {
-                    dateModel.StartDateTime = startDateTimeResult;
+                    dateModel.From = startDateTimeResult;
                     break;
                 }
             }
