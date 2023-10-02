@@ -51,9 +51,9 @@ public class AthleteConverter : BaseOlympediaConverter
                 Association = this.ExtractAssociations(document.ParsedText),
                 Description = this.RegExpService.CutHtml(this.RegExpService.MatchFirstGroup(document.ParsedText, @"<div class=(?:""|')description(?:""|')>(.*?)<\/div>")),
                 Nationality = this.ExtractNationality(document.ParsedText),
-                BirthDate = bornMatch != null ? this.dateService.ParseDate(bornMatch.Groups[1].Value).StartDateTime : null,
+                BirthDate = bornMatch != null ? this.dateService.ParseDate(bornMatch.Groups[1].Value).From : null,
                 BirthPlace = bornMatch != null ? this.RegExpService.MatchFirstGroup(bornMatch.Groups[1].Value, @"<a href=(?:""|')\/place_names\/[\d]+(?:""|')>(.*?)<\/a>") : null,
-                DiedDate = diedMatch != null ? this.dateService.ParseDate(diedMatch.Groups[1].Value).StartDateTime : null,
+                DiedDate = diedMatch != null ? this.dateService.ParseDate(diedMatch.Groups[1].Value).From : null,
                 DiedPlace = diedMatch != null ? this.RegExpService.MatchFirstGroup(diedMatch.Groups[1].Value, @"<a href=(?:""|')\/place_names\/[\d]+(?:""|')>(.*?)<\/a>") : null,
             };
 
