@@ -61,8 +61,8 @@ public class EventConverter : BaseOlympediaConverter
                 if (dateMatch != null)
                 {
                     var dateModel = this.dateService.ParseDate(dateMatch.Groups[1].Value.Trim());
-                    @event.StartDate = dateModel.StartDateTime;
-                    @event.EndDate = dateModel.EndDateTime;
+                    @event.StartDate = dateModel.From;
+                    @event.EndDate = dateModel.To;
                 }
 
                 @event = await this.eventsService.AddOrUpdateAsync(@event);
@@ -94,7 +94,7 @@ public class EventConverter : BaseOlympediaConverter
         var table = document.DocumentNode.SelectSingleNode("//table[@class='table table-striped']");
         //var rows = table.Elements("tr");
 
-        var athletes = this.OlympediaService.FindAthleteModels(table.OuterHtml);
+        var athletes = this.OlympediaService.FindAthletes(table.OuterHtml);
         var codes = this.OlympediaService.FindCountryCodes(table.OuterHtml);
         var isTeamEvent = false;
         if (athletes.Count != codes.Count)
