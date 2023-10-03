@@ -366,6 +366,11 @@ public class NormalizeService : INormalizeService
     public GroupType MapGroupType(string text)
     {
         var group = GroupType.None;
+        if (string.IsNullOrEmpty(text))
+        {
+            return group;
+        }
+
         switch (text.ToLower().Trim())
         {
             case "group a":
@@ -398,6 +403,11 @@ public class NormalizeService : INormalizeService
     public HeatType MapHeats(string text)
     {
         var heat = HeatType.None;
+        if (string.IsNullOrEmpty(text))
+        {
+            return heat;
+        }
+
         switch (text.ToLower().Trim())
         {
             case "heat one":
@@ -680,6 +690,7 @@ public class NormalizeService : INormalizeService
                 roundType = RoundType.FinalRound;
                 break;
             case "classification":
+            case "classification round":
             case "classification round 5-8":
             case "classification round 7-12":
             case "classification round 9-12":
