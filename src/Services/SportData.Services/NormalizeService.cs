@@ -708,6 +708,7 @@ public class NormalizeService : INormalizeService
             case "round one":
             case "round one1":
             case "part #1":
+            case "qualifying round one":
                 roundType = RoundType.RoundOne;
                 break;
             case "round one repêchage":
@@ -715,6 +716,7 @@ public class NormalizeService : INormalizeService
                 break;
             case "round two":
             case "part #2":
+            case "qualifying round two":
                 roundType = RoundType.RoundTwo;
                 break;
             case "round two repêchage":
@@ -745,34 +747,22 @@ public class NormalizeService : INormalizeService
             case "preliminary round":
                 roundType = RoundType.PreliminaryRound;
                 break;
+            case "downhill":
+            case "downhill1":
+            case "run #1":
+            case "run #11":
+                roundType = RoundType.RunOne;
+                break;
+            case "slalom":
+            case "slalom1":
+            case "run #2":
+            case "run #21":
+                roundType = RoundType.RunTwo;
+                break;
         }
 
         return roundType;
     }
-
-    //public RoundType MapFinalRoundMatch(string text)
-    //{
-    //    if (text.Contains("1/2") || text.Contains("1-2"))
-    //    {
-    //        return RoundType.GoldMedal;
-    //    }
-    //    else if (text.Contains("3/4") || text.Contains("3-4"))
-    //    {
-    //        return RoundType.BronzeMedal;
-    //    }
-    //    else if (text.Contains("5/6") || text.Contains("5-6"))
-    //    {
-    //        return RoundType.PlaceMatchFive;
-    //    }
-    //    else if (text.Contains("7/8") || text.Contains("7-8"))
-    //    {
-    //        return RoundType.PlaceMatchSeven;
-    //    }
-    //    else
-    //    {
-    //        return RoundType.FinalRound;
-    //    }
-    //}
 
     public string NormalizeEventName(string name, int gameYear, string disciplineName)
     {
