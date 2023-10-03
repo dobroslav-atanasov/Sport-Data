@@ -155,9 +155,11 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_TIME] = i;
                     break;
                 case "run 1":
+                case "run #1":
                     indexes[ConverterConstants.INDEX_RUN1] = i;
                     break;
                 case "run 2":
+                case "run #2":
                     indexes[ConverterConstants.INDEX_RUN2] = i;
                     break;
                 case "downhill":
