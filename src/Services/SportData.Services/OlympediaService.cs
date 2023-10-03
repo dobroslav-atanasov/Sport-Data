@@ -377,6 +377,7 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_PENALTY] = i;
                     break;
                 case "time penalty":
+                case "penalty time":
                     indexes[ConverterConstants.INDEX_TIME_PENALTY] = i;
                     break;
                 case "qp(50%)":
