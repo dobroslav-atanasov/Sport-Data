@@ -20,4 +20,7 @@ public enum RoundType
     Figures = 15,
     Repechage = 16,
     PreliminaryRound = 17,
+    RunOne = 18,
+    RunTwo = 19,
+    RunThree = 20
 }
