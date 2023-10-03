@@ -16,7 +16,6 @@ using SportData.Data.Models.Cache;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
 using SportData.Data.Models.OlympicGames;
-using SportData.Data.Models.OlympicGames.AlpineSkiing;
 using SportData.Data.Models.OlympicGames.Aquatics.ArtisticSwimming;
 using SportData.Data.Models.OlympicGames.Archery;
 using SportData.Data.Models.OlympicGames.Athletics;
@@ -86,7 +85,7 @@ public class ResultConverter : BaseOlympediaConverter
                     switch (disciplineCacheModel.Name)
                     {
                         //case DisciplineConstants.BASKETBALL_3X3:
-                        //    await this.ProcessBasketball3x3Async(options);
+                        //    //await this.ProcessBasketball3x3Async(options);
                         //    break;
                         case DisciplineConstants.ALPINE_SKIING:
                             await this.ProcessAlpineSkiingAsync(options);
@@ -105,7 +104,9 @@ public class ResultConverter : BaseOlympediaConverter
                             //    await this.ProcessAthleticsAsync(options);
                             //    break;
                             //case DisciplineConstants.BASKETBALL:
-                            //    await this.ProcessBasketballAsync(options);
+                            //    Console.WriteLine(group.Identifier);
+
+                            //    //await this.ProcessBasketballAsync(options);
                             //    break;
                     }
                 }
@@ -384,12 +385,8 @@ public class ResultConverter : BaseOlympediaConverter
     #region ATHLETICS
     private async Task ProcessAthleticsAsync(ConvertOptions options)
     {
+        var eventRound = this.CreateEventRound<ATHRound>(options.HtmlDocument, options.Event.Name);
         var eventGroup = this.NormalizeService.MapAthleticsEventGroup(options.Event.Name);
-        var eventName = this.NormalizeService.CleanEventName(options.Event.Name);
-        var dateString = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-        var dateModel = this.dateService.ParseDate(dateString);
-        var format = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
-        var rounds = new List<ATHRound>();
 
         if (eventGroup == ATHEventGroup.TrackEvents)
         {
@@ -397,16 +394,9 @@ public class ResultConverter : BaseOlympediaConverter
             {
                 foreach (var table in options.Tables.Where(x => x.Round != RoundType.None))
                 {
-                    format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-                    var round = new ATHRound
-                    {
-                        EventName = eventName,
-                        EventGroup = eventGroup,
-                        Round = table.Round,
-                        Date = table.FromDate,
-                        Format = format,
-                        Track = new ATHTrack()
-                    };
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
+                    var round = this.CreateAthleticsRound(eventRound.Dates.From, format, table.Round, eventRound.EventName, eventGroup);
+                    round.Track = new ATHTrack();
 
                     var heats = this.SplitHeats(table);
                     if (heats.Any())
@@ -424,76 +414,40 @@ public class ResultConverter : BaseOlympediaConverter
                         await this.SetATHTrackAthletesAsync(round, table.HtmlDocument, options.Event, HeatType.None, wind, true);
                     }
 
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
             }
             else
             {
-                var round = new ATHRound
-                {
-                    EventName = eventName,
-                    EventGroup = eventGroup,
-                    Round = RoundType.Final,
-                    Date = dateModel.From,
-                    Format = format,
-                    Track = new ATHTrack()
-                };
-
+                var round = this.CreateAthleticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, eventGroup);
+                round.Track = new ATHTrack();
                 this.SetAthleticsSlipts(round, options.HtmlDocument, HeatType.None);
                 await this.SetATHTrackAthletesAsync(round, options.StandingTable.HtmlDocument, options.Event, HeatType.None, null, false);
-
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
         }
         else if (eventGroup == ATHEventGroup.RoadEvents)
         {
-            var round = new ATHRound
-            {
-                EventName = eventName,
-                EventGroup = eventGroup,
-                Round = RoundType.Final,
-                Date = dateModel.From,
-                Format = format,
-                Road = new ATHRoad()
-            };
-
+            var round = this.CreateAthleticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, eventGroup);
+            round.Road = new ATHRoad();
             await this.SetATHRoadAthletesAsync(round, options.StandingTable.HtmlDocument, options.Event);
-
-            rounds.Add(round);
+            eventRound.Rounds.Add(round);
         }
         else if (eventGroup == ATHEventGroup.CrossCountryEvents)
         {
-            var round = new ATHRound
-            {
-                EventName = eventName,
-                EventGroup = eventGroup,
-                Round = RoundType.Final,
-                Date = dateModel.From,
-                Format = format,
-                CrossCountry = new ATHCrossCountry()
-            };
-
+            var round = this.CreateAthleticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, eventGroup);
+            round.CrossCountry = new ATHCrossCountry();
             await this.SetATHCrossCountryAsync(round, options.StandingTable.HtmlDocument, options.Event);
-
-            rounds.Add(round);
+            eventRound.Rounds.Add(round);
         }
         else if (eventGroup == ATHEventGroup.FieldEvents)
         {
             if (!options.Tables.Any() && !options.Documents.Any())
             {
-                var round = new ATHRound
-                {
-                    EventName = eventName,
-                    EventGroup = eventGroup,
-                    Round = RoundType.Final,
-                    Format = format,
-                    Date = dateModel.From,
-                    Field = new ATHField()
-                };
-
+                var round = this.CreateAthleticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, eventGroup);
+                round.Field = new ATHField();
                 await this.SetATHFieldAthletesAsync(round, options.StandingTable.HtmlDocument, options.Event);
-
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
             else if (options.Tables.Any())
             {
@@ -505,45 +459,26 @@ public class ResultConverter : BaseOlympediaConverter
 
                 foreach (var table in tables)
                 {
-                    format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-
-                    var round = new ATHRound
-                    {
-                        EventName = eventName,
-                        EventGroup = eventGroup,
-                        Round = table.Round,
-                        Group = table.GroupType,
-                        Format = format,
-                        Date = table.FromDate,
-                        Field = new ATHField()
-                    };
-
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
+                    var round = this.CreateAthleticsRound(table.FromDate, format, table.Round, eventRound.EventName, eventGroup);
+                    round.Group = table.GroupType;
+                    round.Field = new ATHField();
                     await this.SetATHFieldAthletesAsync(round, table.HtmlDocument, options.Event);
-
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
             }
         }
         else if (eventGroup == ATHEventGroup.CombinedEvents)
         {
-            var round = new ATHRound
-            {
-                EventName = eventName,
-                EventGroup = eventGroup,
-                Round = RoundType.Final,
-                Format = format,
-                Date = dateModel.From,
-                Combined = new ATHCombined()
-            };
-
+            var round = this.CreateAthleticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, eventGroup);
+            round.Combined = new ATHCombined();
             await this.SetATHCombinedAthletesAsync(round, options.StandingTable.HtmlDocument, options.Event);
             this.SetATHCombinedResults(round, options.Documents, options.Event, options.Discipline, options.Game);
-
-            rounds.Add(round);
+            eventRound.Rounds.Add(round);
         }
 
         var resultJson = this.CreateResult<ATHRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = rounds;
+        resultJson.Rounds = eventRound.Rounds;
 
         var json = JsonSerializer.Serialize(resultJson);
         var result = new Result
@@ -1255,30 +1190,31 @@ public class ResultConverter : BaseOlympediaConverter
 
         return htmlDocument;
     }
+
+    private ATHRound CreateAthleticsRound(DateTime? date, string format, RoundType roundType, string eventName, ATHEventGroup group)
+    {
+        return new ATHRound
+        {
+            Date = date,
+            Format = format,
+            Round = roundType,
+            EventName = eventName,
+            EventGroup = group
+        };
+    }
+
     #endregion ATHLETICS
 
     #region ARTISTIC SWIMMING
     private async Task ProcessArtisticSwimmingAsync(ConvertOptions options)
     {
-        var rounds = new List<SWARound>();
-        var eventName = this.NormalizeService.CleanEventName(options.Event.Name);
+        var eventRound = this.CreateEventRound<SWARound>(options.HtmlDocument, options.Event.Name);
 
-        if (eventName == "Team")
+        if (eventRound.EventName == "Team")
         {
-            var dateString = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-            var dateModel = this.dateService.ParseDate(dateString);
-            var format = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
-
-            var round = new SWARound
-            {
-                Date = dateModel.From,
-                Format = this.RegExpService.CutHtml(format),
-                EventName = eventName,
-                Round = RoundType.Final
-            };
-
+            var round = this.CreateArtisticSwimmingRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
             await this.SetSWAEventResultsAsync(round, options.StandingTable, options.Event, null);
-            rounds.Add(round);
+            eventRound.Rounds.Add(round);
 
             foreach (var document in options.Documents)
             {
@@ -1298,16 +1234,10 @@ public class ResultConverter : BaseOlympediaConverter
                 var dateModel = this.dateService.ParseDate(dateString);
                 var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
 
-                var @event = new SWARound
-                {
-                    Date = dateModel.From,
-                    Format = this.RegExpService.CutHtml(format),
-                    EventName = eventName,
-                    Round = this.NormalizeService.MapRoundType(table.Title)
-                };
-
-                await this.SetSWAEventResultsAsync(@event, table, options.Event, null);
-                rounds.Add(@event);
+                var roundType = this.NormalizeService.MapRoundType(table.Title);
+                var round = this.CreateArtisticSwimmingRound(dateModel.From, format, roundType, eventRound.EventName);
+                await this.SetSWAEventResultsAsync(round, table, options.Event, null);
+                eventRound.Rounds.Add(round);
             }
 
             foreach (var document in options.Documents)
@@ -1317,14 +1247,14 @@ public class ResultConverter : BaseOlympediaConverter
                 var info = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
                 info = info.Replace(options.Event.OriginalName, string.Empty).Replace("–", string.Empty).Trim();
                 var rowsCount = table.HtmlDocument.DocumentNode.SelectNodes("//tr").Skip(1).Count();
-                var currentEvent = rounds.Where(x => x.Duets.Count == rowsCount).FirstOrDefault();
+                var currentEvent = eventRound.Rounds.Where(x => x.Duets.Count == rowsCount).FirstOrDefault();
 
                 await this.SetSWAEventResultsAsync(currentEvent, table, options.Event, info);
             }
         }
 
         var resultJson = this.CreateResult<SWARound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = rounds;
+        resultJson.Rounds = eventRound.Rounds;
         var json = JsonSerializer.Serialize(resultJson);
         var result = new Result
         {
@@ -1536,46 +1466,37 @@ public class ResultConverter : BaseOlympediaConverter
             }
         }
     }
+
+    private SWARound CreateArtisticSwimmingRound(DateTime? date, string format, RoundType roundType, string eventName)
+    {
+        return new SWARound
+        {
+            Date = date,
+            Format = format,
+            Round = roundType,
+            EventName = eventName
+        };
+    }
     #endregion ARTISITC SWIMMING
 
     #region ARTISTIC GYMNASTICS
     private async Task ProcessArtisticGymnasticsAsync(ConvertOptions options)
     {
-        var dateString = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-        var dateModel = this.dateService.ParseDate(dateString);
+        var eventRound = this.CreateEventRound<GARRound>(options.HtmlDocument, options.Event.Name);
         var type = this.NormalizeService.MapGymnasticsType(options.Event.Name);
-        var eventName = this.NormalizeService.CleanEventName(options.Event.Name);
-        var format = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
-        var rounds = new List<GARRound>();
 
         if (options.Event.IsTeamEvent)
         {
             if (!options.Tables.Any() || options.Game.Year == 1924)
             {
-                var round = new GARRound
-                {
-                    Date = dateModel.From,
-                    Format = format,
-                    EventName = eventName,
-                    Round = RoundType.Final,
-                    Type = type,
-                };
-
+                var round = this.CreateArtisticGymnasticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, type);
                 await this.SetGARTeamsAsync(round, options.StandingTable, options.Event);
                 this.ConvertGARTeamResults(round, options.StandingTable, options.Event, options.Game.Year, null);
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
             else if (options.Tables.Any() && options.Game.Year <= 1996)
             {
-                var round = new GARRound
-                {
-                    Date = dateModel.From,
-                    Format = format,
-                    EventName = eventName,
-                    Round = RoundType.Final,
-                    Type = type
-                };
-
+                var round = this.CreateArtisticGymnasticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, type);
                 await this.SetGARTeamsAsync(round, options.StandingTable, options.Event);
 
                 foreach (var table in options.Tables)
@@ -1587,23 +1508,15 @@ public class ResultConverter : BaseOlympediaConverter
                     }
                 }
 
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
             else if (options.Game.Year == 2000 || options.Game.Year == 2004)
             {
                 foreach (var table in options.Tables)
                 {
-                    var round = new GARRound
-                    {
-                        Date = table.FromDate,
-                        Format = format,
-                        EventName = eventName,
-                        Round = table.Round,
-                        Type = type
-                    };
-
+                    var round = this.CreateArtisticGymnasticsRound(table.FromDate, eventRound.Format, table.Round, eventRound.EventName, type);
                     await this.SetGARTeamsAsync(round, table, options.Event);
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
 
                 foreach (var document in options.Documents)
@@ -1615,7 +1528,7 @@ public class ResultConverter : BaseOlympediaConverter
                     var parts = title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     var roundType = this.NormalizeService.MapRoundType(parts.FirstOrDefault());
 
-                    var round = rounds.FirstOrDefault(x => x.Round == roundType);
+                    var round = eventRound.Rounds.FirstOrDefault(x => x.Round == roundType);
 
                     if (round.Teams.Count >= table.HtmlDocument.DocumentNode.SelectNodes("//tr").Skip(1).Count())
                     {
@@ -1627,18 +1540,10 @@ public class ResultConverter : BaseOlympediaConverter
             {
                 foreach (var table in options.Tables)
                 {
-                    var round = new GARRound
-                    {
-                        Date = table.FromDate,
-                        Format = format,
-                        EventName = eventName,
-                        Round = table.Round,
-                        Type = type
-                    };
-
+                    var round = this.CreateArtisticGymnasticsRound(table.FromDate, eventRound.Format, table.Round, eventRound.EventName, type);
                     await this.SetGARTeamsAsync(round, table, options.Event);
                     this.ConvertGARTeamResults(round, table, options.Event, options.Game.Year, null);
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
 
                 if (options.Game.Year >= 2012)
@@ -1652,7 +1557,7 @@ public class ResultConverter : BaseOlympediaConverter
                         var parts = title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
                         var roundType = this.NormalizeService.MapRoundType(parts.FirstOrDefault());
 
-                        var round = rounds.FirstOrDefault(x => x.Round == roundType);
+                        var round = eventRound.Rounds.FirstOrDefault(x => x.Round == roundType);
 
                         this.ConvertGARTeamResults(round, table, options.Event, options.Game.Year, parts.LastOrDefault());
                     }
@@ -1663,18 +1568,9 @@ public class ResultConverter : BaseOlympediaConverter
         {
             if (options.Tables.Count == 0)
             {
-                var round = new GARRound
-                {
-                    Date = dateModel.From,
-                    Format = format,
-                    EventName = eventName,
-                    Round = RoundType.Final,
-                    Type = type,
-
-                };
-
+                var round = this.CreateArtisticGymnasticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, type);
                 await this.SetGARGymnastsAsync(round, options.StandingTable, options.Event, null);
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
             else
             {
@@ -1682,7 +1578,7 @@ public class ResultConverter : BaseOlympediaConverter
                 {
                     foreach (var table in options.Tables)
                     {
-                        format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
+                        var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
                         string info = null;
                         if (type == GYMType.Triathlon)
                         {
@@ -1690,24 +1586,16 @@ public class ResultConverter : BaseOlympediaConverter
                             info = table.Title;
                         }
 
-                        var round = new GARRound
-                        {
-                            Date = dateModel.From,
-                            Format = format,
-                            EventName = eventName,
-                            Round = table.Round,
-                            Type = type,
-                        };
-
+                        var round = this.CreateArtisticGymnasticsRound(eventRound.Dates.From, format, table.Round, eventRound.EventName, type);
                         await this.SetGARGymnastsAsync(round, table, options.Event, info);
-                        rounds.Add(round);
+                        eventRound.Rounds.Add(round);
                     }
 
                     if (options.Game.Year >= 2012 && type == GYMType.Vault)
                     {
                         foreach (var document in options.Documents)
                         {
-                            await this.ConvertGARDocumentsAsync(document, options.Event, rounds);
+                            await this.ConvertGARDocumentsAsync(document, options.Event, eventRound.Rounds);
                         }
                     }
                 }
@@ -1717,21 +1605,14 @@ public class ResultConverter : BaseOlympediaConverter
                     {
                         foreach (var table in options.Tables)
                         {
-                            var round = new GARRound
-                            {
-                                Date = table.FromDate,
-                                EventName = eventName,
-                                Round = table.Round,
-                                Type = type,
-                            };
-
+                            var round = this.CreateArtisticGymnasticsRound(table.FromDate, null, table.Round, eventRound.EventName, type);
                             await this.SetGARGymnastsAsync(round, table, options.Event, table.Title);
-                            rounds.Add(round);
+                            eventRound.Rounds.Add(round);
                         }
 
                         foreach (var document in options.Documents)
                         {
-                            await this.ConvertGARDocumentsAsync(document, options.Event, rounds);
+                            await this.ConvertGARDocumentsAsync(document, options.Event, eventRound.Rounds);
                         }
                     }
                     else
@@ -1740,40 +1621,25 @@ public class ResultConverter : BaseOlympediaConverter
                         {
                             foreach (var table in options.Tables)
                             {
-                                var round = new GARRound
-                                {
-                                    Date = table.FromDate,
-                                    EventName = eventName,
-                                    Round = table.Round,
-                                    Type = type,
-                                };
-
+                                var round = this.CreateArtisticGymnasticsRound(table.FromDate, null, table.Round, eventRound.EventName, type);
                                 await this.SetGARGymnastsAsync(round, table, options.Event, table.Title);
-                                rounds.Add(round);
+                                eventRound.Rounds.Add(round);
                             }
                         }
                         else
                         {
-                            var round = new GARRound
-                            {
-                                Date = dateModel.From,
-                                Format = format,
-                                EventName = eventName,
-                                Round = RoundType.Final,
-                                Type = type,
-                            };
-
+                            var round = this.CreateArtisticGymnasticsRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName, type);
                             foreach (var table in options.Tables)
                             {
                                 await this.SetGARGymnastsAsync(round, table, options.Event, table.Title);
                             }
 
-                            rounds.Add(round);
+                            eventRound.Rounds.Add(round);
                         }
                     }
                 }
 
-                foreach (var round in rounds)
+                foreach (var round in eventRound.Rounds)
                 {
                     round.Gymnasts.ForEach(x => x.Points = x.Scores.Sum(x => x.Points));
                 }
@@ -1781,7 +1647,7 @@ public class ResultConverter : BaseOlympediaConverter
         }
 
         var resultJson = this.CreateResult<GARRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = rounds;
+        resultJson.Rounds = eventRound.Rounds;
         var json = JsonSerializer.Serialize(resultJson);
         var result = new Result
         {
@@ -2149,44 +2015,52 @@ public class ResultConverter : BaseOlympediaConverter
             }
         }
     }
+
+    private GARRound CreateArtisticGymnasticsRound(DateTime? date, string format, RoundType roundType, string eventName, GYMType type)
+    {
+        return new GARRound
+        {
+            Date = date,
+            Format = format,
+            Round = roundType,
+            EventName = eventName,
+            Type = type
+        };
+    }
     #endregion
 
     #region ARCHERY
     private async Task ProcessArcheryAsync(ConvertOptions options)
     {
-        var format = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
-        var dateString = this.RegExpService.MatchFirstGroup(options.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-        var dateModel = this.dateService.ParseDate(dateString);
-        var eventName = this.NormalizeService.CleanEventName(options.Event.Name);
-        var rounds = new List<ARCRound>();
+        var eventRound = this.CreateEventRound<ARCRound>(options.HtmlDocument, options.Event.Name);
 
         if (options.Event.IsTeamEvent)
         {
             if (options.Game.Year <= 1920)
             {
-                var round = this.CreateArcheryRound(dateModel.From, format, RoundType.Final, eventName);
+                var round = this.CreateArcheryRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
                 await this.SetARCTeamsAsync(round, options.StandingTable, options.Event);
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
             else if (options.Game.Year == 1988)
             {
                 foreach (var table in options.Tables)
                 {
-                    dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                    dateModel = this.dateService.ParseDate(dateString);
-                    format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventName);
+                    var dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                    var dateModel = this.dateService.ParseDate(dateString);
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
+                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventRound.EventName);
                     await this.SetARCTeamsAsync(round, table, options.Event);
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
             }
             else
             {
                 var rankingTable = options.Tables.FirstOrDefault();
-                dateString = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                dateModel = this.dateService.ParseDate(dateString);
-                format = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-                var rankingRound = this.CreateArcheryRound(dateModel.From, format, rankingTable.Round, eventName);
+                var dateString = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                var dateModel = this.dateService.ParseDate(dateString);
+                var format = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
+                var rankingRound = this.CreateArcheryRound(dateModel.From, format, rankingTable.Round, eventRound.EventName);
                 await this.SetARCTeamsAsync(rankingRound, rankingTable, options.Event);
 
                 if (options.Game.Year == 1992 || options.Game.Year == 1996)
@@ -2194,17 +2068,17 @@ public class ResultConverter : BaseOlympediaConverter
                     var results = this.OlympediaService.FindResults(rankingTable.HtmlDocument.DocumentNode.OuterHtml);
                     this.ConvertArcheryTeamAdditionalInfo(rankingRound, results, options.Documents);
                 }
-                rounds.Add(rankingRound);
+                eventRound.Rounds.Add(rankingRound);
 
                 foreach (var table in options.Tables.Skip(1))
                 {
                     dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
                     dateModel = this.dateService.ParseDate(dateString);
                     format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventName);
+                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventRound.EventName);
 
                     await this.SetARCTeamMatchesAsync(round, table, options.Event, options.Documents);
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
             }
         }
@@ -2212,15 +2086,15 @@ public class ResultConverter : BaseOlympediaConverter
         {
             if (options.Game.Year <= 1920)
             {
-                var round = this.CreateArcheryRound(dateModel.From, format, RoundType.Final, eventName);
+                var round = this.CreateArcheryRound(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
                 await this.SetARCArchersAsync(round, options.StandingTable, options.Event);
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
             }
             else if (options.Game.Year >= 1972 && options.Game.Year <= 1984)
             {
-                var round = this.CreateArcheryRound(dateModel.From, format, RoundType.FinalRound, eventName);
+                var round = this.CreateArcheryRound(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
                 await this.SetARCArchersAsync(round, options.StandingTable, options.Event);
-                rounds.Add(round);
+                eventRound.Rounds.Add(round);
 
                 foreach (var document in options.Documents)
                 {
@@ -2233,11 +2107,11 @@ public class ResultConverter : BaseOlympediaConverter
 
                     if (roundType != RoundType.None)
                     {
-                        dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                        dateModel = this.dateService.ParseDate(dateString);
-                        round = this.CreateArcheryRound(dateModel.From, format, roundType, eventName);
+                        var dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                        var dateModel = this.dateService.ParseDate(dateString);
+                        round = this.CreateArcheryRound(dateModel.From, eventRound.Format, roundType, eventRound.EventName);
                         await this.SetARCArchersAsync(round, table, options.Event);
-                        rounds.Add(round);
+                        eventRound.Rounds.Add(round);
                     }
                 }
             }
@@ -2245,41 +2119,41 @@ public class ResultConverter : BaseOlympediaConverter
             {
                 foreach (var table in options.Tables)
                 {
-                    dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                    dateModel = this.dateService.ParseDate(dateString);
+                    var dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                    var dateModel = this.dateService.ParseDate(dateString);
 
-                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventName);
+                    var round = this.CreateArcheryRound(dateModel.From, eventRound.Format, table.Round, eventRound.EventName);
                     await this.SetARCArchersAsync(round, table, options.Event);
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
             }
             else
             {
                 var rankingTable = options.Tables.FirstOrDefault();
-                dateString = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                dateModel = this.dateService.ParseDate(dateString);
-                format = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-                var rankingRound = this.CreateArcheryRound(dateModel.From, format, rankingTable.Round, eventName);
+                var dateString = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                var dateModel = this.dateService.ParseDate(dateString);
+                var format = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
+                var rankingRound = this.CreateArcheryRound(dateModel.From, format, rankingTable.Round, eventRound.EventName);
                 await this.SetARCArchersAsync(rankingRound, rankingTable, options.Event);
                 var results = this.OlympediaService.FindResults(rankingTable.HtmlDocument.DocumentNode.OuterHtml);
                 this.ConvertArcheryRanking(rankingRound, results, options.Documents);
-                rounds.Add(rankingRound);
+                eventRound.Rounds.Add(rankingRound);
 
                 foreach (var table in options.Tables.Skip(1))
                 {
                     dateString = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
                     dateModel = this.dateService.ParseDate(dateString);
                     format = this.RegExpService.MatchFirstGroup(rankingTable.HtmlDocument.DocumentNode.OuterHtml, @"<i>(.*?)<\/i>");
-                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventName);
+                    var round = this.CreateArcheryRound(dateModel.From, format, table.Round, eventRound.EventName);
 
                     await this.SetARCMatchesAsync(round, table, options.Event, options.Documents);
-                    rounds.Add(round);
+                    eventRound.Rounds.Add(round);
                 }
             }
         }
 
         var resultJson = this.CreateResult<ARCRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = rounds;
+        resultJson.Rounds = eventRound.Rounds;
         var json = JsonSerializer.Serialize(resultJson);
         var result = new Result
         {
@@ -2863,7 +2737,12 @@ public class ResultConverter : BaseOlympediaConverter
 
         if (options.Event.IsTeamEvent)
         {
-
+            foreach (var table in options.Tables)
+            {
+                var round = this.CreateAlpineSkiingRound(eventRound.Dates.From, eventRound.Format, table.Round, eventRound.EventName);
+                await this.SetALPTeamMatchesAsync(round, table, options.Event, options.Documents);
+                eventRound.Rounds.Add(round);
+            }
         }
         else
         {
@@ -2877,44 +2756,69 @@ public class ResultConverter : BaseOlympediaConverter
                     var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
                     format = this.RegExpService.CutHtml(format);
 
-                    var round = this.CreateAlpineSkiingRound(dateModel.From, format, table.Round, eventRound.EventName);
-                    round.Slope = slope;
-                    await this.SetARCSkiersAsync(round, table, options.Event);
-                    eventRound.Rounds.Add(round);
+                    if (options.Game.Year == 1964)
+                    {
+                        var round = this.CreateAlpineSkiingRound(dateModel.From, format, table.Round, eventRound.EventName);
+                        round.Slope = slope;
+                        await this.SetALPSkiersAsync(round, table, options.Event);
+                        eventRound.Rounds.Add(round);
+                    }
+                    else if (options.Game.Year == 1968)
+                    {
+                        var round = this.CreateAlpineSkiingRound(dateModel.From, format, table.Round, eventRound.EventName);
+                        var heats = this.SplitHeats(table);
+                        foreach (var heat in heats)
+                        {
+                            var currentTable = new TableModel { Html = heat.Html, Title = heat.Title };
+                            await this.SetALPSkiersAsync(round, currentTable, options.Event);
+                        }
+                        eventRound.Rounds.Add(round);
+                    }
+                    else if (options.Game.Year == 1972)
+                    {
+                        var round = this.CreateAlpineSkiingRound(dateModel.From, format, table.Round, eventRound.EventName);
+                        var groups = this.SplitGroups(table.Html);
+                        foreach (var group in groups)
+                        {
+                            var currentTable = new TableModel { Html = group.Html, Title = group.Title };
+                            await this.SetALPSkiersAsync(round, currentTable, options.Event);
+                        }
+                        eventRound.Rounds.Add(round);
+                    }
 
-                    // todo qualification type 
-                    // heat and group
-                    ;
+                    if (table.Round == RoundType.FinalRound)
+                    {
+                        var round = this.CreateAlpineSkiingRound(dateModel.From, format, table.Round, eventRound.EventName);
+                        round.Slope = slope;
+                        await this.SetALPSkiersAsync(round, table, options.Event);
+                        eventRound.Rounds.Add(round);
+
+                        var results = this.OlympediaService.FindResults(table.HtmlDocument.DocumentNode.OuterHtml);
+                        foreach (var resultNumber in results)
+                        {
+                            var document = options.Documents.FirstOrDefault(x => x.Name.Contains($"{resultNumber}"));
+                            if (document != null)
+                            {
+                                await this.SetALPDocumentsAsync(eventRound, document, options.Event);
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-                //var finalRound = this.CreateAlpineSkiingRound(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
-                //finalRound.Slope = slope;
-                //await this.SetARCSkiersAsync(finalRound, options.StandingTable, options.Event);
-                //eventRound.Rounds.Add(finalRound);
+                var finalRound = this.CreateAlpineSkiingRound(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
+                finalRound.Slope = slope;
+                await this.SetALPSkiersAsync(finalRound, options.StandingTable, options.Event);
+                eventRound.Rounds.Add(finalRound);
 
-                //if (!options.Tables.Any() && options.Documents.Any())
-                //{
-                //    foreach (var document in options.Documents)
-                //    {
-                //        var htmlDocument = this.CreateHtmlDocument(document);
-                //        slope = await this.SetALPSlopeAsync(htmlDocument);
-                //        var table = this.GetStandingTable(htmlDocument, options.Event);
-                //        var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
-                //        title = title.Replace(options.Event.OriginalName, string.Empty).Replace("–", string.Empty).Trim();
-                //        var parts = title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                //        var roundType = this.NormalizeService.MapRoundType(parts.FirstOrDefault());
-                //        var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                //        var dateModel = this.dateService.ParseDate(dateString);
-                //        var format = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
-
-                //        var round = this.CreateAlpineSkiingRound(dateModel.From, format, roundType, eventRound.EventName);
-                //        round.Slope = slope;
-                //        await this.SetARCSkiersAsync(round, table, options.Event);
-                //        eventRound.Rounds.Add(round);
-                //    }
-                //}
+                if (!options.Tables.Any() && options.Documents.Any())
+                {
+                    foreach (var document in options.Documents)
+                    {
+                        await this.SetALPDocumentsAsync(eventRound, document, options.Event);
+                    }
+                }
             }
         }
 
@@ -2927,234 +2831,162 @@ public class ResultConverter : BaseOlympediaConverter
             Json = json
         };
 
-        //await this.resultsService.AddOrUpdateAsync(result);
-
-        //if (!options.Event.IsTeamEvent)
-        //{
-        //    var alpineSkiingEvent = new AlpineSkiingEvent
-        //    {
-        //        Format = format,
-        //        Participants = new List<AlpineSkiingParticipant>(),
-        //        Run1Date = date.From,
-        //        Run1SlopeInformation = new Slope
-        //        {
-        //            Gates = gates,
-        //            Length = length,
-        //            StartAltitude = startAltitude,
-        //            VerticalDrop = verticalDrop,
-        //            Setter = courseSetter?.Id
-        //        }
-        //    };
-
-        //    if (options.Documents.Any())
-        //    {
-        //        foreach (var doc in options.Documents)
-        //        {
-        //            var htmlDocument = this.CreateHtmlDocument(doc);
-        //            var title = htmlDocument.DocumentNode.SelectSingleNode("//h1");
-        //            dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-        //            courseSetterString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Course Setter\s*<\/th>\s*<td(.*?)<\/td>");
-        //            gatesMatch = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Gates:(.*?)<br>");
-        //            lengthMatch = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Length:(.*?)<br>");
-        //            startAltitudeMatch = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Start Altitude:(.*?)<br>");
-        //            verticalDropMatch = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Vertical Drop:(.*?)<\/td>");
-
-        //            date = this.dateService.ParseDate(dateString);
-        //            courseSetter = await this.athletesService.GetAsync(this.OlympediaService.FindAthlete(courseSetterString).Number);
-        //            gates = this.RegExpService.MatchInt(gatesMatch);
-        //            length = this.RegExpService.MatchInt(lengthMatch);
-        //            startAltitude = this.RegExpService.MatchInt(startAltitudeMatch);
-        //            verticalDrop = this.RegExpService.MatchInt(verticalDropMatch);
-
-        //            if ((title.InnerText.Contains("Combined") && title.InnerText.Contains("Slalom")) || title.InnerText.Contains("Run 2"))
-        //            {
-        //                alpineSkiingEvent.Run2Date = date.From;
-        //                alpineSkiingEvent.Run2SlopeInformation = new Slope
-        //                {
-        //                    Gates = gates,
-        //                    Length = length,
-        //                    StartAltitude = startAltitude,
-        //                    VerticalDrop = verticalDrop,
-        //                    Setter = courseSetter?.Id
-        //                };
-        //            }
-        //            else
-        //            {
-        //                alpineSkiingEvent.Run1Date = date.From;
-        //                alpineSkiingEvent.Run1SlopeInformation = new Slope
-        //                {
-        //                    Gates = gates,
-        //                    Length = length,
-        //                    StartAltitude = startAltitude,
-        //                    VerticalDrop = verticalDrop,
-        //                    Setter = courseSetter?.Id
-        //                };
-        //            }
-
-        //            await this.ExtractAlpineSkiingParticipantsAsync(htmlDocument, options.Event, options.Game, alpineSkiingEvent);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        await this.ExtractAlpineSkiingParticipantsAsync(options.HtmlDocument, options.Event, options.Game, alpineSkiingEvent);
-        //    }
-
-        //    var json = JsonSerializer.Serialize(alpineSkiingEvent);
-        //    var result = new Result
-        //    {
-        //        EventId = options.Event.Id,
-        //        Json = json
-        //    };
-
-        //    await this.resultsService.AddOrUpdateAsync(result);
-        //}
-        //else
-        //{
-        //    var alpineSkiingEvent = new AlpineSkiingEvent
-        //    {
-        //        Format = format,
-        //        Matches = new List<AlpineSkiingMatch>(),
-        //        Run1Date = this.dateService.ParseDate(dateString).From,
-        //        Run1SlopeInformation = new Slope
-        //        {
-        //            Gates = gates,
-        //            Length = length,
-        //            StartAltitude = startAltitude,
-        //            VerticalDrop = verticalDrop,
-        //            Setter = courseSetter?.Id
-        //        }
-        //    };
-
-        //    var matches = new List<AlpineSkiingMatch>();
-        //    foreach (var table in options.Tables)
-        //    {
-        //        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//tr").Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)).ToList();
-        //        foreach (var row in rows)
-        //        {
-        //            var tdNodes = row.Elements("td").ToList();
-        //            var homeTeamName = tdNodes[3].InnerText;
-        //            var homeTeamCode = tdNodes[4].OuterHtml;
-        //            var resultString = tdNodes[5].InnerText;
-        //            var awayTeamName = tdNodes[6].InnerText;
-        //            var awayTeamCode = tdNodes[7].OuterHtml;
-        //            var resultModel = this.OlympediaService.GetMatchResult(resultString);
-        //            var homeNOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == this.OlympediaService.FindNOCCode(homeTeamCode));
-        //            var homeTeam = await this.teamsService.GetAsync(homeNOCCacheModel.Id, options.Event.Id);
-        //            var awayNOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == this.OlympediaService.FindNOCCode(awayTeamCode));
-        //            var awayTeam = await this.teamsService.GetAsync(awayNOCCacheModel.Id, options.Event.Id);
-
-        //            var match = new AlpineSkiingMatch
-        //            {
-        //                MatchNumber = this.OlympediaService.FindMatchNumber(tdNodes[0].InnerText),
-        //                Round = table.Round,
-        //                RoundInfo = table.RoundInfo,
-        //                MatchType = this.OlympediaService.FindMatchType(table.Round, tdNodes[0].InnerText),
-        //                MatchInfo = this.OlympediaService.FindMatchInfo(tdNodes[0].InnerText),
-        //                Date = this.dateService.ParseDate(tdNodes[1].InnerText, options.Game.Year).From,
-        //                ResultId = this.OlympediaService.FindResultNumber(tdNodes[0].OuterHtml),
-        //                Decision = resultModel.Decision,
-        //                HomeTeam = new AlpineSkiingTeam
-        //                {
-        //                    Name = homeTeamName,
-        //                    TeamId = homeTeam.Id,
-        //                    Result = resultModel.Result1,
-        //                    Points = resultModel.Points1,
-        //                    Participants = new List<AlpineSkiingParticipant>()
-        //                },
-        //                AwayTeam = new AlpineSkiingTeam
-        //                {
-        //                    Name = awayTeamName,
-        //                    TeamId = awayTeam.Id,
-        //                    Result = resultModel.Result2,
-        //                    Points = resultModel.Points2,
-        //                    Participants = new List<AlpineSkiingParticipant>()
-        //                }
-        //            };
-
-        //            var matchDocument = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
-        //            if (matchDocument != null)
-        //            {
-        //                var htmlDocument = this.CreateHtmlDocument(matchDocument);
-        //                var raceTable = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Last();
-        //                var tableRows = raceTable.Elements("tr");
-
-        //                foreach (var tableRow in tableRows)
-        //                {
-        //                    var trDocument = new HtmlDocument();
-        //                    trDocument.LoadHtml(tableRow.OuterHtml);
-        //                    var nodes = trDocument.DocumentNode.SelectNodes("//td");
-
-        //                    var race = nodes[0].InnerText.Replace("Race #", string.Empty).Trim();
-        //                    var firstParticipantNumber = this.OlympediaService.FindAthlete(nodes[3].OuterHtml);
-        //                    var firstParticipantNOCCode = this.OlympediaService.FindNOCCode(nodes[4].OuterHtml);
-        //                    var firstParticipant = await this.participantsService.GetAsync(firstParticipantNumber.Number, options.Event.Id);
-        //                    var secondParticipantNumber = this.OlympediaService.FindAthlete(nodes[6].OuterHtml);
-        //                    var secondParticipantNOCCode = this.OlympediaService.FindNOCCode(nodes[7].OuterHtml);
-        //                    var secondParticipant = await this.participantsService.GetAsync(secondParticipantNumber.Number, options.Event.Id);
-        //                    var raceResultModel = this.OlympediaService.GetMatchResult(nodes[5].InnerHtml);
-
-        //                    var firstAlpineSkiingParticipant = new AlpineSkiingParticipant
-        //                    {
-        //                        Race = race,
-        //                        ParticipantId = firstParticipant.Id,
-        //                        Run1Time = raceResultModel.Time1,
-        //                        Result = raceResultModel.Result1
-        //                    };
-
-        //                    var secondAlpineSkiingParticipant = new AlpineSkiingParticipant
-        //                    {
-        //                        Race = race,
-        //                        ParticipantId = secondParticipant.Id,
-        //                        Run1Time = raceResultModel.Time2,
-        //                        Result = raceResultModel.Result2
-        //                    };
-
-        //                    if (firstParticipantNOCCode == homeNOCCacheModel.Code)
-        //                    {
-        //                        match.HomeTeam.Participants.Add(firstAlpineSkiingParticipant);
-        //                        match.AwayTeam.Participants.Add(secondAlpineSkiingParticipant);
-        //                    }
-        //                    else
-        //                    {
-        //                        match.HomeTeam.Participants.Add(secondAlpineSkiingParticipant);
-        //                        match.AwayTeam.Participants.Add(firstAlpineSkiingParticipant);
-        //                    }
-        //                }
-
-        //                if (match.HomeTeam.Result == ResultType.Draw)
-        //                {
-        //                    match.HomeTeam.Time = new DateTime(match.HomeTeam.Participants.Where(x => x.Result == ResultType.Win).Sum(x => x.Run1Time.Value.Ticks));
-        //                    match.AwayTeam.Time = new DateTime(match.AwayTeam.Participants.Where(x => x.Result == ResultType.Win).Sum(x => x.Run1Time.Value.Ticks));
-
-        //                    if (match.HomeTeam.Time < match.AwayTeam.Time)
-        //                    {
-        //                        match.HomeTeam.Result = ResultType.Win;
-        //                        match.AwayTeam.Result = ResultType.Lose;
-        //                    }
-        //                    else
-        //                    {
-        //                        match.HomeTeam.Result = ResultType.Lose;
-        //                        match.AwayTeam.Result = ResultType.Win;
-        //                    }
-        //                }
-        //            }
-
-        //            alpineSkiingEvent.Matches.Add(match);
-        //        }
-        //    }
-
-        //    var json = JsonSerializer.Serialize(alpineSkiingEvent);
-        //    var result = new Result
-        //    {
-        //        EventId = options.Event.Id,
-        //        Json = json
-        //    };
-
-        //    await this.resultsService.AddOrUpdateAsync(result);
-        //}
+        await this.resultsService.AddOrUpdateAsync(result);
     }
 
-    private async Task SetARCSkiersAsync(ALPRound round, TableModel table, EventCacheModel eventCache)
+    private async Task SetALPTeamMatchesAsync(ALPRound round, TableModel table, EventCacheModel eventCache, IOrderedEnumerable<Document> documents)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var team1Name = data[3].InnerText;
+            var team1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
+            var team1NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team1NOCCode);
+            var team1 = await this.teamsService.GetAsync(team1NOCCacheModel.Id, eventCache.Id);
+
+            var matchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText);
+            var matchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText);
+            var matchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText);
+            var matchResult = this.OlympediaService.GetMatchResult(data[5].InnerText);
+            var decision = this.OlympediaService.FindDecision(row.OuterHtml);
+
+            var match = new ALPTeamMatch
+            {
+                MatchNumber = matchNumber,
+                Round = round.Round,
+                RoundInfo = table.RoundInfo,
+                MatchType = matchType,
+                MatchInfo = matchInfo,
+                Decision = decision,
+                Team1 = new ALPTeam
+                {
+                    Name = team1Name,
+                    TeamId = team1.Id,
+                    NOCCode = team1NOCCode
+                }
+            };
+
+            if (matchResult != null)
+            {
+                var team2Name = data[6].InnerText;
+                var team2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
+                var team2NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team2NOCCode);
+                var team2 = await this.teamsService.GetAsync(team2NOCCacheModel.Id, eventCache.Id);
+
+                var resultId = this.OlympediaService.FindResultNumber(data[0].OuterHtml);
+                match.ResultId = resultId;
+                match.Decision = DecisionType.None;
+                match.Team1.Result = matchResult.Result1;
+                match.Team1.Points = matchResult.Points1;
+                match.Team2 = new ALPTeam
+                {
+                    Name = team2Name,
+                    TeamId = team2.Id,
+                    NOCCode = team2NOCCode,
+                    Result = matchResult.Result2,
+                    Points = matchResult.Points2
+                };
+
+                var matchDocument = documents.FirstOrDefault(x => x.Url.EndsWith($"{resultId}"));
+                if (matchDocument != null)
+                {
+                    var htmlDocument = this.CreateHtmlDocument(matchDocument);
+                    var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                    var dateModel = this.dateService.ParseDate(dateString);
+                    match.Date = dateModel.From;
+
+                    await this.ConvertAlpineSkiingTeamSkiersAsync(match, eventCache, htmlDocument);
+                }
+            }
+
+            round.TeamMatches.Add(match);
+        }
+    }
+
+    private async Task ConvertAlpineSkiingTeamSkiersAsync(ALPTeamMatch match, EventCacheModel eventCache, HtmlDocument htmlDocument)
+    {
+        var table = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Last();
+        var document = new HtmlDocument();
+        document.LoadHtml(table.OuterHtml);
+
+        var rows = document.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+
+            var race = int.Parse(data[0].InnerText.Replace("Race #", string.Empty).Trim());
+            var athleteModel1 = this.OlympediaService.FindAthlete(data[3].OuterHtml);
+            var skier1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
+            var skier1NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == skier1NOCCode);
+            var skier1Participant = await this.participantsService.GetAsync(athleteModel1.Number, eventCache.Id, skier1NOCCacheModel.Id);
+
+            var athleteModel2 = this.OlympediaService.FindAthlete(data[6].OuterHtml);
+            var skier2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
+            var skier2NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == skier2NOCCode);
+            var skier2Participant = await this.participantsService.GetAsync(athleteModel2.Number, eventCache.Id, skier2NOCCacheModel.Id);
+
+            var matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml);
+
+            var skier1 = new ALPSkier
+            {
+                Name = athleteModel1.Name,
+                AthleteNumber = athleteModel1.Number,
+                NOCCode = skier1NOCCode,
+                ParticipantId = skier1Participant.Id,
+                Time = matchResult.Time1,
+                Race = race
+            };
+
+            var skier2 = new ALPSkier
+            {
+                Name = athleteModel2.Name,
+                AthleteNumber = athleteModel2.Number,
+                NOCCode = skier2NOCCode,
+                ParticipantId = skier2Participant.Id,
+                Time = matchResult.Time2,
+                Race = race
+            };
+
+            if (match.Team1.NOCCode == skier1NOCCode)
+            {
+                match.Team1.Skiers.Add(skier1);
+                match.Team2.Skiers.Add(skier2);
+            }
+            else
+            {
+                match.Team1.Skiers.Add(skier2);
+                match.Team2.Skiers.Add(skier1);
+            }
+        }
+    }
+
+    private async Task SetALPDocumentsAsync(EventRoundModel<ALPRound> eventRound, Document document, EventCacheModel eventCache)
+    {
+        var htmlDocument = this.CreateHtmlDocument(document);
+        var slope = await this.SetALPSlopeAsync(htmlDocument);
+        var table = this.GetStandingTable(htmlDocument, eventCache);
+        var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+        title = title.Replace(eventCache.OriginalName, string.Empty).Replace("–", string.Empty).Trim();
+        var parts = title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        var roundType = this.NormalizeService.MapRoundType(parts.FirstOrDefault());
+        var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+        var dateModel = this.dateService.ParseDate(dateString);
+        var format = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+
+        var round = this.CreateAlpineSkiingRound(dateModel.From, format, roundType, eventRound.EventName);
+        round.Slope = slope;
+        await this.SetALPSkiersAsync(round, table, eventCache);
+        eventRound.Rounds.Add(round);
+    }
+
+    private async Task SetALPSkiersAsync(ALPRound round, TableModel table, EventCacheModel eventCache)
     {
         var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
         var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
@@ -3177,6 +3009,7 @@ public class ResultConverter : BaseOlympediaConverter
                     ParticipantId = participant.Id,
                     AthleteNumber = athleteModel.Number,
                     FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
                     Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value2) ? this.RegExpService.MatchDouble(data[value2].InnerText) : null,
                     Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value3) ? this.dateService.ParseTime(data[value3].InnerText) : null,
@@ -3185,11 +3018,12 @@ public class ResultConverter : BaseOlympediaConverter
                     PenaltyTime = indexes.TryGetValue(ConverterConstants.INDEX_TIME_PENALTY, out int value6) ? this.dateService.ParseTime(data[value6].InnerText) : null,
                     Run1Time = indexes.TryGetValue(ConverterConstants.INDEX_RUN1, out int value7) ? this.dateService.ParseTime(data[value7].InnerText) : null,
                     Run2Time = indexes.TryGetValue(ConverterConstants.INDEX_RUN2, out int value8) ? this.dateService.ParseTime(data[value8].InnerText) : null,
+                    Heat = this.NormalizeService.MapHeats(table.Title),
+                    Group = this.NormalizeService.MapGroupType(table.Title)
                 };
 
                 round.Skiers.Add(skier);
             }
-
         }
     }
 
@@ -3228,78 +3062,46 @@ public class ResultConverter : BaseOlympediaConverter
             EventName = eventName
         };
     }
-
-
-
-    private async Task ExtractAlpineSkiingParticipantsAsync(HtmlDocument document, EventCacheModel eventCacheModel, GameCacheModel gameCacheModel, AlpineSkiingEvent alpineSkiingEvent)
-    {
-        var alpineSkiingParticipants = new List<AlpineSkiingParticipant>();
-        var rows = document.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
-        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
-        var indexes = this.OlympediaService.FindIndexes(headers);
-        var title = document.DocumentNode.SelectSingleNode("//h1");
-
-        foreach (var row in rows.Skip(1))
-        {
-            var data = row.Elements("td").ToList();
-            var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-            var nocCode = this.OlympediaService.FindNOCCode(data[indexes[ConverterConstants.INDEX_NOC]].OuterHtml);
-            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCacheModel.Id, nocCacheModel.Id);
-
-            var alpineSkiingParticipant = new AlpineSkiingParticipant();
-            if (alpineSkiingEvent.Participants.Any(x => x.ParticipantId == participant.Id))
-            {
-                alpineSkiingParticipant = alpineSkiingEvent.Participants.FirstOrDefault(x => x.ParticipantId == participant.Id);
-            }
-            else
-            {
-                alpineSkiingEvent.Participants.Add(alpineSkiingParticipant);
-                alpineSkiingParticipant.ParticipantId = participant.Id;
-            }
-
-            if (title.InnerText.Contains("Combined") && title.InnerText.Contains("Downhill"))
-            {
-                alpineSkiingParticipant.Run3FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml);
-                alpineSkiingParticipant.Run3Time = this.dateService.ParseTime(data[indexes[ConverterConstants.INDEX_TIME]].InnerText);
-                alpineSkiingParticipant.Run3Points = indexes.ContainsKey(ConverterConstants.INDEX_POINTS) ? this.RegExpService.MatchDouble(data[indexes[ConverterConstants.INDEX_POINTS]].InnerText) : null;
-                alpineSkiingParticipant.Run3Number = this.RegExpService.MatchInt(data[indexes[ConverterConstants.INDEX_NR]].InnerText);
-            }
-            else if (title.InnerText.Contains("Combined") && title.InnerText.Contains("Slalom") && gameCacheModel.Year <= 2006)
-            {
-                alpineSkiingParticipant.Run1Points = indexes.ContainsKey(ConverterConstants.INDEX_POINTS) ? this.RegExpService.MatchDouble(data[indexes[ConverterConstants.INDEX_POINTS]].InnerText) : null;
-                alpineSkiingParticipant.Run1FinishStatus = this.OlympediaService.FindStatus(data[indexes[ConverterConstants.INDEX_RUN1]].OuterHtml);
-                alpineSkiingParticipant.Run1Time = this.dateService.ParseTime(data[indexes[ConverterConstants.INDEX_RUN1]].InnerText);
-                alpineSkiingParticipant.Run1Number = this.RegExpService.MatchInt(data[indexes[ConverterConstants.INDEX_NR]].InnerText);
-                alpineSkiingParticipant.Run2FinishStatus = this.OlympediaService.FindStatus(data[indexes[ConverterConstants.INDEX_RUN2]].OuterHtml);
-                alpineSkiingParticipant.Run2Time = this.dateService.ParseTime(data[indexes[ConverterConstants.INDEX_RUN2]].InnerText);
-                alpineSkiingParticipant.Run2Number = alpineSkiingParticipant.Run1Number;
-            }
-            else if (title.InnerText.Contains("Combined") && title.InnerText.Contains("Slalom") && gameCacheModel.Year >= 2010)
-            {
-                alpineSkiingParticipant.Run1Time = this.dateService.ParseTime(data[indexes[ConverterConstants.INDEX_TIME]].InnerText);
-                alpineSkiingParticipant.Run1FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml);
-                alpineSkiingParticipant.Run1Number = this.RegExpService.MatchInt(data[indexes[ConverterConstants.INDEX_NR]].InnerText);
-            }
-            else if (title.InnerText.Contains("Run 2"))
-            {
-                alpineSkiingParticipant.Run2Time = this.dateService.ParseTime(data[indexes[ConverterConstants.INDEX_TIME]].InnerText);
-                alpineSkiingParticipant.Run2FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml);
-                alpineSkiingParticipant.Run2Number = this.RegExpService.MatchInt(data[indexes[ConverterConstants.INDEX_NR]].InnerText);
-            }
-            else
-            {
-                alpineSkiingParticipant.Run1Time = this.dateService.ParseTime(data[indexes[ConverterConstants.INDEX_TIME]].InnerText);
-                alpineSkiingParticipant.Run1FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml);
-                alpineSkiingParticipant.Run1Number = this.RegExpService.MatchInt(data[indexes[ConverterConstants.INDEX_NR]].InnerText);
-            }
-        }
-    }
     #endregion ALPINE SKIING
 
     #region BASKETBALL
+    private async Task ProcessBaskteballAsync(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<BKBRound>(options.HtmlDocument, options.Event.Name);
+
+        foreach (var table in options.Tables)
+        {
+
+        }
+
+        var resultJson = this.CreateResult<BKBRound>(options.Event, options.Discipline, options.Game);
+        resultJson.Rounds = eventRound.Rounds;
+        var json = JsonSerializer.Serialize(resultJson);
+        var result = new Result
+        {
+            EventId = options.Event.Id,
+            Json = json
+        };
+
+        //await this.resultsService.AddOrUpdateAsync(result);
+    }
+
+    private BKBRound CreateBasketballRound(DateTime? date, string format, RoundType roundType, string eventName)
+    {
+        return new BKBRound
+        {
+            Date = date,
+            Format = format,
+            EventName = eventName,
+            Round = roundType
+        };
+    }
+
     private async Task ProcessBasketball3x3Async(ConvertOptions options)
     {
+        var eventRound = this.CreateEventRound<BKBRound>(options.HtmlDocument, options.Event.Name);
+
+
         var matches = new List<BasketballMatch>();
         foreach (var table in options.Tables)
         {
@@ -3415,6 +3217,8 @@ public class ResultConverter : BaseOlympediaConverter
         await this.resultsService.AddOrUpdateAsync(result);
     }
 
+
+
     private async Task<List<BasketballParticipant>> ExtractBasketball3x3ParticipantsAsync(string html, EventCacheModel eventCacheModel)
     {
         var document = new HtmlDocument();
@@ -3466,7 +3270,7 @@ public class ResultConverter : BaseOlympediaConverter
         return participants;
     }
 
-    private async Task ProcessBasketballAsync(ConvertOptions options)
+    private async Task ProcessBasketball1Async(ConvertOptions options)
     {
         var matches = new List<BasketballMatch>();
         foreach (var table in options.Tables)
