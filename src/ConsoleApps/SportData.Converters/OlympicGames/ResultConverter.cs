@@ -19,6 +19,7 @@ using SportData.Data.Models.OlympicGames;
 using SportData.Data.Models.OlympicGames.Aquatics.ArtisticSwimming;
 using SportData.Data.Models.OlympicGames.Archery;
 using SportData.Data.Models.OlympicGames.Athletics;
+using SportData.Data.Models.OlympicGames.Badminton;
 using SportData.Data.Models.OlympicGames.Base;
 using SportData.Data.Models.OlympicGames.Basketball;
 using SportData.Data.Models.OlympicGames.Gymnastics;
@@ -85,29 +86,28 @@ public class ResultConverter : BaseOlympediaConverter
                     switch (disciplineCacheModel.Name)
                     {
                         //case DisciplineConstants.BASKETBALL_3X3:
-                        //    //await this.ProcessBasketball3x3Async(options);
+                        //case DisciplineConstants.BASKETBALL:
+                        //    await this.ProcessBasketballAsync(options);
                         //    break;
-                        case DisciplineConstants.ALPINE_SKIING:
-                            await this.ProcessAlpineSkiingAsync(options);
+                        //case DisciplineConstants.ALPINE_SKIING:
+                        //    await this.ProcessAlpineSkiingAsync(options);
+                        //    break;
+                        //case DisciplineConstants.ARCHERY:
+                        //    await this.ProcessArcheryAsync(options);
+                        //    break;
+                        //case DisciplineConstants.ARTISTIC_GYMNASTICS:
+                        //    // JUDGES ?????????????????????????????????????????????///
+                        //    await this.ProcessArtisticGymnasticsAsync(options);
+                        //    break;
+                        //case DisciplineConstants.ARTISTIC_SWIMMING:
+                        //    await this.ProcessArtisticSwimmingAsync(options);
+                        //    break;
+                        //case DisciplineConstants.ATHLETICS:
+                        //    await this.ProcessAthleticsAsync(options);
+                        //    break;
+                        case DisciplineConstants.BADMINTON:
+                            await this.ProcessBadmintonAsync(options);
                             break;
-                            //case DisciplineConstants.ARCHERY:
-                            //    await this.ProcessArcheryAsync(options);
-                            //    break;
-                            //case DisciplineConstants.ARTISTIC_GYMNASTICS:
-                            //    // JUDGES ?????????????????????????????????????????????///
-                            //    await this.ProcessArtisticGymnasticsAsync(options);
-                            //    break;
-                            //case DisciplineConstants.ARTISTIC_SWIMMING:
-                            //    await this.ProcessArtisticSwimmingAsync(options);
-                            //    break;
-                            //case DisciplineConstants.ATHLETICS:
-                            //    await this.ProcessAthleticsAsync(options);
-                            //    break;
-                            //case DisciplineConstants.BASKETBALL:
-                            //    Console.WriteLine(group.Identifier);
-
-                            //    //await this.ProcessBasketballAsync(options);
-                            //    break;
                     }
                 }
             }
@@ -381,6 +381,27 @@ public class ResultConverter : BaseOlympediaConverter
     }
 
     #endregion PRIVATE
+
+    #region BADMINTON
+    private async Task ProcessBadmintonAsync(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<BDMRound>(options.HtmlDocument, options.Event.Name);
+
+
+
+        var resultJson = this.CreateResult<BDMRound>(options.Event, options.Discipline, options.Game);
+        resultJson.Rounds = eventRound.Rounds;
+
+        var json = JsonSerializer.Serialize(resultJson);
+        var result = new Result
+        {
+            EventId = options.Event.Id,
+            Json = json
+        };
+
+        //await this.resultsService.AddOrUpdateAsync(result);
+    }
+    #endregion BADMINTON
 
     #region ATHLETICS
     private async Task ProcessAthleticsAsync(ConvertOptions options)
@@ -3065,13 +3086,80 @@ public class ResultConverter : BaseOlympediaConverter
     #endregion ALPINE SKIING
 
     #region BASKETBALL
-    private async Task ProcessBaskteballAsync(ConvertOptions options)
+    private async Task ProcessBasketballAsync(ConvertOptions options)
     {
         var eventRound = this.CreateEventRound<BKBRound>(options.HtmlDocument, options.Event.Name);
 
         foreach (var table in options.Tables)
         {
+            var round = this.CreateBasketballRound(eventRound.Dates.From, eventRound.Format, table.Round, eventRound.EventName);
+            var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
 
+            foreach (var row in rows.Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)))
+            {
+                var data = row.Elements("td").ToList();
+
+                var team1NOCCode = DisciplineConstants.BASKETBALL == options.Discipline.Name && options.Game.Year <= 2016
+                    ? this.OlympediaService.FindNOCCode(data[2].OuterHtml)
+                    : this.OlympediaService.FindNOCCode(data[3].OuterHtml);
+
+                var team1NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team1NOCCode);
+                var team1 = await this.teamsService.GetAsync(team1NOCCacheModel.Id, options.Event.Id);
+
+                var match = new BKBMatch
+                {
+                    MatchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText),
+                    Round = table.Round,
+                    RoundInfo = table.RoundInfo,
+                    MatchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText),
+                    MatchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText),
+                    Date = this.dateService.ParseDate(data[1].InnerText, options.Game.Year).From,
+                    ResultId = this.OlympediaService.FindResultNumber(data[0].OuterHtml),
+                    Decision = this.OlympediaService.FindDecision(row.OuterHtml),
+                    Team1 = new BKBTeam
+                    {
+                        Name = team1.Name,
+                        TeamId = team1.Id,
+                        NOCCode = team1NOCCode
+                    }
+                };
+
+                if (match.Decision == DecisionType.None)
+                {
+                    var matchResult = DisciplineConstants.BASKETBALL == options.Discipline.Name && options.Game.Year <= 2016
+                        ? this.OlympediaService.GetMatchResult(data[3].InnerText)
+                        : this.OlympediaService.GetMatchResult(data[4].InnerText);
+
+                    match.Team1.Result = matchResult.Result1;
+                    match.Team1.Points = matchResult.Points1;
+
+                    var team2NOCCode = DisciplineConstants.BASKETBALL == options.Discipline.Name && options.Game.Year <= 2016
+                        ? this.OlympediaService.FindNOCCode(data[4].OuterHtml)
+                        : this.OlympediaService.FindNOCCode(data[6].OuterHtml);
+
+                    var team2NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team2NOCCode);
+                    var team2 = await this.teamsService.GetAsync(team2NOCCacheModel.Id, options.Event.Id);
+
+                    match.Team2 = new BKBTeam
+                    {
+                        Name = team2.Name,
+                        TeamId = team2.Id,
+                        NOCCode = team2NOCCode,
+                        Result = matchResult.Result2,
+                        Points = matchResult.Points2
+                    };
+
+                    var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
+                    if (document != null)
+                    {
+                        await this.SetBasketballPlayersStatisticsAsync(match, document, options.Game, options.Event, options.Discipline);
+                    }
+                }
+
+                round.Matches.Add(match);
+            }
+
+            eventRound.Rounds.Add(round);
         }
 
         var resultJson = this.CreateResult<BKBRound>(options.Event, options.Discipline, options.Game);
@@ -3083,7 +3171,194 @@ public class ResultConverter : BaseOlympediaConverter
             Json = json
         };
 
-        //await this.resultsService.AddOrUpdateAsync(result);
+        await this.resultsService.AddOrUpdateAsync(result);
+    }
+
+    private async Task SetBasketballPlayersStatisticsAsync(BKBMatch match, Document document, GameCacheModel gameCache, EventCacheModel eventCache, DisciplineCacheModel disciplineCache)
+    {
+        var htmlDocument = this.CreateHtmlDocument(document);
+
+        var tablesHtml = new List<string>();
+        if (disciplineCache.Name == DisciplineConstants.BASKETBALL)
+        {
+            var attendanceMatch = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Attendance<\/th><td>(.*?)<\/td>");
+            var attendance = this.RegExpService.MatchInt(attendanceMatch?.Groups[1]?.Value);
+            var referees = this.RegExpService.Matches(htmlDocument.ParsedText, @"<th>Referee<\/th>(?:.*?)\/athletes\/(\d+)");
+            var refereeIds = referees.Select(x => x.Groups[1].Value).ToList();
+
+            if (gameCache.Year >= 2012)
+            {
+                var crewChief = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Crew Chief<\/th>(?:.*?)\/athletes\/(\d+)");
+                var firstUmpire = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Umpire 1<\/th>(?:.*?)\/athletes\/(\d+)");
+                var secondUmpire = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Umpire 2<\/th>(?:.*?)\/athletes\/(\d+)");
+
+                refereeIds.AddRange(new List<string> { crewChief?.Groups[1]?.Value, firstUmpire?.Groups[1]?.Value, secondUmpire?.Groups[1]?.Value });
+            }
+            refereeIds = refereeIds.Where(x => !string.IsNullOrEmpty(x)).ToList();
+
+            match.Attendance = attendance;
+            match.FirstRefereeId = refereeIds.Count >= 1 ? await this.ExtractRefereeAsync(refereeIds[0]) : null;
+            match.SecondRefereeId = refereeIds.Count >= 2 ? await this.ExtractRefereeAsync(refereeIds[1]) : null;
+            match.ThirdRefereeId = refereeIds.Count >= 3 ? await this.ExtractRefereeAsync(refereeIds[2]) : null;
+
+            tablesHtml = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Select(x => x.OuterHtml).ToList();
+            if (gameCache.Year >= 2020)
+            {
+                tablesHtml = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Skip(1).Select(x => x.OuterHtml).ToList();
+            }
+
+            await this.SetBasketballBKBPlayersAsync(match.Team1, tablesHtml[0], eventCache, gameCache);
+            await this.SetBasketballBKBPlayersAsync(match.Team2, tablesHtml[1], eventCache, gameCache);
+        }
+        else
+        {
+            var firstReferee = this.RegExpService.MatchFirstGroup(htmlDocument.ParsedText, @"<th>Referee #1<\/th>(?:.*?)\/athletes\/(\d+)");
+            var secondReferee = this.RegExpService.MatchFirstGroup(htmlDocument.ParsedText, @"<th>Referee #2<\/th>(?:.*?)\/athletes\/(\d+)");
+            match.FirstRefereeId = await this.ExtractRefereeAsync(firstReferee);
+            match.SecondRefereeId = await this.ExtractRefereeAsync(secondReferee);
+
+            tablesHtml = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Skip(1).Select(x => x.OuterHtml).ToList();
+
+            await this.SetBasketball3x3BKBPlayersAsync(match.Team1, tablesHtml[0], eventCache, gameCache);
+            await this.SetBasketball3x3BKBPlayersAsync(match.Team2, tablesHtml[1], eventCache, gameCache);
+        }
+
+        match.Team1.Statistic = new BKBStatistic
+        {
+            Assists = match.Team1.Players.Sum(x => x.Statistic.Assists),
+            BlockedShots = match.Team1.Players.Sum(x => x.Statistic.BlockedShots),
+            DefensiveRebounds = match.Team1.Players.Sum(x => x.Statistic.DefensiveRebounds),
+            DisqualifyingFouls = match.Team1.Players.Sum(x => x.Statistic.DisqualifyingFouls),
+            FreeThrowsAttempts = match.Team1.Players.Sum(x => x.Statistic.FreeThrowsAttempts),
+            FreeThrowsGoals = match.Team1.Players.Sum(x => x.Statistic.FreeThrowsGoals),
+            OffensiveRebounds = match.Team1.Players.Sum(x => x.Statistic.OffensiveRebounds),
+            OnePointsAttempts = match.Team1.Players.Sum(x => x.Statistic.OnePointsAttempts),
+            OnePointsGoals = match.Team1.Players.Sum(x => x.Statistic.OnePointsGoals),
+            PersonalFouls = match.Team1.Players.Sum(x => x.Statistic.PersonalFouls),
+            Steals = match.Team1.Players.Sum(x => x.Statistic.Steals),
+            ThreePointsAttempts = match.Team1.Players.Sum(x => x.Statistic.ThreePointsAttempts),
+            ThreePointsGoals = match.Team1.Players.Sum(x => x.Statistic.ThreePointsGoals),
+            TotalFieldGoals = match.Team1.Players.Sum(x => x.Statistic.TotalFieldGoals),
+            TotalFieldGoalsAttempts = match.Team1.Players.Sum(x => x.Statistic.TotalFieldGoalsAttempts),
+            TotalRebounds = match.Team1.Players.Sum(x => x.Statistic.DefensiveRebounds) + match.Team1.Players.Sum(x => x.Statistic.OffensiveRebounds),
+            Turnovers = match.Team1.Players.Sum(x => x.Statistic.Turnovers),
+            TwoPointsAttempts = match.Team1.Players.Sum(x => x.Statistic.TwoPointsAttempts),
+            TwoPointsGoals = match.Team1.Players.Sum(x => x.Statistic.TwoPointsGoals),
+        };
+
+        match.Team2.Statistic = new BKBStatistic
+        {
+            Assists = match.Team2.Players.Sum(x => x.Statistic.Assists),
+            BlockedShots = match.Team2.Players.Sum(x => x.Statistic.BlockedShots),
+            DefensiveRebounds = match.Team2.Players.Sum(x => x.Statistic.DefensiveRebounds),
+            DisqualifyingFouls = match.Team2.Players.Sum(x => x.Statistic.DisqualifyingFouls),
+            FreeThrowsAttempts = match.Team2.Players.Sum(x => x.Statistic.FreeThrowsAttempts),
+            FreeThrowsGoals = match.Team2.Players.Sum(x => x.Statistic.FreeThrowsGoals),
+            OffensiveRebounds = match.Team2.Players.Sum(x => x.Statistic.OffensiveRebounds),
+            OnePointsAttempts = match.Team2.Players.Sum(x => x.Statistic.OnePointsAttempts),
+            OnePointsGoals = match.Team2.Players.Sum(x => x.Statistic.OnePointsGoals),
+            PersonalFouls = match.Team2.Players.Sum(x => x.Statistic.PersonalFouls),
+            Steals = match.Team2.Players.Sum(x => x.Statistic.Steals),
+            ThreePointsAttempts = match.Team2.Players.Sum(x => x.Statistic.ThreePointsAttempts),
+            ThreePointsGoals = match.Team2.Players.Sum(x => x.Statistic.ThreePointsGoals),
+            TotalFieldGoals = match.Team2.Players.Sum(x => x.Statistic.TotalFieldGoals),
+            TotalFieldGoalsAttempts = match.Team2.Players.Sum(x => x.Statistic.TotalFieldGoalsAttempts),
+            TotalRebounds = match.Team2.Players.Sum(x => x.Statistic.DefensiveRebounds) + match.Team2.Players.Sum(x => x.Statistic.OffensiveRebounds),
+            Turnovers = match.Team2.Players.Sum(x => x.Statistic.Turnovers),
+            TwoPointsAttempts = match.Team2.Players.Sum(x => x.Statistic.TwoPointsAttempts),
+            TwoPointsGoals = match.Team2.Players.Sum(x => x.Statistic.TwoPointsGoals),
+        };
+
+        if (disciplineCache.Name == DisciplineConstants.BASKETBALL)
+        {
+            var html = this.RegExpService.MatchFirstGroup(htmlDocument.ParsedText, @"Score<\/h2><table class=""biodata"">(.*?)<\/table>");
+            if (!string.IsNullOrEmpty(html))
+            {
+                var scoreTableDocument = new HtmlDocument();
+                scoreTableDocument.LoadHtml(html);
+
+                var scoreTableTrs = scoreTableDocument.DocumentNode.SelectNodes("//tr").Skip(1).ToList();
+                var homeTeamScore = scoreTableTrs[0].Elements("td").ToList();
+                var awayTeamScore = scoreTableTrs[1].Elements("td").ToList();
+
+                match.Team1.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(homeTeamScore[2].InnerText);
+                match.Team1.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(homeTeamScore[3].InnerText);
+                match.Team2.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(awayTeamScore[2].InnerText);
+                match.Team2.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(awayTeamScore[3].InnerText);
+            }
+
+            if (gameCache.Year >= 2020)
+            {
+                var doc = new HtmlDocument();
+                doc.LoadHtml(tablesHtml[0]);
+                var rows = doc.DocumentNode.SelectNodes("//tr").ToList();
+                var scoreTableDocument = new HtmlDocument();
+                scoreTableDocument.LoadHtml(rows[rows.Count - 2].OuterHtml);
+                var homeTeamTds = scoreTableDocument.DocumentNode.SelectNodes("//td");
+                match.Team1.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(homeTeamTds[2].InnerText);
+                match.Team1.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(homeTeamTds[3].InnerText);
+
+                doc.LoadHtml(tablesHtml[1]);
+                rows = doc.DocumentNode.SelectNodes("//tr").ToList();
+                scoreTableDocument = new HtmlDocument();
+                scoreTableDocument.LoadHtml(rows[rows.Count - 2].OuterHtml);
+                var awayTeamTds = scoreTableDocument.DocumentNode.SelectNodes("//td");
+                match.Team2.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(awayTeamTds[2].InnerText);
+                match.Team2.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(awayTeamTds[3].InnerText);
+            }
+        }
+    }
+
+    private async Task SetBasketball3x3BKBPlayersAsync(BKBTeam team, string html, EventCacheModel eventCache, GameCacheModel gameCache)
+    {
+        var document = new HtmlDocument();
+        document.LoadHtml(html);
+        var rows = document.DocumentNode.SelectNodes("//tr");
+
+        for (int i = 1; i < rows.Count - 1; i++)
+        {
+            var data = rows[i].Elements("td").ToList();
+
+            var athleteModel = this.OlympediaService.FindAthlete(data[2].OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
+            var onePointMatch = this.RegExpService.Match(data[9].InnerText, @"(\d+)\/(\d+)");
+            var twoPointMatch = this.RegExpService.Match(data[11].InnerText, @"(\d+)\/(\d+)");
+            var freeThrowPointMatch = this.RegExpService.Match(data[15].InnerText, @"(\d+)\/(\d+)");
+
+            var player = new BKBPlayer
+            {
+                Name = athleteModel.Name,
+                AthleteNumber = athleteModel.Number,
+                NOCCode = team.NOCCode,
+                ParticipantId = participant.Id,
+                Position = data[0]?.InnerText.Trim(),
+                Number = this.RegExpService.MatchInt(data[1]?.InnerText),
+                Points = this.RegExpService.MatchInt(data[4]?.InnerText),
+                TimePlayed = this.dateService.ParseTime(data[5]?.InnerText),
+                PlayerValue = this.RegExpService.MatchDouble(data[6].InnerText),
+                Statistic = new BKBStatistic
+                {
+                    PlusMinus = this.RegExpService.MatchInt(data[7]?.InnerText.Replace("+", string.Empty)),
+                    ShootingEfficiency = this.RegExpService.MatchDouble(data[8]?.InnerText),
+                    OnePointsGoals = this.RegExpService.MatchInt(onePointMatch?.Groups[1].Value),
+                    OnePointsAttempts = this.RegExpService.MatchInt(onePointMatch?.Groups[2].Value),
+                    TwoPointsGoals = this.RegExpService.MatchInt(twoPointMatch?.Groups[1].Value),
+                    TwoPointsAttempts = this.RegExpService.MatchInt(twoPointMatch?.Groups[2].Value),
+                    FreeThrowsGoals = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[1].Value),
+                    FreeThrowsAttempts = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[2].Value),
+                    OffensiveRebounds = this.RegExpService.MatchInt(data[18]?.InnerText),
+                    DefensiveRebounds = this.RegExpService.MatchInt(data[19]?.InnerText),
+                    BlockedShots = this.RegExpService.MatchInt(data[20]?.InnerText),
+                    Turnovers = this.RegExpService.MatchInt(data[21]?.InnerText)
+                }
+            };
+
+            player.Statistic.TotalFieldGoals = player.Statistic.OnePointsGoals + player.Statistic.TwoPointsGoals;
+            player.Statistic.TotalFieldGoalsAttempts = player.Statistic.OnePointsAttempts + player.Statistic.TwoPointsAttempts;
+            player.Statistic.TotalRebounds = player.Statistic.OffensiveRebounds + player.Statistic.DefensiveRebounds;
+
+            team.Players.Add(player);
+        }
     }
 
     private BKBRound CreateBasketballRound(DateTime? date, string format, RoundType roundType, string eventName)
@@ -3097,446 +3372,88 @@ public class ResultConverter : BaseOlympediaConverter
         };
     }
 
-    private async Task ProcessBasketball3x3Async(ConvertOptions options)
-    {
-        var eventRound = this.CreateEventRound<BKBRound>(options.HtmlDocument, options.Event.Name);
-
-
-        var matches = new List<BasketballMatch>();
-        foreach (var table in options.Tables)
-        {
-            var trRows = table.HtmlDocument.DocumentNode.SelectNodes("//tr").Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)).ToList();
-            foreach (var trRow in trRows)
-            {
-                var trDocument = new HtmlDocument();
-                trDocument.LoadHtml(trRow.OuterHtml);
-
-                var tdNodes = trDocument.DocumentNode.SelectNodes("//td");
-                var homeTeamCode = tdNodes[3].OuterHtml;
-                var resultString = tdNodes[4].InnerText;
-                var awayTeamCode = tdNodes[6].OuterHtml;
-                var resultModel = this.OlympediaService.GetMatchResult(resultString);
-                var homeNOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == this.OlympediaService.FindNOCCode(homeTeamCode));
-                var homeTeam = await this.teamsService.GetAsync(homeNOCCacheModel.Id, options.Event.Id);
-                var awayNOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == this.OlympediaService.FindNOCCode(awayTeamCode));
-                var awayTeam = await this.teamsService.GetAsync(awayNOCCacheModel.Id, options.Event.Id);
-
-                var match = new BasketballMatch
-                {
-                    MatchNumber = this.OlympediaService.FindMatchNumber(tdNodes[0].InnerText),
-                    Round = table.Round,
-                    RoundInfo = table.RoundInfo,
-                    MatchType = this.OlympediaService.FindMatchType(table.Round, tdNodes[0].InnerText),
-                    MatchInfo = this.OlympediaService.FindMatchInfo(tdNodes[0].InnerText),
-                    Date = this.dateService.ParseDate(tdNodes[1].InnerText, options.Game.Year).From,
-                    ResultId = this.OlympediaService.FindResultNumber(tdNodes[0].OuterHtml),
-                    Decision = resultModel.Decision,
-                    HomeTeam = new BasketballTeam
-                    {
-                        Name = homeTeam.Name,
-                        TeamId = homeTeam.Id,
-                        Result = resultModel.Result1,
-                        Points = resultModel.Points1
-                    },
-                    AwayTeam = new BasketballTeam
-                    {
-                        Name = awayTeam.Name,
-                        TeamId = awayTeam.Id,
-                        Result = resultModel.Result2,
-                        Points = resultModel.Points2
-                    }
-                };
-
-                var matchDocument = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
-                if (matchDocument != null)
-                {
-                    var htmlDocument = this.CreateHtmlDocument(matchDocument);
-                    var firstReferee = this.RegExpService.MatchFirstGroup(htmlDocument.ParsedText, @"<th>Referee #1<\/th>(?:.*?)\/athletes\/(\d+)");
-                    var secondReferee = this.RegExpService.MatchFirstGroup(htmlDocument.ParsedText, @"<th>Referee #2<\/th>(?:.*?)\/athletes\/(\d+)");
-                    match.FirstRefereeId = await this.ExtractRefereeAsync(firstReferee);
-                    match.SecondRefereeId = await this.ExtractRefereeAsync(secondReferee);
-
-                    var teamTables = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Skip(1).ToList();
-                    var homeTeamParticipants = await this.ExtractBasketball3x3ParticipantsAsync(teamTables[0].OuterHtml, options.Event);
-                    var awayTeamParticipants = await this.ExtractBasketball3x3ParticipantsAsync(teamTables[1].OuterHtml, options.Event);
-
-                    match.HomeTeam.Participants = homeTeamParticipants;
-                    match.AwayTeam.Participants = awayTeamParticipants;
-
-                    var homeTeamStatistic = new BasketballStatistic
-                    {
-                        BlockedShots = homeTeamParticipants.Sum(x => x.BlockedShots),
-                        DefensiveRebounds = homeTeamParticipants.Sum(x => x.DefensiveRebounds),
-                        FreeThrowsAttempts = homeTeamParticipants.Sum(x => x.FreeThrowsAttempts),
-                        FreeThrowsGoals = homeTeamParticipants.Sum(x => x.FreeThrowsGoals),
-                        OffensiveRebounds = homeTeamParticipants.Sum(x => x.OffensiveRebounds),
-                        PlusMinus = match.HomeTeam.Points - match.AwayTeam.Points,
-                        ThreePointsAttempts = homeTeamParticipants.Sum(x => x.ThreePointsAttempts),
-                        ThreePointsGoals = homeTeamParticipants.Sum(x => x.ThreePointsGoals),
-                        TotalFieldGoals = homeTeamParticipants.Sum(x => x.TotalFieldGoals),
-                        TotalFieldGoalsAttempts = homeTeamParticipants.Sum(x => x.TotalFieldGoalsAttempts),
-                        TotalRebounds = homeTeamParticipants.Sum(x => x.DefensiveRebounds) + homeTeamParticipants.Sum(x => x.OffensiveRebounds),
-                        Turnovers = homeTeamParticipants.Sum(x => x.Turnovers),
-                        TwoPointsAttempts = homeTeamParticipants.Sum(x => x.TwoPointsAttempts),
-                        TwoPointsGoals = homeTeamParticipants.Sum(x => x.TwoPointsGoals),
-                    };
-
-                    var awayTeamStatistic = new BasketballStatistic
-                    {
-                        BlockedShots = awayTeamParticipants.Sum(x => x.BlockedShots),
-                        DefensiveRebounds = awayTeamParticipants.Sum(x => x.DefensiveRebounds),
-                        FreeThrowsAttempts = awayTeamParticipants.Sum(x => x.FreeThrowsAttempts),
-                        FreeThrowsGoals = awayTeamParticipants.Sum(x => x.FreeThrowsGoals),
-                        OffensiveRebounds = awayTeamParticipants.Sum(x => x.OffensiveRebounds),
-                        PlusMinus = match.AwayTeam.Points - match.HomeTeam.Points,
-                        ThreePointsAttempts = awayTeamParticipants.Sum(x => x.ThreePointsAttempts),
-                        ThreePointsGoals = awayTeamParticipants.Sum(x => x.ThreePointsGoals),
-                        TotalFieldGoals = awayTeamParticipants.Sum(x => x.TotalFieldGoals),
-                        TotalFieldGoalsAttempts = awayTeamParticipants.Sum(x => x.TotalFieldGoalsAttempts),
-                        TotalRebounds = awayTeamParticipants.Sum(x => x.DefensiveRebounds) + awayTeamParticipants.Sum(x => x.OffensiveRebounds),
-                        Turnovers = awayTeamParticipants.Sum(x => x.Turnovers),
-                        TwoPointsAttempts = awayTeamParticipants.Sum(x => x.TwoPointsAttempts),
-                        TwoPointsGoals = awayTeamParticipants.Sum(x => x.TwoPointsGoals),
-                    };
-
-                    match.HomeTeam.Statistic = homeTeamStatistic;
-                    match.AwayTeam.Statistic = awayTeamStatistic;
-                }
-
-                matches.Add(match);
-            }
-        }
-
-        var json = JsonSerializer.Serialize(matches);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
-    }
-
-
-
-    private async Task<List<BasketballParticipant>> ExtractBasketball3x3ParticipantsAsync(string html, EventCacheModel eventCacheModel)
+    private async Task SetBasketballBKBPlayersAsync(BKBTeam team, string html, EventCacheModel eventCache, GameCacheModel gameCache)
     {
         var document = new HtmlDocument();
         document.LoadHtml(html);
-        var trNodes = document.DocumentNode.SelectNodes("//tr");
+        var rows = document.DocumentNode.SelectNodes("//tr");
 
-        var participants = new List<BasketballParticipant>();
-        for (int i = 1; i < trNodes.Count - 1; i++)
+        for (int i = 1; i < rows.Count - 3; i++)
         {
-            var tdDocument = new HtmlDocument();
-            tdDocument.LoadHtml(trNodes[i].OuterHtml);
-            var tdNodes = tdDocument.DocumentNode.SelectNodes("//td");
+            var data = rows[i].Elements("td").ToList();
 
-            var athleteModel = this.OlympediaService.FindAthlete(tdNodes[2].OuterHtml);
-            var dbParticipant = await this.participantsService.GetAsync(athleteModel.Number, eventCacheModel.Id);
-            var onePointMatch = this.RegExpService.Match(tdNodes[9].InnerText, @"(\d+)\/(\d+)");
-            var twoPointMatch = this.RegExpService.Match(tdNodes[11].InnerText, @"(\d+)\/(\d+)");
-            var freeThrowPointMatch = this.RegExpService.Match(tdNodes[15].InnerText, @"(\d+)\/(\d+)");
+            var athleteModel = this.OlympediaService.FindAthlete(data[2].OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
 
-            var participant = new BasketballParticipant
+            var player = new BKBPlayer
             {
-                ParticipantId = dbParticipant.Id,
-                Position = tdNodes[0]?.InnerText.Trim(),
-                Number = this.RegExpService.MatchInt(tdNodes[1]?.InnerText),
-                Points = this.RegExpService.MatchInt(tdNodes[4]?.InnerText),
-                TimePlayed = this.dateService.ParseTime(tdNodes[5]?.InnerText),
-                PlayerValue = this.RegExpService.MatchDouble(tdNodes[6].InnerText),
-                PlusMinus = this.RegExpService.MatchInt(tdNodes[7]?.InnerText.Replace("+", string.Empty)),
-                ShootingEfficiency = this.RegExpService.MatchDouble(tdNodes[8]?.InnerText),
-                TwoPointsGoals = this.RegExpService.MatchInt(onePointMatch?.Groups[1].Value),
-                TwoPointsAttempts = this.RegExpService.MatchInt(onePointMatch?.Groups[2].Value),
-                ThreePointsGoals = this.RegExpService.MatchInt(twoPointMatch?.Groups[1].Value),
-                ThreePointsAttempts = this.RegExpService.MatchInt(twoPointMatch?.Groups[2].Value),
-                FreeThrowsGoals = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[1].Value),
-                FreeThrowsAttempts = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[2].Value),
-                OffensiveRebounds = this.RegExpService.MatchInt(tdNodes[18]?.InnerText),
-                DefensiveRebounds = this.RegExpService.MatchInt(tdNodes[19]?.InnerText),
-                BlockedShots = this.RegExpService.MatchInt(tdNodes[20]?.InnerText),
-                Turnovers = this.RegExpService.MatchInt(tdNodes[21]?.InnerText)
+                Name = athleteModel.Name,
+                AthleteNumber = athleteModel.Number,
+                ParticipantId = participant.Id,
+                NOCCode = team.NOCCode
             };
 
-            participant.TotalFieldGoals = participant.TwoPointsGoals + participant.ThreePointsGoals;
-            participant.TotalFieldGoalsAttempts = participant.TwoPointsAttempts + participant.ThreePointsAttempts;
-            participant.TotalRebounds = participant.OffensiveRebounds + participant.DefensiveRebounds;
-
-            participants.Add(participant);
-        }
-
-        return participants;
-    }
-
-    private async Task ProcessBasketball1Async(ConvertOptions options)
-    {
-        var matches = new List<BasketballMatch>();
-        foreach (var table in options.Tables)
-        {
-            var trRows = table.HtmlDocument.DocumentNode.SelectNodes("//tr").Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)).ToList();
-            foreach (var trRow in trRows)
+            if (gameCache.Year >= 2020)
             {
-                var trDocument = new HtmlDocument();
-                trDocument.LoadHtml(trRow.OuterHtml);
+                var freeThrowPointMatch = this.RegExpService.Match(data[16].InnerText, @"(\d+)\/(\d+)");
 
-                var tdNodes = trDocument.DocumentNode.SelectNodes("//td");
-                var homeTeamCode = tdNodes[2].OuterHtml;
-                var resultString = tdNodes[3].InnerText;
-                var awayTeamCode = tdNodes[4].OuterHtml;
-
-                if (options.Game.Year >= 2020)
+                player.Position = data[0]?.InnerText.Trim();
+                player.Number = this.RegExpService.MatchInt(data[1]?.InnerText);
+                player.Points = this.RegExpService.MatchInt(data[4]?.InnerText);
+                player.TimePlayed = this.dateService.ParseTime(data[7]?.InnerText);
+                player.Statistic = new BKBStatistic
                 {
-                    homeTeamCode = tdNodes[3].OuterHtml;
-                    resultString = tdNodes[4].InnerText;
-                    awayTeamCode = tdNodes[6].OuterHtml;
-                }
-
-                var resultModel = this.OlympediaService.GetMatchResult(resultString);
-                var homeNOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == this.OlympediaService.FindNOCCode(homeTeamCode));
-                var homeTeam = await this.teamsService.GetAsync(homeNOCCacheModel.Id, options.Event.Id);
-
-                var match = new BasketballMatch
-                {
-                    MatchNumber = this.OlympediaService.FindMatchNumber(tdNodes[0].InnerText),
-                    Round = table.Round,
-                    RoundInfo = table.RoundInfo,
-                    MatchType = this.OlympediaService.FindMatchType(table.Round, tdNodes[0].InnerText),
-                    MatchInfo = this.OlympediaService.FindMatchInfo(tdNodes[0].InnerText),
-                    Date = this.dateService.ParseDate(tdNodes[1].InnerText, options.Game.Year).From,
-                    ResultId = this.OlympediaService.FindResultNumber(tdNodes[0].OuterHtml),
-                    Decision = resultModel.Decision,
-                    HomeTeam = new BasketballTeam
-                    {
-                        Name = homeTeam.Name,
-                        TeamId = homeTeam.Id,
-                        Result = resultModel.Result1,
-                        Points = resultModel.Points2
-                    }
+                    TwoPointsGoals = this.RegExpService.MatchInt(data[8]?.InnerText),
+                    TwoPointsAttempts = this.RegExpService.MatchInt(data[9]?.InnerText),
+                    ThreePointsGoals = this.RegExpService.MatchInt(data[11]?.InnerText),
+                    ThreePointsAttempts = this.RegExpService.MatchInt(data[12]?.InnerText),
+                    FreeThrowsGoals = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[1].Value),
+                    FreeThrowsAttempts = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[2].Value),
+                    OffensiveRebounds = this.RegExpService.MatchInt(data[18]?.InnerText),
+                    DefensiveRebounds = this.RegExpService.MatchInt(data[19]?.InnerText),
+                    Assists = this.RegExpService.MatchInt(data[21]?.InnerText),
+                    Steals = this.RegExpService.MatchInt(data[22]?.InnerText),
+                    Turnovers = this.RegExpService.MatchInt(data[23]?.InnerText),
+                    BlockedShots = this.RegExpService.MatchInt(data[24]?.InnerText),
+                    PersonalFouls = this.RegExpService.MatchInt(data[25]?.InnerText),
+                    DisqualifyingFouls = this.RegExpService.MatchInt(data[26]?.InnerText)
                 };
-
-                if (match.Decision == DecisionType.None)
-                {
-                    var awayNOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == this.OlympediaService.FindNOCCode(awayTeamCode));
-                    var awayTeam = await this.teamsService.GetAsync(awayNOCCacheModel.Id, options.Event.Id);
-
-                    match.AwayTeam = new BasketballTeam
-                    {
-                        Name = awayTeam.Name,
-                        TeamId = awayTeam.Id,
-                        Result = resultModel.Result1,
-                        Points = resultModel.Points2
-                    };
-
-                    var matchDocument = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
-                    if (matchDocument != null)
-                    {
-                        var htmlDocument = this.CreateHtmlDocument(matchDocument);
-
-                        var attendanceMatch = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Attendance<\/th><td>(.*?)<\/td>");
-                        var attendance = this.RegExpService.MatchInt(attendanceMatch?.Groups[1]?.Value);
-                        match.Attendance = attendance;
-
-                        var referees = this.RegExpService.Matches(htmlDocument.ParsedText, @"<th>Referee<\/th>(?:.*?)\/athletes\/(\d+)");
-                        var refereeIds = referees.Select(x => x.Groups[1].Value).ToList();
-
-                        if (options.Game.Year >= 2012)
-                        {
-                            var crewChief = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Crew Chief<\/th>(?:.*?)\/athletes\/(\d+)");
-                            var firstUmpire = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Umpire 1<\/th>(?:.*?)\/athletes\/(\d+)");
-                            var secondUmpire = this.RegExpService.Match(htmlDocument.ParsedText, @"<th>Umpire 2<\/th>(?:.*?)\/athletes\/(\d+)");
-
-                            refereeIds.AddRange(new List<string> { crewChief?.Groups[1]?.Value, firstUmpire?.Groups[1]?.Value, secondUmpire?.Groups[1]?.Value });
-                        }
-                        refereeIds = refereeIds.Where(x => !string.IsNullOrEmpty(x)).ToList();
-                        match.FirstRefereeId = refereeIds.Count >= 1 ? await this.ExtractRefereeAsync(refereeIds[0]) : null;
-                        match.SecondRefereeId = refereeIds.Count >= 2 ? await this.ExtractRefereeAsync(refereeIds[1]) : null;
-                        match.ThirdRefereeId = refereeIds.Count >= 3 ? await this.ExtractRefereeAsync(refereeIds[2]) : null;
-
-                        var teamTables = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").ToList();
-                        if (options.Game.Year >= 2020)
-                        {
-                            teamTables = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']").Skip(1).ToList();
-                        }
-
-                        var homeTeamParticipants = await this.ExtractBasketballParticipantsAsync(teamTables[0].OuterHtml, options.Event, options.Game);
-                        var awayTeamParticipants = await this.ExtractBasketballParticipantsAsync(teamTables[1].OuterHtml, options.Event, options.Game);
-
-                        match.HomeTeam.Participants = homeTeamParticipants;
-                        match.AwayTeam.Participants = awayTeamParticipants;
-
-                        var homeTeamStatistic = new BasketballStatistic
-                        {
-                            Assists = homeTeamParticipants.Sum(x => x.Assists),
-                            BlockedShots = homeTeamParticipants.Sum(x => x.BlockedShots),
-                            DefensiveRebounds = homeTeamParticipants.Sum(x => x.DefensiveRebounds),
-                            DisqualifyingFouls = homeTeamParticipants.Sum(x => x.DisqualifyingFouls),
-                            FreeThrowsAttempts = homeTeamParticipants.Sum(x => x.FreeThrowsAttempts),
-                            FreeThrowsGoals = homeTeamParticipants.Sum(x => x.FreeThrowsGoals),
-                            OffensiveRebounds = homeTeamParticipants.Sum(x => x.OffensiveRebounds),
-                            PersonalFouls = homeTeamParticipants.Sum(x => x.PersonalFouls),
-                            Steals = homeTeamParticipants.Sum(x => x.Steals),
-                            ThreePointsAttempts = homeTeamParticipants.Sum(x => x.ThreePointsAttempts),
-                            ThreePointsGoals = homeTeamParticipants.Sum(x => x.ThreePointsGoals),
-                            TotalFieldGoals = homeTeamParticipants.Sum(x => x.TotalFieldGoals),
-                            TotalFieldGoalsAttempts = homeTeamParticipants.Sum(x => x.TotalFieldGoalsAttempts),
-                            TotalRebounds = homeTeamParticipants.Sum(x => x.DefensiveRebounds) + homeTeamParticipants.Sum(x => x.OffensiveRebounds),
-                            Turnovers = homeTeamParticipants.Sum(x => x.Turnovers),
-                            TwoPointsAttempts = homeTeamParticipants.Sum(x => x.TwoPointsAttempts),
-                            TwoPointsGoals = homeTeamParticipants.Sum(x => x.TwoPointsGoals),
-                        };
-
-                        var awayTeamStatistic = new BasketballStatistic
-                        {
-                            Assists = awayTeamParticipants.Sum(x => x.Assists),
-                            BlockedShots = awayTeamParticipants.Sum(x => x.BlockedShots),
-                            DefensiveRebounds = awayTeamParticipants.Sum(x => x.DefensiveRebounds),
-                            DisqualifyingFouls = awayTeamParticipants.Sum(x => x.DisqualifyingFouls),
-                            FreeThrowsAttempts = awayTeamParticipants.Sum(x => x.FreeThrowsAttempts),
-                            FreeThrowsGoals = awayTeamParticipants.Sum(x => x.FreeThrowsGoals),
-                            OffensiveRebounds = awayTeamParticipants.Sum(x => x.OffensiveRebounds),
-                            PersonalFouls = awayTeamParticipants.Sum(x => x.PersonalFouls),
-                            Steals = awayTeamParticipants.Sum(x => x.Steals),
-                            ThreePointsAttempts = awayTeamParticipants.Sum(x => x.ThreePointsAttempts),
-                            ThreePointsGoals = awayTeamParticipants.Sum(x => x.ThreePointsGoals),
-                            TotalFieldGoals = awayTeamParticipants.Sum(x => x.TotalFieldGoals),
-                            TotalFieldGoalsAttempts = awayTeamParticipants.Sum(x => x.TotalFieldGoalsAttempts),
-                            TotalRebounds = awayTeamParticipants.Sum(x => x.DefensiveRebounds) + awayTeamParticipants.Sum(x => x.OffensiveRebounds),
-                            Turnovers = awayTeamParticipants.Sum(x => x.Turnovers),
-                            TwoPointsAttempts = awayTeamParticipants.Sum(x => x.TwoPointsAttempts),
-                            TwoPointsGoals = awayTeamParticipants.Sum(x => x.TwoPointsGoals),
-                        };
-
-                        match.HomeTeam.Statistic = homeTeamStatistic;
-                        match.AwayTeam.Statistic = awayTeamStatistic;
-
-                        var scoreTableHtml = this.RegExpService.MatchFirstGroup(htmlDocument.ParsedText, @"Score<\/h2><table class=""biodata"">(.*?)<\/table>");
-                        if (!string.IsNullOrEmpty(scoreTableHtml))
-                        {
-                            var scoreTableDocument = new HtmlDocument();
-                            scoreTableDocument.LoadHtml(scoreTableHtml);
-
-                            var scoreTableTrs = scoreTableDocument.DocumentNode.SelectNodes("//tr").Skip(1).ToList();
-                            var homeTeamScore = scoreTableTrs[0].Elements("td").ToList();
-                            var awayTeamScore = scoreTableTrs[1].Elements("td").ToList();
-
-                            match.HomeTeam.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(homeTeamScore[2].InnerText);
-                            match.HomeTeam.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(homeTeamScore[3].InnerText);
-                            match.AwayTeam.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(awayTeamScore[2].InnerText);
-                            match.AwayTeam.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(awayTeamScore[3].InnerText);
-                        }
-
-                        if (options.Game.Year >= 2020)
-                        {
-                            var trNodes = teamTables[0].Elements("tr").ToList();
-                            var scoreTableDocument = new HtmlDocument();
-                            scoreTableDocument.LoadHtml(trNodes[trNodes.Count - 2].OuterHtml);
-                            var homeTeamTds = scoreTableDocument.DocumentNode.SelectNodes("//td");
-                            match.HomeTeam.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(homeTeamTds[2].InnerText);
-                            match.HomeTeam.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(homeTeamTds[3].InnerText);
-
-                            trNodes = teamTables[1].Elements("tr").ToList();
-                            scoreTableDocument = new HtmlDocument();
-                            scoreTableDocument.LoadHtml(trNodes[trNodes.Count - 2].OuterHtml);
-                            var awayTeamTds = scoreTableDocument.DocumentNode.SelectNodes("//td");
-                            match.AwayTeam.Statistic.FirstHalfPoints = this.RegExpService.MatchInt(awayTeamTds[2].InnerText);
-                            match.AwayTeam.Statistic.SecondHalfPoints = this.RegExpService.MatchInt(awayTeamTds[3].InnerText);
-                        }
-                    }
-                }
-
-                matches.Add(match);
-            }
-        }
-
-        var json = JsonSerializer.Serialize(matches);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
-    }
-
-    private async Task<List<BasketballParticipant>> ExtractBasketballParticipantsAsync(string html, EventCacheModel eventCacheModel, GameCacheModel gameCacheModel)
-    {
-        var document = new HtmlDocument();
-        document.LoadHtml(html);
-        var trNodes = document.DocumentNode.SelectNodes("//tr");
-
-        var participants = new List<BasketballParticipant>();
-        for (int i = 1; i < trNodes.Count - 3; i++)
-        {
-            var tdDocument = new HtmlDocument();
-            tdDocument.LoadHtml(trNodes[i].OuterHtml);
-            var tdNodes = tdDocument.DocumentNode.SelectNodes("//td").ToList();
-
-            var athleteModel = this.OlympediaService.FindAthlete(tdNodes[2].OuterHtml);
-            var dbParticipant = await this.participantsService.GetAsync(athleteModel.Number, eventCacheModel.Id);
-
-            var participant = new BasketballParticipant();
-
-            if (gameCacheModel.Year >= 2020)
-            {
-                var freeThrowPointMatch = this.RegExpService.Match(tdNodes[16].InnerText, @"(\d+)\/(\d+)");
-
-                participant.ParticipantId = dbParticipant.Id;
-                participant.Position = tdNodes[0]?.InnerText.Trim();
-                participant.Number = this.RegExpService.MatchInt(tdNodes[1]?.InnerText);
-                participant.Points = this.RegExpService.MatchInt(tdNodes[4]?.InnerText);
-                participant.TimePlayed = this.dateService.ParseTime(tdNodes[7]?.InnerText);
-                participant.TwoPointsGoals = this.RegExpService.MatchInt(tdNodes[8]?.InnerText);
-                participant.TwoPointsAttempts = this.RegExpService.MatchInt(tdNodes[9]?.InnerText);
-                participant.ThreePointsGoals = this.RegExpService.MatchInt(tdNodes[11]?.InnerText);
-                participant.ThreePointsAttempts = this.RegExpService.MatchInt(tdNodes[12]?.InnerText);
-                participant.FreeThrowsGoals = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[1].Value);
-                participant.FreeThrowsAttempts = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[2].Value);
-                participant.OffensiveRebounds = this.RegExpService.MatchInt(tdNodes[18]?.InnerText);
-                participant.DefensiveRebounds = this.RegExpService.MatchInt(tdNodes[19]?.InnerText);
-                participant.Assists = this.RegExpService.MatchInt(tdNodes[21]?.InnerText);
-                participant.Steals = this.RegExpService.MatchInt(tdNodes[22]?.InnerText);
-                participant.Turnovers = this.RegExpService.MatchInt(tdNodes[23]?.InnerText);
-                participant.BlockedShots = this.RegExpService.MatchInt(tdNodes[24]?.InnerText);
-                participant.PersonalFouls = this.RegExpService.MatchInt(tdNodes[25]?.InnerText);
-                participant.DisqualifyingFouls = this.RegExpService.MatchInt(tdNodes[26]?.InnerText);
             }
             else
             {
-                var twoPointMatch = this.RegExpService.Match(tdNodes[5].InnerText, @"(\d+)\/(\d+)");
-                var threePointMatch = this.RegExpService.Match(tdNodes[7].InnerText, @"(\d+)\/(\d+)");
-                var freeThrowPointMatch = this.RegExpService.Match(tdNodes[11].InnerText, @"(\d+)\/(\d+)");
+                var twoPointMatch = this.RegExpService.Match(data[5].InnerText, @"(\d+)\/(\d+)");
+                var threePointMatch = this.RegExpService.Match(data[7].InnerText, @"(\d+)\/(\d+)");
+                var freeThrowPointMatch = this.RegExpService.Match(data[11].InnerText, @"(\d+)\/(\d+)");
 
-                participant.ParticipantId = dbParticipant.Id;
-                participant.Position = tdNodes[0]?.InnerText.Trim();
-                participant.Number = this.RegExpService.MatchInt(tdNodes[1]?.InnerText);
-                participant.Points = this.RegExpService.MatchInt(tdNodes[3]?.InnerText);
-                participant.TimePlayed = this.dateService.ParseTime(tdNodes[4]?.InnerText);
-                participant.TwoPointsGoals = this.RegExpService.MatchInt(twoPointMatch?.Groups[1].Value);
-                participant.TwoPointsAttempts = this.RegExpService.MatchInt(twoPointMatch?.Groups[2].Value);
-                participant.ThreePointsGoals = this.RegExpService.MatchInt(threePointMatch?.Groups[1].Value);
-                participant.ThreePointsAttempts = this.RegExpService.MatchInt(threePointMatch?.Groups[2].Value);
-                participant.FreeThrowsGoals = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[1].Value);
-                participant.FreeThrowsAttempts = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[2].Value);
-                participant.OffensiveRebounds = this.RegExpService.MatchInt(tdNodes[13]?.InnerText);
-                participant.DefensiveRebounds = this.RegExpService.MatchInt(tdNodes[14]?.InnerText);
-                participant.Assists = this.RegExpService.MatchInt(tdNodes[16]?.InnerText);
-                participant.Steals = this.RegExpService.MatchInt(tdNodes[17]?.InnerText);
-                participant.BlockedShots = this.RegExpService.MatchInt(tdNodes[18]?.InnerText);
-                participant.Turnovers = this.RegExpService.MatchInt(tdNodes[19]?.InnerText);
-                participant.PersonalFouls = this.RegExpService.MatchInt(tdNodes[20]?.InnerText);
-                participant.DisqualifyingFouls = this.RegExpService.MatchInt(tdNodes[21]?.InnerText);
+                player.Position = data[0]?.InnerText.Trim();
+                player.Number = this.RegExpService.MatchInt(data[1]?.InnerText);
+                player.Points = this.RegExpService.MatchInt(data[3]?.InnerText);
+                player.TimePlayed = this.dateService.ParseTime(data[4]?.InnerText);
+                player.Statistic = new BKBStatistic
+                {
+                    TwoPointsGoals = this.RegExpService.MatchInt(twoPointMatch?.Groups[1].Value),
+                    TwoPointsAttempts = this.RegExpService.MatchInt(twoPointMatch?.Groups[2].Value),
+                    ThreePointsGoals = this.RegExpService.MatchInt(threePointMatch?.Groups[1].Value),
+                    ThreePointsAttempts = this.RegExpService.MatchInt(threePointMatch?.Groups[2].Value),
+                    FreeThrowsGoals = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[1].Value),
+                    FreeThrowsAttempts = this.RegExpService.MatchInt(freeThrowPointMatch?.Groups[2].Value),
+                    OffensiveRebounds = this.RegExpService.MatchInt(data[13]?.InnerText),
+                    DefensiveRebounds = this.RegExpService.MatchInt(data[14]?.InnerText),
+                    Assists = this.RegExpService.MatchInt(data[16]?.InnerText),
+                    Steals = this.RegExpService.MatchInt(data[17]?.InnerText),
+                    BlockedShots = this.RegExpService.MatchInt(data[18]?.InnerText),
+                    Turnovers = this.RegExpService.MatchInt(data[19]?.InnerText),
+                    PersonalFouls = this.RegExpService.MatchInt(data[20]?.InnerText),
+                    DisqualifyingFouls = this.RegExpService.MatchInt(data[21]?.InnerText),
+                };
             }
 
-            participant.TotalFieldGoals = participant.TwoPointsGoals + participant.ThreePointsGoals;
-            participant.TotalFieldGoalsAttempts = participant.TwoPointsAttempts + participant.ThreePointsAttempts;
-            participant.TotalRebounds = participant.OffensiveRebounds + participant.DefensiveRebounds;
+            player.Statistic.TotalFieldGoals = player.Statistic.TwoPointsGoals + player.Statistic.ThreePointsGoals;
+            player.Statistic.TotalFieldGoalsAttempts = player.Statistic.TwoPointsAttempts + player.Statistic.ThreePointsAttempts;
+            player.Statistic.TotalRebounds = player.Statistic.OffensiveRebounds + player.Statistic.DefensiveRebounds;
 
-            participants.Add(participant);
+            team.Players.Add(player);
         }
-
-        return participants;
     }
     #endregion BASKETBALL
 }
