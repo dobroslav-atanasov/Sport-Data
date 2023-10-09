@@ -387,7 +387,114 @@ public class ResultConverter : BaseOlympediaConverter
     {
         var eventRound = this.CreateEventRound<BDMRound>(options.HtmlDocument, options.Event.Name);
 
+        foreach (var table in options.Tables)
+        {
+            var round = this.CreateBasketballRound(eventRound.Dates.From, eventRound.Format, table.Round, eventRound.EventName);
+            var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
 
+            foreach (var row in rows.Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)))
+            {
+                var data = row.Elements("td").ToList();
+
+                if (options.Event.IsTeamEvent)
+                {
+
+                }
+                else
+                {
+                    var player1NOCCode = this.OlympediaService.FindNOCCode(data[3].OuterHtml);
+                    var athleteModel1 = this.OlympediaService.FindAthlete(data[2].OuterHtml);
+                    var player1Seed = this.OlympediaService.FindSeedNumber(data[2].OuterHtml);
+                    string location = null;
+
+                    if (options.Game.Year >= 2000)
+                    {
+                        player1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
+                        athleteModel1 = this.OlympediaService.FindAthlete(data[3].OuterHtml);
+                        player1Seed = this.OlympediaService.FindSeedNumber(data[3].OuterHtml);
+                        location = data[2].InnerText;
+                    }
+
+                    var player1NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == player1NOCCode);
+                    var player1 = await this.participantsService.GetAsync(athleteModel1.Number, options.Event.Id, player1NOCCodeCacheModel.Id);
+
+                    var match = new BDMMatch
+                    {
+                        MatchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText),
+                        Round = table.Round,
+                        RoundInfo = table.RoundInfo,
+                        MatchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText),
+                        MatchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText),
+                        //Date = this.dateService.ParseDate(data[1].InnerText, options.Game.Year).From,
+                        ResultId = this.OlympediaService.FindResultNumber(data[0].OuterHtml),
+                        Decision = this.OlympediaService.FindDecision(row.OuterHtml),
+                        Location = location,
+                        Player1 = new BDMPlayer
+                        {
+                            AthleteNumber = athleteModel1.Number,
+                            Name = athleteModel1.Name,
+                            NOCCode = player1NOCCode,
+                            ParticipantId = player1.Id,
+                            Seed = player1Seed,
+                        }
+                    };
+
+                    if (table.Round == RoundType.Group)
+                    {
+                        match.Group = this.NormalizeService.MapGroupType(table.Title);
+                    }
+
+                    if (match.Decision == DecisionType.None)
+                    {
+                        var matchResult = this.OlympediaService.GetMatchResult(data[4].OuterHtml, MatchResultType.Games);
+                        var player2NOCCode = this.OlympediaService.FindNOCCode(data[6].OuterHtml);
+                        var athleteModel2 = this.OlympediaService.FindAthlete(data[5].OuterHtml);
+                        var player2Seed = this.OlympediaService.FindSeedNumber(data[5].OuterHtml);
+                        if (options.Game.Year >= 2000)
+                        {
+                            matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml, MatchResultType.Games);
+                            player2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
+                            athleteModel2 = this.OlympediaService.FindAthlete(data[6].OuterHtml);
+                            player2Seed = this.OlympediaService.FindSeedNumber(data[6].OuterHtml);
+                        }
+
+                        match.Player1.Points = matchResult.Points1;
+                        match.Player1.Result = matchResult.Result1;
+                        match.Player1.Game1Points = matchResult.Games1.ElementAtOrDefault(0);
+                        match.Player1.Game2Points = matchResult.Games1.ElementAtOrDefault(1);
+                        match.Player1.Game3Points = matchResult.Games1.ElementAtOrDefault(2);
+
+                        var player2NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == player2NOCCode);
+                        var player2 = await this.participantsService.GetAsync(athleteModel2.Number, options.Event.Id, player2NOCCodeCacheModel.Id);
+                        match.Player2 = new BDMPlayer
+                        {
+                            AthleteNumber = athleteModel2.Number,
+                            Name = athleteModel2.Name,
+                            NOCCode = player2NOCCode,
+                            ParticipantId = player2.Id,
+                            Seed = player2Seed,
+                            Points = matchResult.Points2,
+                            Result = matchResult.Result2,
+                            Game1Points = matchResult.Games2.ElementAtOrDefault(0),
+                            Game2Points = matchResult.Games2.ElementAtOrDefault(1),
+                            Game3Points = matchResult.Games2.ElementAtOrDefault(2),
+                        };
+
+                        var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
+                        if (document != null)
+                        {
+                            var htmlDocument = this.CreateHtmlDocument(document);
+                            var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                            var dateModel = this.dateService.ParseDate(dateString);
+
+                            match.Date = dateModel.From;
+
+                            // judges!!!!!!!!!!!!!1
+                        }
+                    }
+                }
+            }
+        }
 
         var resultJson = this.CreateResult<BDMRound>(options.Event, options.Discipline, options.Game);
         resultJson.Rounds = eventRound.Rounds;
@@ -401,6 +508,18 @@ public class ResultConverter : BaseOlympediaConverter
 
         //await this.resultsService.AddOrUpdateAsync(result);
     }
+
+    private BDMRound CreateBadmintonRound(DateTime? date, string format, RoundType roundType, string eventName)
+    {
+        return new BDMRound
+        {
+            Date = date,
+            Format = format,
+            EventName = eventName,
+            Round = roundType
+        };
+    }
+
     #endregion BADMINTON
 
     #region ATHLETICS
@@ -2253,7 +2372,7 @@ public class ResultConverter : BaseOlympediaConverter
             var matchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText);
             var matchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText);
             var matchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText);
-            var matchResult = this.OlympediaService.GetMatchResult(data[4].InnerText);
+            var matchResult = this.OlympediaService.GetMatchResult(data[4].InnerText, MatchResultType.Points);
             var decision = this.OlympediaService.FindDecision(row.OuterHtml);
 
             var match = new ARCTeamMatch
@@ -2405,7 +2524,7 @@ public class ResultConverter : BaseOlympediaConverter
             var archer2 = await this.participantsService.GetAsync(archer2AthleteModel.Number, eventCache.Id);
             var archer1NOCCode = this.OlympediaService.FindNOCCode(data[3].OuterHtml);
             var archer2NOCCode = this.OlympediaService.FindNOCCode(data[6].OuterHtml);
-            var matchResult = this.OlympediaService.GetMatchResult(data[4].InnerText);
+            var matchResult = this.OlympediaService.GetMatchResult(data[4].InnerText, MatchResultType.Points);
 
             var match = new ARCMatch
             {
@@ -2872,7 +2991,7 @@ public class ResultConverter : BaseOlympediaConverter
             var matchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText);
             var matchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText);
             var matchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText);
-            var matchResult = this.OlympediaService.GetMatchResult(data[5].InnerText);
+            var matchResult = this.OlympediaService.GetMatchResult(data[5].InnerText, MatchResultType.Points);
             var decision = this.OlympediaService.FindDecision(row.OuterHtml);
 
             var match = new ALPTeamMatch
@@ -2953,7 +3072,7 @@ public class ResultConverter : BaseOlympediaConverter
             var skier2NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == skier2NOCCode);
             var skier2Participant = await this.participantsService.GetAsync(athleteModel2.Number, eventCache.Id, skier2NOCCacheModel.Id);
 
-            var matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml);
+            var matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml, MatchResultType.Points);
 
             var skier1 = new ALPSkier
             {
@@ -3127,8 +3246,8 @@ public class ResultConverter : BaseOlympediaConverter
                 if (match.Decision == DecisionType.None)
                 {
                     var matchResult = DisciplineConstants.BASKETBALL == options.Discipline.Name && options.Game.Year <= 2016
-                        ? this.OlympediaService.GetMatchResult(data[3].InnerText)
-                        : this.OlympediaService.GetMatchResult(data[4].InnerText);
+                        ? this.OlympediaService.GetMatchResult(data[3].InnerText, MatchResultType.Points)
+                        : this.OlympediaService.GetMatchResult(data[4].InnerText, MatchResultType.Points);
 
                     match.Team1.Result = matchResult.Result1;
                     match.Team1.Points = matchResult.Points1;
