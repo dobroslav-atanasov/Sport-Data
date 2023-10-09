@@ -3,6 +3,7 @@
 using SportData.Common.Constants;
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Converters;
+using SportData.Data.Models.Enumerations;
 using SportData.Services.Interfaces;
 
 public class OlympediaService : IOlympediaService
@@ -120,6 +121,7 @@ public class OlympediaService : IOlympediaService
                 case "boxer":
                 case "climber":
                 case "competitor":
+                case "competitor (seed)":
                 case "competitor(s)":
                 case "competitors":
                 case "cyclist":
@@ -136,6 +138,7 @@ public class OlympediaService : IOlympediaService
                 case "karateka":
                 case "lifter":
                 case "pair":
+                case "pair (seed)":
                 case "pentathlete":
                 case "player":
                 case "rider":
@@ -986,69 +989,100 @@ public class OlympediaService : IOlympediaService
         return 0;
     }
 
-    public MatchResult GetMatchResult(string text)
+    private void SetWinAndLose(MatchResult result)
+    {
+        if (result.Points1 > result.Points2)
+        {
+            result.Result1 = ResultType.Win;
+            result.Result2 = ResultType.Lose;
+        }
+        else if (result.Points1 < result.Points2)
+        {
+            result.Result1 = ResultType.Lose;
+            result.Result2 = ResultType.Win;
+        }
+    }
+
+    public MatchResult GetMatchResult(string text, MatchResultType type)
     {
         if (string.IsNullOrEmpty(text))
         {
             return null;
         }
 
-        var result = new MatchResult();
-        var match = this.regExpService.Match(text, @"(\d+)\s*(?:-|–|—)\s*(\d+)");
-        if (match != null)
+        if (type == MatchResultType.Games)
         {
-            result.Points1 = int.Parse(match.Groups[1].Value.Trim());
-            result.Points2 = int.Parse(match.Groups[2].Value.Trim());
-
-            if (result.Points1 > result.Points2)
+            var result = new MatchResult();
+            var match = this.regExpService.Match(text, @"(\d+)\s*-\s*(\d+)\s*,\s*(\d+)\s*-\s*(\d+)\s*,\s*(\d+)\s*-\s*(\d+)");
+            if (match != null)
             {
+                result.Games1 = new List<int?> { int.Parse(match.Groups[1].Value), int.Parse(match.Groups[3].Value), int.Parse(match.Groups[5].Value) };
+                result.Games2 = new List<int?> { int.Parse(match.Groups[2].Value), int.Parse(match.Groups[4].Value), int.Parse(match.Groups[6].Value) };
+
+                var points = result.Games1[0].Value > result.Games2[0].Value ? result.Points1++ : result.Points2++;
+                points = result.Games1[1].Value > result.Games2[1].Value ? result.Points1++ : result.Points2++;
+                points = result.Games1[2].Value > result.Games2[2].Value ? result.Points1++ : result.Points2++;
+
+                this.SetWinAndLose(result);
+                return result;
+            }
+            match = this.regExpService.Match(text, @"(\d+)\s*-\s*(\d+)\s*,\s*(\d+)\s*-\s*(\d+)");
+            if (match != null)
+            {
+                result.Games1 = new List<int?> { int.Parse(match.Groups[1].Value), int.Parse(match.Groups[3].Value) };
+                result.Games2 = new List<int?> { int.Parse(match.Groups[2].Value), int.Parse(match.Groups[4].Value) };
+
+                var points = result.Games1[0].Value > result.Games2[0].Value ? result.Points1++ : result.Points2++;
+                points = result.Games1[1].Value > result.Games2[1].Value ? result.Points1++ : result.Points2++;
+
+                this.SetWinAndLose(result);
+                return result;
+            }
+
+            return null;
+        }
+        else
+        {
+            var result = new MatchResult();
+            var match = this.regExpService.Match(text, @"(\d+)\s*(?:-|–|—)\s*(\d+)");
+            if (match != null)
+            {
+                result.Points1 = int.Parse(match.Groups[1].Value.Trim());
+                result.Points2 = int.Parse(match.Groups[2].Value.Trim());
+
+                this.SetWinAndLose(result);
+            }
+            match = this.regExpService.Match(text, @"(\d+)\.(\d+)\s*(?:-|–|—)\s*(\d+)\.(\d+)");
+            if (match != null)
+            {
+                result.Time1 = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
+                result.Time2 = this.dateService.ParseTime($"{match.Groups[3].Value}.{match.Groups[4].Value}");
+
+                if (result.Time1 < result.Time2)
+                {
+                    result.Result1 = ResultType.Win;
+                    result.Result2 = ResultType.Lose;
+                }
+                else if (result.Time1 > result.Time2)
+                {
+                    result.Result1 = ResultType.Lose;
+                    result.Result2 = ResultType.Win;
+                }
+            }
+            match = this.regExpService.Match(text, @"(\d+)\.(\d+)\s*(?:-|–|—)\s*DNF");
+            if (match != null)
+            {
+                result.Time1 = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
+                result.Time2 = null;
+
                 result.Result1 = ResultType.Win;
                 result.Result2 = ResultType.Lose;
             }
-            else if (result.Points1 < result.Points2)
-            {
-                result.Result1 = ResultType.Lose;
-                result.Result2 = ResultType.Win;
-            }
-        }
-        match = this.regExpService.Match(text, @"(\d+)\.(\d+)\s*(?:-|–|—)\s*(\d+)\.(\d+)");
-        if (match != null)
-        {
-            result.Time1 = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
-            result.Time2 = this.dateService.ParseTime($"{match.Groups[3].Value}.{match.Groups[4].Value}");
 
-            if (result.Time1 < result.Time2)
-            {
-                result.Result1 = ResultType.Win;
-                result.Result2 = ResultType.Lose;
-            }
-            else if (result.Time1 > result.Time2)
-            {
-                result.Result1 = ResultType.Lose;
-                result.Result2 = ResultType.Win;
-            }
-        }
-        match = this.regExpService.Match(text, @"(\d+)\.(\d+)\s*(?:-|–|—)\s*DNF");
-        if (match != null)
-        {
-            result.Time1 = this.dateService.ParseTime($"{match.Groups[1].Value}.{match.Groups[2].Value}");
-            result.Time2 = null;
-
-            result.Result1 = ResultType.Win;
-            result.Result2 = ResultType.Lose;
+            return result;
         }
 
-        //if (text.ToLower().Contains("bye"))
-        //{
-        //    result.Decision = DecisionType.Buy;
-        //}
-
-        //if (text.ToLower().Contains("walkover"))
-        //{
-        //    result.Decision = DecisionType.Walkover;
-        //}
-
-        return result;
+        return null;
     }
 
 
@@ -1179,5 +1213,21 @@ public class OlympediaService : IOlympediaService
         }
 
         return this.regExpService.IsMatch(text, @"<a href=""\/athletes\/(\d+)"">");
+    }
+
+    public int FindSeedNumber(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return 0;
+        }
+
+        var match = this.regExpService.Match(text, @"\((\d+)\)");
+        if (match != null)
+        {
+            return int.Parse(match.Groups[1].Value);
+        }
+
+        return 0;
     }
 }

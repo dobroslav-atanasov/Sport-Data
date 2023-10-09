@@ -2,6 +2,7 @@
 
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Converters;
+using SportData.Data.Models.Enumerations;
 
 public interface IOlympediaService
 {
@@ -31,7 +32,7 @@ public interface IOlympediaService
 
     int FindResultNumber(string text);
 
-    MatchResult GetMatchResult(string text);
+    MatchResult GetMatchResult(string text, MatchResultType type);
 
     MatchType FindMatchType(RoundType round, string text);
 
@@ -44,4 +45,6 @@ public interface IOlympediaService
     IList<int> FindResults(string text);
 
     DecisionType FindDecision(string text);
+
+    int FindSeedNumber(string text);
 }
