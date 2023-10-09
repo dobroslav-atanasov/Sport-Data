@@ -395,6 +395,36 @@ public class NormalizeService : INormalizeService
             case "group f":
                 group = GroupType.F;
                 break;
+            case "group g":
+                group = GroupType.G;
+                break;
+            case "group h":
+                group = GroupType.H;
+                break;
+            case "group i":
+                group = GroupType.I;
+                break;
+            case "group j":
+                group = GroupType.J;
+                break;
+            case "group k":
+                group = GroupType.K;
+                break;
+            case "group l":
+                group = GroupType.L;
+                break;
+            case "group m":
+                group = GroupType.M;
+                break;
+            case "group n":
+                group = GroupType.N;
+                break;
+            case "group o":
+                group = GroupType.O;
+                break;
+            case "group p":
+                group = GroupType.P;
+                break;
         }
 
         return group;
@@ -714,6 +744,18 @@ public class NormalizeService : INormalizeService
             case "group b":
             case "group c":
             case "group d":
+            case "group e":
+            case "group f":
+            case "group g":
+            case "group h":
+            case "group i":
+            case "group j":
+            case "group k":
+            case "group l":
+            case "group m":
+            case "group n":
+            case "group o":
+            case "group p":
                 roundType = RoundType.Group;
                 break;
             case "round one":
