@@ -398,7 +398,59 @@ public class ResultConverter : BaseOlympediaConverter
 
                 if (options.Event.IsTeamEvent)
                 {
+                    var pairs = await this.ConvertBadmintonPairsAsync(options.StandingTable, options.Event);
 
+                    var team1NOCCode = this.OlympediaService.FindNOCCode(data[3].OuterHtml);
+                    var team1Seed = this.OlympediaService.FindSeedNumber(data[2].OuterHtml);
+                    var team1AthleteModels = this.OlympediaService.FindAthletes(data[2].OuterHtml);
+                    string location = null;
+
+                    if (options.Game.Year >= 2000)
+                    {
+                        team1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
+                        team1Seed = this.OlympediaService.FindSeedNumber(data[3].OuterHtml);
+                        team1AthleteModels = this.OlympediaService.FindAthletes(data[3].OuterHtml);
+                        location = data[2].InnerText;
+                    }
+
+                    var team1NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team1NOCCode);
+                    var team1 = pairs[$"{string.Join(string.Empty, team1AthleteModels.Select(x => x.Number))}"];
+                    team1 ??= pairs[$"{string.Join(string.Empty, team1AthleteModels.Select(x => x.Number).Reverse())}"];
+
+                    var match = new BDMTeamMatch
+                    {
+                        MatchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText),
+                        Round = table.Round,
+                        RoundInfo = table.RoundInfo,
+                        MatchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText),
+                        MatchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText),
+                        Date = this.dateService.ParseDate(data[1].InnerText, options.Game.Year).From,
+                        ResultId = this.OlympediaService.FindResultNumber(data[0].OuterHtml),
+                        Decision = this.OlympediaService.FindDecision(row.OuterHtml),
+                        Location = location,
+                        Team1 = new BDMTeam
+                        {
+                            Seed = team1Seed,
+                            Name = team1.Name,
+                            NOCCode = team1NOCCode,
+                            TeamId = team1.Id
+                        }
+                    };
+
+                    foreach (var athleteModel in team1AthleteModels)
+                    {
+                        var participant = await this.participantsService.GetAsync(athleteModel.Number, options.Event.Id, team1NOCCodeCacheModel.Id);
+                        var player = new BDMPlayer
+                        {
+                            AthleteNumber = athleteModel.Number,
+                            Name = // TODO find athlete full name ???????????????????///
+                        };
+                    }
+
+                    if (table.Round == RoundType.Group)
+                    {
+                        match.Group = this.NormalizeService.MapGroupType(table.Title);
+                    }
                 }
                 else
                 {
@@ -425,7 +477,7 @@ public class ResultConverter : BaseOlympediaConverter
                         RoundInfo = table.RoundInfo,
                         MatchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText),
                         MatchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText),
-                        //Date = this.dateService.ParseDate(data[1].InnerText, options.Game.Year).From,
+                        Date = this.dateService.ParseDate(data[1].InnerText, options.Game.Year).From,
                         ResultId = this.OlympediaService.FindResultNumber(data[0].OuterHtml),
                         Decision = this.OlympediaService.FindDecision(row.OuterHtml),
                         Location = location,
@@ -483,13 +535,7 @@ public class ResultConverter : BaseOlympediaConverter
                         var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
                         if (document != null)
                         {
-                            var htmlDocument = this.CreateHtmlDocument(document);
-                            var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-                            var dateModel = this.dateService.ParseDate(dateString);
-
-                            match.Date = dateModel.From;
-
-                            // judges!!!!!!!!!!!!!1
+                            await this.ConvertBadmintonInfoAsync(match, document, options.Event);
                         }
                     }
                 }
@@ -507,6 +553,78 @@ public class ResultConverter : BaseOlympediaConverter
         };
 
         //await this.resultsService.AddOrUpdateAsync(result);
+    }
+
+    private async Task<Dictionary<string, Team>> ConvertBadmintonPairsAsync(TableModel table, EventCacheModel eventCache)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        var result = new Dictionary<string, Team>();
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText;
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var team = await this.teamsService.GetAsync(name, nocCodeCache.Id, eventCache.Id);
+
+            var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
+            var key = $"{string.Join(string.Empty, athleteModels.Select(x => x.Number))}";
+            result[key] = team;
+        }
+
+        return result;
+    }
+
+    private async Task ConvertBadmintonInfoAsync(BDMMatch match, Document document, EventCacheModel eventCache)
+    {
+        var htmlDocument = this.CreateHtmlDocument(document);
+        var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+        var dateModel = this.dateService.ParseDate(dateString);
+
+        match.Date = dateModel.From;
+
+        var umpireMatch = this.RegExpService.Match(htmlDocument.DocumentNode.OuterHtml, @"<th>Umpire<\/th>(.*?)<\/tr>");
+        if (umpireMatch != null)
+        {
+            var umpireAthleteModel = this.OlympediaService.FindAthlete(umpireMatch.Groups[1].Value);
+            var umpireNOCCode = this.OlympediaService.FindNOCCode(umpireMatch.Groups[1].Value);
+            var umpireNOCCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == umpireNOCCode);
+            var umpire = await this.participantsService.GetAsync(umpireAthleteModel.Number, eventCache.Id, umpireNOCCodeCache.Id);
+
+            var judge = new BaseJudge
+            {
+                AthleteNumber = umpireAthleteModel.Number,
+                Name = umpireAthleteModel.Name,
+                NOCCode = umpireNOCCode,
+                ParticipantId = umpire == null ? Guid.Empty : umpire.Id,
+                Title = "Umpire"
+            };
+
+            match.Umpire = judge;
+        }
+
+        var serviceMatch = this.RegExpService.Match(htmlDocument.DocumentNode.OuterHtml, @"<th>Umpire<\/th>(.*?)<\/tr>");
+        if (serviceMatch != null)
+        {
+            var serviceAthleteModel = this.OlympediaService.FindAthlete(serviceMatch.Groups[1].Value);
+            var serviceNOCCode = this.OlympediaService.FindNOCCode(serviceMatch.Groups[1].Value);
+            var serviceNOCCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == serviceNOCCode);
+            var service = await this.participantsService.GetAsync(serviceAthleteModel.Number, eventCache.Id, serviceNOCCodeCache.Id);
+
+            var judge = new BaseJudge
+            {
+                AthleteNumber = serviceAthleteModel.Number,
+                Name = serviceAthleteModel.Name,
+                NOCCode = serviceNOCCode,
+                ParticipantId = service == null ? Guid.Empty : service.Id,
+                Title = "Service Judge"
+            };
+
+            match.ServiceJudge = judge;
+        }
     }
 
     private BDMRound CreateBadmintonRound(DateTime? date, string format, RoundType roundType, string eventName)
