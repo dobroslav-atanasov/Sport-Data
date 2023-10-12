@@ -26,7 +26,7 @@ public class OlympediaService : IOlympediaService
             {
                 return new AthleteModel
                 {
-                    Number = int.Parse(match.Groups[1].Value),
+                    Code = int.Parse(match.Groups[1].Value),
                     Name = match.Groups[2].Value.Trim()
                 };
             }
@@ -44,7 +44,7 @@ public class OlympediaService : IOlympediaService
 
         var numbers = this.regExpService
             .Matches(text, @"<a href=""\/athletes\/(\d+)"">(.*?)<\/a>")
-            .Select(x => new AthleteModel { Number = int.Parse(x.Groups[1].Value.Trim()), Name = x.Groups[2].Value.Trim() })?
+            .Select(x => new AthleteModel { Code = int.Parse(x.Groups[1].Value.Trim()), Name = x.Groups[2].Value.Trim() })?
             .ToList();
 
         return numbers;
@@ -1010,6 +1010,8 @@ public class OlympediaService : IOlympediaService
             return null;
         }
 
+        text = text.Replace("[", string.Empty).Replace("]", string.Empty);
+
         if (type == MatchResultType.Games)
         {
             var result = new MatchResult();
@@ -1038,8 +1040,19 @@ public class OlympediaService : IOlympediaService
                 this.SetWinAndLose(result);
                 return result;
             }
+            match = this.regExpService.Match(text, @"(\d+)\s*-\s*(\d+)");
+            if (match != null)
+            {
+                result.Games1 = new List<int?> { int.Parse(match.Groups[1].Value) };
+                result.Games2 = new List<int?> { int.Parse(match.Groups[2].Value) };
 
-            return null;
+                result.Result1 = ResultType.Win;
+                result.Result2 = ResultType.Lose;
+
+                return result;
+            }
+
+            return result;
         }
         else
         {
