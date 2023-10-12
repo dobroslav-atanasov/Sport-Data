@@ -4,6 +4,12 @@ using SportData.Data.Entities.Enumerations;
 
 public class MatchResult
 {
+    public MatchResult()
+    {
+        this.Games1 = new List<int?>();
+        this.Games2 = new List<int?>();
+    }
+
     public int Points1 { get; set; }
 
     public TimeSpan? Time1 { get; set; }
