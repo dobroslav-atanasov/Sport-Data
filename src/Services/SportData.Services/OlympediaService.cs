@@ -958,7 +958,7 @@ public class OlympediaService : IOlympediaService
             return false;
         }
 
-        return this.regExpService.IsMatch(text, @"Match\s*([\d\/#]+)");
+        return this.regExpService.IsMatch(text, @"(?:Match|Game)\s*([\d\/#]+)");
     }
 
     public int FindMatchNumber(string text)
@@ -968,7 +968,7 @@ public class OlympediaService : IOlympediaService
             return 0;
         }
 
-        var match = this.regExpService.Match(text, @"Match\s*#(\d+)");
+        var match = this.regExpService.Match(text, @"(?:Match|Game)\s*#(\d+)");
         if (match != null)
         {
             var matchNumber = match.Groups[1].Value;
@@ -1129,7 +1129,7 @@ public class OlympediaService : IOlympediaService
             return null;
         }
 
-        var match = this.regExpService.Match(text, @"Match\s*(\d+)(?:\/|-)(\d+)");
+        var match = this.regExpService.Match(text, @"(?:Match|Game)\s*(\d+)(?:\/|-)(\d+)");
         if (match != null)
         {
             return $"{match.Groups[1].Value}-{match.Groups[2].Value}";
