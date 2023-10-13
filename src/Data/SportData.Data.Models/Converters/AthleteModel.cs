@@ -4,7 +4,7 @@ using SportData.Data.Entities.Enumerations;
 
 public class AthleteModel
 {
-    public int Number { get; set; }
+    public int Code { get; set; }
 
     public FinishStatus FinishStatus { get; set; }
 
