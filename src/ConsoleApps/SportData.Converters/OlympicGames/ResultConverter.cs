@@ -21,6 +21,7 @@ using SportData.Data.Models.OlympicGames.Archery;
 using SportData.Data.Models.OlympicGames.Athletics;
 using SportData.Data.Models.OlympicGames.Badminton;
 using SportData.Data.Models.OlympicGames.Base;
+using SportData.Data.Models.OlympicGames.Baseball;
 using SportData.Data.Models.OlympicGames.Basketball;
 using SportData.Data.Models.OlympicGames.Gymnastics;
 using SportData.Data.Models.OlympicGames.Gymnastics.ArtisticGymnastics;
@@ -105,9 +106,13 @@ public class ResultConverter : BaseOlympediaConverter
                         //case DisciplineConstants.ATHLETICS:
                         //    await this.ProcessAthleticsAsync(options);
                         //    break;
-                        case DisciplineConstants.BADMINTON:
-                            await this.ProcessBadmintonAsync(options);
+                        //case DisciplineConstants.BADMINTON:
+                        //    await this.ProcessBadmintonAsync(options);
+                        //    break;
+                        case DisciplineConstants.BASEBALL:
+                            await this.ProcessBaseballAsync(options);
                             break;
+
                     }
                 }
             }
@@ -141,6 +146,7 @@ public class ResultConverter : BaseOlympediaConverter
     //        {
     //            sb.AppendLine(item);
     //        }
+    //sb.AppendLine("------");
     //    }
     //}
 
@@ -380,16 +386,297 @@ public class ResultConverter : BaseOlympediaConverter
         };
     }
 
+    private async Task<BaseJudge> CreateJudgeAsync(HtmlDocument htmlDocument, EventCacheModel eventCache, string pattern, string title)
+    {
+        var match = this.RegExpService.Match(htmlDocument.DocumentNode.OuterHtml, pattern);
+        if (match != null)
+        {
+            var athleteModel = this.OlympediaService.FindAthlete(match.Groups[1].Value);
+            var nocCode = this.OlympediaService.FindNOCCode(match.Groups[1].Value);
+            var nocCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCodeCache.Id);
+
+            var judge = new BaseJudge
+            {
+                Id = participant == null ? Guid.Empty : participant.Id,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                Title = title
+            };
+
+            return judge;
+        }
+
+        return null;
+    }
     #endregion PRIVATE
+
+    #region BASEBALL
+    private async Task ProcessBaseballAsync(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<BSBRound>(options.HtmlDocument, options.Event.Name);
+
+        foreach (var table in options.Tables)
+        {
+            var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+            var round = this.CreateBaseballRound(eventRound.Dates.From, format, table.Round, eventRound.EventName);
+            var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+
+            foreach (var row in rows.Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)))
+            {
+                var data = row.Elements("td").ToList();
+
+                var team1NOCCode = this.OlympediaService.FindNOCCode(data[3].OuterHtml);
+                var team2NOCCode = this.OlympediaService.FindNOCCode(data[6].OuterHtml);
+                string location = null;
+
+                if (options.Game.Year >= 2004 && options.Game.Year <= 2008)
+                {
+                    team1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
+                    team2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
+                    location = data[2].InnerText;
+                }
+
+                var team1NOCCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team1NOCCode);
+                var team1 = await this.teamsService.GetAsync(team1NOCCodeCache.Id, options.Event.Id);
+                var team2NOCCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team2NOCCode);
+                var team2 = await this.teamsService.GetAsync(team2NOCCodeCache.Id, options.Event.Id);
+
+                var match = new BSBTeamMatch
+                {
+                    MatchNumber = this.OlympediaService.FindMatchNumber(data[0].InnerText),
+                    Round = table.Round,
+                    RoundInfo = table.RoundInfo,
+                    MatchType = this.OlympediaService.FindMatchType(table.Round, data[0].InnerText),
+                    MatchInfo = this.OlympediaService.FindMatchInfo(data[0].InnerText),
+                    Date = this.dateService.ParseDate(data[1].InnerText, options.Game.Year).From,
+                    ResultId = this.OlympediaService.FindResultNumber(data[0].OuterHtml),
+                    Decision = this.OlympediaService.FindDecision(row.OuterHtml),
+                    Location = location,
+                    Group = table.GroupType,
+                    Team1 = new BSBTeam
+                    {
+                        Id = team1.Id,
+                        Name = team1.Name,
+                        NOC = team1NOCCode,
+                    },
+                    Team2 = new BSBTeam
+                    {
+                        Id = team2.Id,
+                        Name = team2.Name,
+                        NOC = team2NOCCode,
+                    }
+                };
+
+                var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
+                if (document != null)
+                {
+                    var htmlDocument = this.CreateHtmlDocument(document);
+                    var attendance = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>Attendance<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+
+                    match.Attendance = attendance != null ? this.RegExpService.MatchInt(attendance) : null;
+                    match.Judges = await this.SetBSBJudgesAsync(htmlDocument, options.Event);
+
+                    var tables = this.GetTables(htmlDocument, options.Event, options.Discipline);
+
+                    await this.SetBSBPlayersAsync(match.Team1, tables[0], options.Event, options.Game);
+                    await this.SetBSBPlayersAsync(match.Team2, tables[1], options.Event, options.Game);
+
+                    if (options.Game.Year <= 2016)
+                    {
+                        this.SetBSBTeamStatistics(match.Team1, tables[0]);
+                        this.SetBSBTeamStatistics(match.Team2, tables[1]);
+                    }
+                    else
+                    {
+                        // todo 2020 with first table!!!!!!!
+                    }
+
+                    var matchResult = this.OlympediaService.GetMatchResult($"{match.Team1.Points}-{match.Team2.Points}", MatchResultType.Points);
+
+                    match.Team1.Result = matchResult.Result1;
+                    match.Team2.Result = matchResult.Result2;
+                }
+                round.TeamMatches.Add(match);
+            }
+
+            eventRound.Rounds.Add(round);
+        }
+
+        var resultJson = this.CreateResult<BSBRound>(options.Event, options.Discipline, options.Game);
+        resultJson.Rounds = eventRound.Rounds;
+
+        var json = JsonSerializer.Serialize(resultJson);
+        var result = new Result
+        {
+            EventId = options.Event.Id,
+            Json = json
+        };
+
+        //await this.resultsService.AddOrUpdateAsync(result);
+    }
+
+    private void SetBSBTeamStatistics(BSBTeam team, TableModel table)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var row = rows.Skip(rows.Count - 2).Take(1).FirstOrDefault();
+        var data = row.Elements("td").ToList();
+
+        team.Inning1 = this.RegExpService.MatchInt(data[1].InnerText);
+        team.Inning2 = this.RegExpService.MatchInt(data[2].InnerText);
+        team.Inning3 = this.RegExpService.MatchInt(data[3].InnerText);
+        team.Inning4 = this.RegExpService.MatchInt(data[4].InnerText);
+        team.Inning5 = this.RegExpService.MatchInt(data[5].InnerText);
+        team.Inning6 = this.RegExpService.MatchInt(data[6].InnerText);
+        team.Inning7 = this.RegExpService.MatchInt(data[7].InnerText);
+        team.Inning8 = this.RegExpService.MatchInt(data[8].InnerText);
+        team.Inning9 = this.RegExpService.MatchInt(data[9].InnerText);
+        team.Inning10 = this.RegExpService.MatchInt(data[10].InnerText);
+        team.Inning11 = this.RegExpService.MatchInt(data[11].InnerText);
+        team.Inning12 = this.RegExpService.MatchInt(data[12].InnerText);
+        team.Inning13 = this.RegExpService.MatchInt(data[13].InnerText);
+        team.Inning14 = this.RegExpService.MatchInt(data[14].InnerText);
+        team.Inning15 = this.RegExpService.MatchInt(data[15].InnerText);
+        team.Points = (int)this.RegExpService.MatchDecimal(data[16].InnerText);
+        team.Hits = this.RegExpService.MatchInt(data[17].InnerText);
+        team.Errors = this.RegExpService.MatchInt(data[18].InnerText);
+        team.LOB = this.RegExpService.MatchInt(data[19].InnerText);
+    }
+
+    private async Task SetBSBPlayersAsync(BSBTeam team, TableModel table, EventCacheModel eventCache, GameCacheModel gameCache)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        foreach (var row in rows.Skip(1).Take(rows.Count - 3))
+        {
+            var data = row.Elements("td").ToList();
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
+
+            var player = new BSBPlayer
+            {
+                Id = participant.Id,
+                Name = athleteModel.Name,
+                Code = athleteModel.Code,
+                NOC = team.NOC,
+                Position = this.MapBSBPostions(data[0].InnerText),
+                Number = this.RegExpService.MatchInt(data[1].InnerText),
+                AtBats = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[4].InnerText) : null,
+                Runs = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[5].InnerText) : null,
+                Hits = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[6].InnerText) : null,
+                Doubles = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[7].InnerText) : null,
+                Triples = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[8].InnerText) : null,
+                HomeRuns = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[9].InnerText) : null,
+                RBIs = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[10].InnerText) : null,
+                Walks = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[11].InnerText) : null,
+                BattingStrikeouts = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[12].InnerText) : null,
+                StolenBases = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[13].InnerText) : this.RegExpService.MatchInt(data[5].InnerText),
+                CaughtStealing = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[14].InnerText) : this.RegExpService.MatchInt(data[4].InnerText),
+                SacrificeHits = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[15].InnerText) : this.RegExpService.MatchInt(data[6].InnerText),
+                SacrificeFlies = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[16].InnerText) : this.RegExpService.MatchInt(data[7].InnerText),
+                WinLostSave = gameCache.Year <= 2016 ? data[17].InnerText : data[8].InnerText,
+                InningsPitched = gameCache.Year <= 2016 ? this.RegExpService.MatchDecimal(data[18].InnerText) : this.RegExpService.MatchDecimal(data[9].InnerText),
+                EarnedRunsAllowed = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[19].InnerText) : this.RegExpService.MatchInt(data[10].InnerText),
+                RunsAllowed = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[20].InnerText) : this.RegExpService.MatchInt(data[11].InnerText),
+                HitsAllowed = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[21].InnerText) : this.RegExpService.MatchInt(data[12].InnerText),
+                HomeRunsAllowed = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[22].InnerText) : this.RegExpService.MatchInt(data[13].InnerText),
+                Strikeouts = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[23].InnerText) : this.RegExpService.MatchInt(data[14].InnerText),
+                BasesOnBalls = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[24].InnerText) : this.RegExpService.MatchInt(data[15].InnerText),
+                WildPitches = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[25].InnerText) : this.RegExpService.MatchInt(data[16].InnerText),
+                Putouts = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[26].InnerText) : this.RegExpService.MatchInt(data[17].InnerText),
+                Assists = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[27].InnerText) : this.RegExpService.MatchInt(data[18].InnerText),
+                Errors = gameCache.Year <= 2016 ? this.RegExpService.MatchInt(data[28].InnerText) : this.RegExpService.MatchInt(data[19].InnerText),
+            };
+
+            team.Players.Add(player);
+        }
+    }
+
+    private string MapBSBPostions(string text)
+    {
+        string position = null;
+        switch (text.ToLower().Trim())
+        {
+            case "1b":
+            case "1st base":
+                position = "1B"; break;
+            case "2b":
+            case "2nd base":
+                position = "2B"; break;
+            case "3b":
+            case "3rd base":
+                position = "3B"; break;
+            case "c":
+            case "catcher":
+                position = "C"; break;
+            case "center field":
+            case "cf":
+                position = "CF"; break;
+            case "designated hitter":
+            case "dh":
+                position = "DH"; break;
+            case "left field":
+            case "lf":
+                position = "LF"; break;
+            case "p":
+            case "pitcher":
+                position = "P"; break;
+            case "rf":
+            case "right field":
+                position = "RF"; break;
+            case "shortstop":
+            case "ss":
+                position = "SS"; break;
+        }
+
+        return position;
+    }
+
+    private async Task<List<BaseJudge>> SetBSBJudgesAsync(HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var judges = new List<BaseJudge>
+        {
+            await this.CreateJudgeAsync(htmlDocument, eventCache, @"<th>Home Plate<\/th>(.*?)<\/tr>", "Home Plate"),
+            await this.CreateJudgeAsync(htmlDocument, eventCache, @"<th>1st Base<\/th>(.*?)<\/tr>", "1st Base"),
+            await this.CreateJudgeAsync(htmlDocument, eventCache, @"<th>2nd Base<\/th>(.*?)<\/tr>", "2nd Base"),
+            await this.CreateJudgeAsync(htmlDocument, eventCache, @"<th>3rd Base<\/th>(.*?)<\/tr>", "3rd Base"),
+            await this.CreateJudgeAsync(htmlDocument, eventCache, @"<th>Left Field<\/th>(.*?)<\/tr>", "Left Field"),
+            await this.CreateJudgeAsync(htmlDocument, eventCache, @"<th>Right Field<\/th>(.*?)<\/tr>", "Right Field"),
+        };
+
+        judges.RemoveAll(x => x == null);
+        return judges;
+    }
+
+    private BSBRound CreateBaseballRound(DateTime? date, string format, RoundType roundType, string eventName)
+    {
+        return new BSBRound
+        {
+            Date = date,
+            Format = format,
+            EventName = eventName,
+            Round = roundType
+        };
+    }
+    #endregion BASEBALL
 
     #region BADMINTON
     private async Task ProcessBadmintonAsync(ConvertOptions options)
     {
         var eventRound = this.CreateEventRound<BDMRound>(options.HtmlDocument, options.Event.Name);
 
+        var pairs = new Dictionary<string, Team>();
+        var players = new List<BDMPlayer>();
+        if (options.Event.IsTeamEvent)
+        {
+            pairs = await this.GetBadmintonPairsAsync(options.StandingTable, options.Event);
+            players = await this.GetBadmintonPlayersAsync(options.StandingTable, options.Event);
+        }
+
         foreach (var table in options.Tables)
         {
-            var round = this.CreateBasketballRound(eventRound.Dates.From, eventRound.Format, table.Round, eventRound.EventName);
+            var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+            var round = this.CreateBadmintonRound(eventRound.Dates.From, format, table.Round, eventRound.EventName);
             var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
 
             foreach (var row in rows.Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)))
@@ -398,14 +685,12 @@ public class ResultConverter : BaseOlympediaConverter
 
                 if (options.Event.IsTeamEvent)
                 {
-                    var pairs = await this.ConvertBadmintonPairsAsync(options.StandingTable, options.Event);
-
                     var team1NOCCode = this.OlympediaService.FindNOCCode(data[3].OuterHtml);
                     var team1Seed = this.OlympediaService.FindSeedNumber(data[2].OuterHtml);
                     var team1AthleteModels = this.OlympediaService.FindAthletes(data[2].OuterHtml);
                     string location = null;
 
-                    if (options.Game.Year >= 2000)
+                    if ((options.Game.Year >= 2000 && options.Game.Year <= 2016) || (options.Game.Year == 2020 && options.Event.Name == "Men Doubles"))
                     {
                         team1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
                         team1Seed = this.OlympediaService.FindSeedNumber(data[3].OuterHtml);
@@ -414,8 +699,10 @@ public class ResultConverter : BaseOlympediaConverter
                     }
 
                     var team1NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team1NOCCode);
-                    var team1 = pairs[$"{string.Join(string.Empty, team1AthleteModels.Select(x => x.Number))}"];
-                    team1 ??= pairs[$"{string.Join(string.Empty, team1AthleteModels.Select(x => x.Number).Reverse())}"];
+                    var key = $"{string.Join(string.Empty, team1AthleteModels.Select(x => x.Code))}";
+                    var team1 = pairs.ContainsKey(key) ? pairs[key] : null;
+                    key = $"{string.Join(string.Empty, team1AthleteModels.Select(x => x.Code).Reverse())}";
+                    team1 ??= pairs[key];
 
                     var match = new BDMTeamMatch
                     {
@@ -430,27 +717,81 @@ public class ResultConverter : BaseOlympediaConverter
                         Location = location,
                         Team1 = new BDMTeam
                         {
+                            Id = team1.Id,
                             Seed = team1Seed,
                             Name = team1.Name,
-                            NOCCode = team1NOCCode,
-                            TeamId = team1.Id
+                            NOC = team1NOCCode,
+                            Players = new List<BDMPlayer>
+                            {
+                                players.FirstOrDefault(x => x.Code == team1AthleteModels[0].Code),
+                                players.FirstOrDefault(x => x.Code == team1AthleteModels[1].Code),
+                            }
                         }
                     };
-
-                    foreach (var athleteModel in team1AthleteModels)
-                    {
-                        var participant = await this.participantsService.GetAsync(athleteModel.Number, options.Event.Id, team1NOCCodeCacheModel.Id);
-                        var player = new BDMPlayer
-                        {
-                            AthleteNumber = athleteModel.Number,
-                            Name = // TODO find athlete full name ???????????????????///
-                        };
-                    }
 
                     if (table.Round == RoundType.Group)
                     {
                         match.Group = this.NormalizeService.MapGroupType(table.Title);
                     }
+
+                    if (match.Decision == DecisionType.None)
+                    {
+                        var matchResult = this.OlympediaService.GetMatchResult(data[4].OuterHtml, MatchResultType.Games);
+                        var team2NOCCode = this.OlympediaService.FindNOCCode(data[6].OuterHtml);
+                        var team2Seed = this.OlympediaService.FindSeedNumber(data[5].OuterHtml);
+                        var team2AthleteModels = this.OlympediaService.FindAthletes(data[5].OuterHtml);
+
+                        if ((options.Game.Year >= 2000 && options.Game.Year <= 2016) || (options.Game.Year == 2020 && options.Event.Name == "Men Doubles"))
+                        {
+                            matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml, MatchResultType.Games);
+                            team2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
+                            team2Seed = this.OlympediaService.FindSeedNumber(data[6].OuterHtml);
+                            team2AthleteModels = this.OlympediaService.FindAthletes(data[6].OuterHtml);
+                        }
+
+                        match.Team1.Points = matchResult.Points1;
+                        match.Team1.Result = matchResult.Result1;
+                        match.Team1.Game1Points = matchResult.Games1.ElementAtOrDefault(0);
+                        match.Team1.Game2Points = matchResult.Games1.ElementAtOrDefault(1);
+                        match.Team1.Game3Points = matchResult.Games1.ElementAtOrDefault(2);
+
+                        var team2NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == team2NOCCode);
+                        key = $"{string.Join(string.Empty, team2AthleteModels.Select(x => x.Code))}";
+                        var team2 = pairs.ContainsKey(key) ? pairs[key] : null;
+                        key = $"{string.Join(string.Empty, team2AthleteModels.Select(x => x.Code).Reverse())}";
+                        team2 ??= pairs[key];
+
+                        match.Team2 = new BDMTeam
+                        {
+                            Id = team2.Id,
+                            Seed = team2Seed,
+                            Name = team2.Name,
+                            NOC = team2NOCCode,
+                            Players = new List<BDMPlayer>
+                            {
+                                players.FirstOrDefault(x => x.Code == team2AthleteModels[0].Code),
+                                players.FirstOrDefault(x => x.Code == team2AthleteModels[1].Code),
+                            },
+                            Points = matchResult.Points2,
+                            Result = matchResult.Result2,
+                            Game1Points = matchResult.Games2.ElementAtOrDefault(0),
+                            Game2Points = matchResult.Games2.ElementAtOrDefault(1),
+                            Game3Points = matchResult.Games2.ElementAtOrDefault(2),
+                        };
+
+                        var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
+                        if (document != null)
+                        {
+                            var htmlDocument = this.CreateHtmlDocument(document);
+                            var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                            var dateModel = this.dateService.ParseDate(dateString);
+                            match.Date = dateModel.From;
+                            match.Umpire = await this.CreateJudgeAsync(htmlDocument, options.Event, @"<th>Umpire<\/th>(.*?)<\/tr>", "Umpire");
+                            match.ServiceJudge = await this.CreateJudgeAsync(htmlDocument, options.Event, @"<th>Service Judge<\/th>(.*?)<\/tr>", "Service Judge");
+                        }
+                    }
+
+                    round.TeamMatches.Add(match);
                 }
                 else
                 {
@@ -459,7 +800,7 @@ public class ResultConverter : BaseOlympediaConverter
                     var player1Seed = this.OlympediaService.FindSeedNumber(data[2].OuterHtml);
                     string location = null;
 
-                    if (options.Game.Year >= 2000)
+                    if ((options.Game.Year >= 2000 && options.Game.Year <= 2016) || (options.Game.Year == 2020 && options.Event.Name == "Men Singles"))
                     {
                         player1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
                         athleteModel1 = this.OlympediaService.FindAthlete(data[3].OuterHtml);
@@ -468,7 +809,7 @@ public class ResultConverter : BaseOlympediaConverter
                     }
 
                     var player1NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == player1NOCCode);
-                    var player1 = await this.participantsService.GetAsync(athleteModel1.Number, options.Event.Id, player1NOCCodeCacheModel.Id);
+                    var player1 = await this.participantsService.GetAsync(athleteModel1.Code, options.Event.Id, player1NOCCodeCacheModel.Id);
 
                     var match = new BDMMatch
                     {
@@ -483,10 +824,10 @@ public class ResultConverter : BaseOlympediaConverter
                         Location = location,
                         Player1 = new BDMPlayer
                         {
-                            AthleteNumber = athleteModel1.Number,
+                            Code = athleteModel1.Code,
                             Name = athleteModel1.Name,
-                            NOCCode = player1NOCCode,
-                            ParticipantId = player1.Id,
+                            NOC = player1NOCCode,
+                            Id = player1.Id,
                             Seed = player1Seed,
                         }
                     };
@@ -502,7 +843,7 @@ public class ResultConverter : BaseOlympediaConverter
                         var player2NOCCode = this.OlympediaService.FindNOCCode(data[6].OuterHtml);
                         var athleteModel2 = this.OlympediaService.FindAthlete(data[5].OuterHtml);
                         var player2Seed = this.OlympediaService.FindSeedNumber(data[5].OuterHtml);
-                        if (options.Game.Year >= 2000)
+                        if ((options.Game.Year >= 2000 && options.Game.Year <= 2016) || (options.Game.Year == 2020 && options.Event.Name == "Men Singles"))
                         {
                             matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml, MatchResultType.Games);
                             player2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
@@ -517,13 +858,13 @@ public class ResultConverter : BaseOlympediaConverter
                         match.Player1.Game3Points = matchResult.Games1.ElementAtOrDefault(2);
 
                         var player2NOCCodeCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == player2NOCCode);
-                        var player2 = await this.participantsService.GetAsync(athleteModel2.Number, options.Event.Id, player2NOCCodeCacheModel.Id);
+                        var player2 = await this.participantsService.GetAsync(athleteModel2.Code, options.Event.Id, player2NOCCodeCacheModel.Id);
                         match.Player2 = new BDMPlayer
                         {
-                            AthleteNumber = athleteModel2.Number,
+                            Code = athleteModel2.Code,
                             Name = athleteModel2.Name,
-                            NOCCode = player2NOCCode,
-                            ParticipantId = player2.Id,
+                            NOC = player2NOCCode,
+                            Id = player2.Id,
                             Seed = player2Seed,
                             Points = matchResult.Points2,
                             Result = matchResult.Result2,
@@ -535,11 +876,20 @@ public class ResultConverter : BaseOlympediaConverter
                         var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
                         if (document != null)
                         {
-                            await this.ConvertBadmintonInfoAsync(match, document, options.Event);
+                            var htmlDocument = this.CreateHtmlDocument(document);
+                            var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                            var dateModel = this.dateService.ParseDate(dateString);
+                            match.Date = dateModel.From;
+                            match.Umpire = await this.CreateJudgeAsync(htmlDocument, options.Event, @"<th>Umpire<\/th>(.*?)<\/tr>", "Umpire");
+                            match.ServiceJudge = await this.CreateJudgeAsync(htmlDocument, options.Event, @"<th>Service Judge<\/th>(.*?)<\/tr>", "Service Judge");
                         }
                     }
+
+                    round.Matches.Add(match);
                 }
             }
+
+            eventRound.Rounds.Add(round);
         }
 
         var resultJson = this.CreateResult<BDMRound>(options.Event, options.Discipline, options.Game);
@@ -552,79 +902,61 @@ public class ResultConverter : BaseOlympediaConverter
             Json = json
         };
 
-        //await this.resultsService.AddOrUpdateAsync(result);
+        await this.resultsService.AddOrUpdateAsync(result);
     }
 
-    private async Task<Dictionary<string, Team>> ConvertBadmintonPairsAsync(TableModel table, EventCacheModel eventCache)
+    private async Task<List<BDMPlayer>> GetBadmintonPlayersAsync(TableModel table, EventCacheModel eventCache)
     {
         var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
         var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
         var indexes = this.OlympediaService.FindIndexes(headers);
 
-        var result = new Dictionary<string, Team>();
+        var players = new List<BDMPlayer>();
+        foreach (var row in rows.Skip(1))
+        {
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
+            foreach (var athleteModel in athleteModels)
+            {
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCodeCache.Id);
+
+                var player = new BDMPlayer
+                {
+                    Code = athleteModel.Code,
+                    Name = athleteModel.Name,
+                    NOC = nocCode,
+                    Id = participant.Id,
+                };
+
+                players.Add(player);
+            }
+        }
+
+        return players;
+    }
+
+    private async Task<Dictionary<string, Team>> GetBadmintonPairsAsync(TableModel table, EventCacheModel eventCache)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        var pairs = new Dictionary<string, Team>();
         foreach (var row in rows.Skip(1))
         {
             var data = row.Elements("td").ToList();
-            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText;
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
             var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
             var nocCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
             var team = await this.teamsService.GetAsync(name, nocCodeCache.Id, eventCache.Id);
 
             var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
-            var key = $"{string.Join(string.Empty, athleteModels.Select(x => x.Number))}";
-            result[key] = team;
+            var key = $"{string.Join(string.Empty, athleteModels.Select(x => x.Code))}";
+            pairs[key] = team;
         }
 
-        return result;
-    }
-
-    private async Task ConvertBadmintonInfoAsync(BDMMatch match, Document document, EventCacheModel eventCache)
-    {
-        var htmlDocument = this.CreateHtmlDocument(document);
-        var dateString = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
-        var dateModel = this.dateService.ParseDate(dateString);
-
-        match.Date = dateModel.From;
-
-        var umpireMatch = this.RegExpService.Match(htmlDocument.DocumentNode.OuterHtml, @"<th>Umpire<\/th>(.*?)<\/tr>");
-        if (umpireMatch != null)
-        {
-            var umpireAthleteModel = this.OlympediaService.FindAthlete(umpireMatch.Groups[1].Value);
-            var umpireNOCCode = this.OlympediaService.FindNOCCode(umpireMatch.Groups[1].Value);
-            var umpireNOCCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == umpireNOCCode);
-            var umpire = await this.participantsService.GetAsync(umpireAthleteModel.Number, eventCache.Id, umpireNOCCodeCache.Id);
-
-            var judge = new BaseJudge
-            {
-                AthleteNumber = umpireAthleteModel.Number,
-                Name = umpireAthleteModel.Name,
-                NOCCode = umpireNOCCode,
-                ParticipantId = umpire == null ? Guid.Empty : umpire.Id,
-                Title = "Umpire"
-            };
-
-            match.Umpire = judge;
-        }
-
-        var serviceMatch = this.RegExpService.Match(htmlDocument.DocumentNode.OuterHtml, @"<th>Umpire<\/th>(.*?)<\/tr>");
-        if (serviceMatch != null)
-        {
-            var serviceAthleteModel = this.OlympediaService.FindAthlete(serviceMatch.Groups[1].Value);
-            var serviceNOCCode = this.OlympediaService.FindNOCCode(serviceMatch.Groups[1].Value);
-            var serviceNOCCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == serviceNOCCode);
-            var service = await this.participantsService.GetAsync(serviceAthleteModel.Number, eventCache.Id, serviceNOCCodeCache.Id);
-
-            var judge = new BaseJudge
-            {
-                AthleteNumber = serviceAthleteModel.Number,
-                Name = serviceAthleteModel.Name,
-                NOCCode = serviceNOCCode,
-                ParticipantId = service == null ? Guid.Empty : service.Id,
-                Title = "Service Judge"
-            };
-
-            match.ServiceJudge = judge;
-        }
+        return pairs;
     }
 
     private BDMRound CreateBadmintonRound(DateTime? date, string format, RoundType roundType, string eventName)
@@ -637,7 +969,6 @@ public class ResultConverter : BaseOlympediaConverter
             Round = roundType
         };
     }
-
     #endregion BADMINTON
 
     #region ATHLETICS
@@ -805,7 +1136,7 @@ public class ResultConverter : BaseOlympediaConverter
         {
             var data = row.Elements("td").ToList();
             var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
-            var athlete = round.Combined.Athletes.FirstOrDefault(x => x.AthleteNumber == athleteModel.Number);
+            var athlete = round.Combined.Athletes.FirstOrDefault(x => x.Code == athleteModel.Code);
 
             if (isStandingTable)
             {
@@ -931,15 +1262,15 @@ public class ResultConverter : BaseOlympediaConverter
             var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
             var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
             var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCache.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCache.Id);
             if (participant != null)
             {
                 var athlete = new ATHCombinedAthlete
                 {
                     Name = athleteModel.Name,
-                    NOCCode = nocCode,
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModel.Number,
+                    NOC = nocCode,
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
                     FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                     Record = this.OlympediaService.FindRecord(row.OuterHtml),
                     Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
@@ -968,7 +1299,7 @@ public class ResultConverter : BaseOlympediaConverter
             var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
             var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
             var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCache.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCache.Id);
             if (participant is not null)
             {
                 var measurement = indexes.TryGetValue(ConverterConstants.INDEX_HEIGHT, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null;
@@ -977,9 +1308,9 @@ public class ResultConverter : BaseOlympediaConverter
                 var athlete = new ATHFieldAthlete
                 {
                     Name = athleteModel.Name,
-                    NOCCode = nocCode,
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModel.Number,
+                    NOC = nocCode,
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
                     FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                     Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
                     Record = this.OlympediaService.FindRecord(row.OuterHtml),
@@ -1173,8 +1504,8 @@ public class ResultConverter : BaseOlympediaConverter
                 var crossCountryTeam = new ATHCrossCountryTeam
                 {
                     Name = name,
-                    NOCCode = nocCode,
-                    TeamId = team.Id,
+                    NOC = nocCode,
+                    Id = team.Id,
                     FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
                     Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value2) ? this.dateService.ParseTime(data[value2].InnerText) : null,
@@ -1184,17 +1515,17 @@ public class ResultConverter : BaseOlympediaConverter
             }
             else
             {
-                nocCode ??= round.CrossCountry.Teams.Last().NOCCode;
+                nocCode ??= round.CrossCountry.Teams.Last().NOC;
                 var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
                 var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-                var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCache.Id);
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCache.Id);
                 if (participant != null)
                 {
                     var athlete = new ATHCrossCountryAthlete
                     {
-                        AthleteNumber = athleteModel.Number,
-                        ParticipantId = participant.Id,
-                        NOCCode = nocCode,
+                        Code = athleteModel.Code,
+                        Id = participant.Id,
+                        NOC = nocCode,
                         Name = name,
                         FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                         Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
@@ -1227,16 +1558,16 @@ public class ResultConverter : BaseOlympediaConverter
             var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
             var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
             var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCache.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCache.Id);
 
             if (participant is not null)
             {
                 var athlete = new ATHRoadAthlete
                 {
                     Name = athleteModel.Name,
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModel.Number,
-                    NOCCode = nocCode,
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
+                    NOC = nocCode,
                     FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                     Record = this.OlympediaService.FindRecord(row.OuterHtml),
                     Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
@@ -1310,8 +1641,8 @@ public class ResultConverter : BaseOlympediaConverter
                     var trackTeam = new ATHTrackTeam
                     {
                         Name = name,
-                        NOCCode = nocCode,
-                        TeamId = team.Id,
+                        NOC = nocCode,
+                        Id = team.Id,
                         FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                         Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
                         Record = this.OlympediaService.FindRecord(row.OuterHtml),
@@ -1330,31 +1661,31 @@ public class ResultConverter : BaseOlympediaConverter
                 }
                 else
                 {
-                    nocCode ??= round.Track.Teams.Last().NOCCode;
+                    nocCode ??= round.Track.Teams.Last().NOC;
                     var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
                     var athleteModels = this.OlympediaService.FindAthletes(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
                     foreach (var athleteModel in athleteModels)
                     {
-                        var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCache.Id);
+                        var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCache.Id);
                         if (participant != null)
                         {
                             if (athleteModels.Count > 1)
                             {
                                 round.Track.Teams.Last().Athletes.Add(new ATHTrackAthlete
                                 {
-                                    AthleteNumber = athleteModel.Number,
+                                    Code = athleteModel.Code,
                                     Name = athleteModel.Name,
-                                    ParticipantId = participant.Id,
-                                    NOCCode = nocCode
+                                    Id = participant.Id,
+                                    NOC = nocCode
                                 });
                             }
                             else
                             {
                                 var athlete = new ATHTrackAthlete
                                 {
-                                    AthleteNumber = athleteModel.Number,
-                                    ParticipantId = participant.Id,
-                                    NOCCode = nocCode,
+                                    Code = athleteModel.Code,
+                                    Id = participant.Id,
+                                    NOC = nocCode,
                                     Name = name,
                                     Heat = heat,
                                     Wind = wind,
@@ -1418,7 +1749,7 @@ public class ResultConverter : BaseOlympediaConverter
                             {
                                 Heat = heat,
                                 Distance = this.RegExpService.MatchInt(data[0].InnerText),
-                                Number = this.OlympediaService.FindAthlete(row.OuterHtml).Number,
+                                Number = this.OlympediaService.FindAthlete(row.OuterHtml).Code,
                                 Time = this.dateService.ParseTime(data[1].InnerText)
                             });
                         }
@@ -1433,7 +1764,7 @@ public class ResultConverter : BaseOlympediaConverter
                             {
                                 Heat = heat,
                                 Distance = this.RegExpService.MatchInt(data[0].InnerText),
-                                Number = this.OlympediaService.FindAthlete(row.OuterHtml).Number,
+                                Number = this.OlympediaService.FindAthlete(row.OuterHtml).Code,
                                 Time = indexes.TryGetValue(ConverterConstants.INDEX_RESULT, out int value1) ? this.dateService.ParseTime(data[value1].InnerText) : null,
                             });
                         }
@@ -1581,12 +1912,12 @@ public class ResultConverter : BaseOlympediaConverter
 
                     if (round.EventName == "Duet")
                     {
-                        var duet = round.Duets.FirstOrDefault(x => x.NOCCode == nocCode);
+                        var duet = round.Duets.FirstOrDefault(x => x.NOC == nocCode);
                         duet.TechnicalRoutine = technicalRoutine;
                     }
                     else
                     {
-                        var team = round.Teams.FirstOrDefault(x => x.NOCCode == nocCode);
+                        var team = round.Teams.FirstOrDefault(x => x.NOC == nocCode);
                         if (team is not null)
                         {
                             team.TechnicalRoutine = technicalRoutine;
@@ -1627,12 +1958,12 @@ public class ResultConverter : BaseOlympediaConverter
 
                     if (round.EventName == "Duet")
                     {
-                        var duet = round.Duets.FirstOrDefault(x => x.NOCCode == nocCode);
+                        var duet = round.Duets.FirstOrDefault(x => x.NOC == nocCode);
                         duet.FreeRoutine = freeRoutine;
                     }
                     else
                     {
-                        var team = round.Teams.FirstOrDefault(x => x.NOCCode == nocCode);
+                        var team = round.Teams.FirstOrDefault(x => x.NOC == nocCode);
                         if (team is not null)
                         {
                             team.FreeRoutine = freeRoutine;
@@ -1645,14 +1976,14 @@ public class ResultConverter : BaseOlympediaConverter
 
             if (round.EventName == "Solo")
             {
-                var participant = await this.participantsService.GetAsync(athleteModels[0].Number, eventCache.Id, noc.Id);
+                var participant = await this.participantsService.GetAsync(athleteModels[0].Code, eventCache.Id, noc.Id);
 
                 var solo = new SWASolo
                 {
                     Name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText,
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModels[0].Number,
-                    NOCCode = noc.Code,
+                    Id = participant.Id,
+                    Code = athleteModels[0].Code,
+                    NOC = noc.Code,
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null,
                     FigurePoints = indexes.TryGetValue(ConverterConstants.INDEX_SWA_FIGURE_POINTS, out int value2) ? this.RegExpService.MatchDouble(data[value2].InnerText) : null,
                     MusicalRoutinePoints = indexes.TryGetValue(ConverterConstants.INDEX_SWA_MUSICAL_ROUTINE_POINTS, out int value3) ? this.RegExpService.MatchDouble(data[value3].InnerText) : null,
@@ -1670,18 +2001,18 @@ public class ResultConverter : BaseOlympediaConverter
                 var swimmers = new List<BaseAthlete>();
                 foreach (var athleteModel in athleteModels)
                 {
-                    var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, noc.Id);
+                    var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, noc.Id);
                     if (participant is not null)
                     {
-                        swimmers.Add(new BaseAthlete { ParticipantId = participant.Id, AthleteNumber = athleteModel.Number, NOCCode = noc.Code, Name = athleteModel.Name });
+                        swimmers.Add(new BaseAthlete { Id = participant.Id, Code = athleteModel.Code, NOC = noc.Code, Name = athleteModel.Name });
                     }
                 }
 
                 var duet = new SWADuet
                 {
                     Name = teamName,
-                    TeamId = team.Id,
-                    NOCCode = nocCode,
+                    Id = team.Id,
+                    NOC = nocCode,
                     Swimmers = swimmers,
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null,
                     FigurePoints = indexes.TryGetValue(ConverterConstants.INDEX_SWA_FIGURE_POINTS, out int value2) ? this.RegExpService.MatchDouble(data[value2].InnerText) : null,
@@ -1696,13 +2027,13 @@ public class ResultConverter : BaseOlympediaConverter
                 if (athleteModels.Any())
                 {
                     var currentTeam = round.Teams.Last();
-                    var currentNoc = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == currentTeam.NOCCode);
+                    var currentNoc = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == currentTeam.NOC);
                     foreach (var athleteModel in athleteModels)
                     {
-                        var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, currentNoc.Id);
+                        var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, currentNoc.Id);
                         if (participant is not null)
                         {
-                            round.Teams.Last().Swimmers.Add(new BaseAthlete { ParticipantId = participant.Id, AthleteNumber = athleteModel.Number, NOCCode = currentNoc.Code, Name = athleteModel.Name });
+                            round.Teams.Last().Swimmers.Add(new BaseAthlete { Id = participant.Id, Code = athleteModel.Code, NOC = currentNoc.Code, Name = athleteModel.Name });
                         }
                     }
                 }
@@ -1714,8 +2045,8 @@ public class ResultConverter : BaseOlympediaConverter
                     var swaTeam = new SWATeam
                     {
                         Name = teamName,
-                        TeamId = team.Id,
-                        NOCCode = nocCode,
+                        Id = team.Id,
+                        NOC = nocCode,
                         Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null,
                     };
 
@@ -1936,8 +2267,8 @@ public class ResultConverter : BaseOlympediaConverter
                 team = new GARTeam
                 {
                     Name = teamName,
-                    TeamId = teamDb.Id,
-                    NOCCode = nocCode,
+                    Id = teamDb.Id,
+                    NOC = nocCode,
                     Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
                 };
 
@@ -1948,15 +2279,15 @@ public class ResultConverter : BaseOlympediaConverter
                 var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
                 foreach (var athleteModel in athleteModels)
                 {
-                    var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
+                    var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
                     if (participant != null)
                     {
                         round.Teams.Last().Gymnasts.Add(new GARGymnast
                         {
-                            AthleteNumber = athleteModel.Number,
-                            ParticipantId = participant.Id,
+                            Code = athleteModel.Code,
+                            Id = participant.Id,
                             Name = athleteModel.Name,
-                            NOCCode = round.Teams.Last().NOCCode,
+                            NOC = round.Teams.Last().NOC,
                         });
                     }
                 }
@@ -1981,7 +2312,7 @@ public class ResultConverter : BaseOlympediaConverter
             {
                 isMainTeam = false;
                 var teamName = data[indexes[ConverterConstants.INDEX_NAME]].InnerHtml;
-                team = round.Teams.FirstOrDefault(x => x.Name == teamName && x.NOCCode == nocCode);
+                team = round.Teams.FirstOrDefault(x => x.Name == teamName && x.NOC == nocCode);
 
                 if (year == 2008)
                 {
@@ -2045,13 +2376,13 @@ public class ResultConverter : BaseOlympediaConverter
             {
                 if (isMainTeam)
                 {
-                    team = round.Teams.FirstOrDefault(x => x.NOCCode == nocCode);
+                    team = round.Teams.FirstOrDefault(x => x.NOC == nocCode);
                 }
 
                 var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
                 foreach (var athleteModel in athleteModels)
                 {
-                    var gymnast = team.Gymnasts.FirstOrDefault(x => x.AthleteNumber == athleteModel.Number);
+                    var gymnast = team.Gymnasts.FirstOrDefault(x => x.Code == athleteModel.Code);
                     if (gymnast != null && athleteModels.Count == 1)
                     {
                         if (year == 2008)
@@ -2183,7 +2514,7 @@ public class ResultConverter : BaseOlympediaConverter
                 score.Info = table.Title;
             }
 
-            var gymnast = round.Gymnasts.FirstOrDefault(x => x.AthleteNumber == athleteModel.Number);
+            var gymnast = round.Gymnasts.FirstOrDefault(x => x.Code == athleteModel.Code);
             if (gymnast == null)
             {
                 var nocCode = this.OlympediaService.FindNOCCode(data[indexes[ConverterConstants.INDEX_NOC]].OuterHtml);
@@ -2193,7 +2524,7 @@ public class ResultConverter : BaseOlympediaConverter
                     continue;
                 }
 
-                var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCacheModel.Id);
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
                 if (participant == null)
                 {
                     continue;
@@ -2201,11 +2532,11 @@ public class ResultConverter : BaseOlympediaConverter
 
                 gymnast = new GARGymnast
                 {
-                    AthleteNumber = athleteModel.Number,
+                    Code = athleteModel.Code,
                     Name = athleteModel.Name,
-                    NOCCode = nocCacheModel.Code,
+                    NOC = nocCacheModel.Code,
                     Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value22) ? this.RegExpService.MatchInt(data[value22].InnerText) : null,
-                    ParticipantId = participant.Id,
+                    Id = participant.Id,
                     Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
                     Scores = new List<GARScore> { score },
                 };
@@ -2442,8 +2773,8 @@ public class ResultConverter : BaseOlympediaConverter
                     var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
                     if (nocCode != null)
                     {
-                        var team = round.Teams.FirstOrDefault(x => x.NOCCode == nocCode);
-                        teamNocCode = team.NOCCode;
+                        var team = round.Teams.FirstOrDefault(x => x.NOC == nocCode);
+                        teamNocCode = team.NOC;
 
                         team.Points30Meters ??= title.EndsWith("30 m") ? (indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value) ? this.RegExpService.MatchInt(data[value].InnerText) : null) : null;
                         team.Points50Meters ??= title.EndsWith("50 m") ? (indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null) : null;
@@ -2454,9 +2785,9 @@ public class ResultConverter : BaseOlympediaConverter
                     }
                     else
                     {
-                        var team = round.Teams.FirstOrDefault(x => x.NOCCode == teamNocCode);
+                        var team = round.Teams.FirstOrDefault(x => x.NOC == teamNocCode);
                         var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
-                        var archer = team.Archers.FirstOrDefault(x => x.AthleteNumber == athleteModel.Number);
+                        var archer = team.Archers.FirstOrDefault(x => x.Code == athleteModel.Code);
 
                         if (archer != null)
                         {
@@ -2504,8 +2835,8 @@ public class ResultConverter : BaseOlympediaConverter
                 Team1 = new ARCMatchTeam
                 {
                     Name = team1Name,
-                    TeamId = team1.Id,
-                    NOCCode = team1NOCCode
+                    Id = team1.Id,
+                    NOC = team1NOCCode
                 }
             };
 
@@ -2524,8 +2855,8 @@ public class ResultConverter : BaseOlympediaConverter
                 match.Team2 = new ARCMatchTeam
                 {
                     Name = team2Name,
-                    TeamId = team2.Id,
-                    NOCCode = team2NOCCode,
+                    Id = team2.Id,
+                    NOC = team2NOCCode,
                     Result = matchResult.Result2,
                     Points = matchResult.Points2
                 };
@@ -2584,8 +2915,8 @@ public class ResultConverter : BaseOlympediaConverter
                 round.Teams.Add(new ARCTeam
                 {
                     Name = name,
-                    TeamId = team.Id,
-                    NOCCode = nocCode,
+                    Id = team.Id,
+                    NOC = nocCode,
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
                     TargetsHit = indexes.TryGetValue(ConverterConstants.INDEX_TH, out int value2) ? this.RegExpService.MatchInt(data[value2].InnerText) : null,
                     Score10s = indexes.TryGetValue(ConverterConstants.INDEX_10S, out int value3) ? this.RegExpService.MatchInt(data[value3].InnerText) : null,
@@ -2604,13 +2935,13 @@ public class ResultConverter : BaseOlympediaConverter
                 var team = round.Teams.LastOrDefault();
 
                 var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-                var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
                 var archer = new ARCArcher
                 {
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModel.Number,
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
                     Name = athleteModel.Name,
-                    NOCCode = team.NOCCode,
+                    NOC = team.NOC,
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
                     TargetsHit = indexes.TryGetValue(ConverterConstants.INDEX_TH, out int value2) ? this.RegExpService.MatchInt(data[value2].InnerText) : null,
                     Score10s = indexes.TryGetValue(ConverterConstants.INDEX_10S, out int value3) ? this.RegExpService.MatchInt(data[value3].InnerText) : null,
@@ -2638,8 +2969,8 @@ public class ResultConverter : BaseOlympediaConverter
             var data = row.Elements("td").ToList();
             var archer1AthleteModel = this.OlympediaService.FindAthlete(data[2].OuterHtml);
             var archer2AthleteModel = this.OlympediaService.FindAthlete(data[5].OuterHtml);
-            var archer1 = await this.participantsService.GetAsync(archer1AthleteModel.Number, eventCache.Id);
-            var archer2 = await this.participantsService.GetAsync(archer2AthleteModel.Number, eventCache.Id);
+            var archer1 = await this.participantsService.GetAsync(archer1AthleteModel.Code, eventCache.Id);
+            var archer2 = await this.participantsService.GetAsync(archer2AthleteModel.Code, eventCache.Id);
             var archer1NOCCode = this.OlympediaService.FindNOCCode(data[3].OuterHtml);
             var archer2NOCCode = this.OlympediaService.FindNOCCode(data[6].OuterHtml);
             var matchResult = this.OlympediaService.GetMatchResult(data[4].InnerText, MatchResultType.Points);
@@ -2655,20 +2986,20 @@ public class ResultConverter : BaseOlympediaConverter
                 Decision = this.OlympediaService.FindDecision(row.OuterHtml),
                 Archer1 = new ARCMatchArcher
                 {
-                    AthleteNumber = archer1AthleteModel.Number,
-                    NOCCode = archer2NOCCode,
+                    Code = archer1AthleteModel.Code,
+                    NOC = archer2NOCCode,
                     Name = archer1AthleteModel.Name,
-                    ParticipantId = archer1.Id,
+                    Id = archer1.Id,
                     Points = matchResult.Points1,
                     Result = matchResult.Result1,
 
                 },
                 Archer2 = new ARCMatchArcher
                 {
-                    AthleteNumber = archer2AthleteModel.Number,
-                    NOCCode = archer2NOCCode,
+                    Code = archer2AthleteModel.Code,
+                    NOC = archer2NOCCode,
                     Name = archer2AthleteModel.Name,
-                    ParticipantId = archer2.Id,
+                    Id = archer2.Id,
                     Points = matchResult.Points2,
                     Result = matchResult.Result2,
                 }
@@ -2852,16 +3183,16 @@ public class ResultConverter : BaseOlympediaConverter
             var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
             var nocCode = this.OlympediaService.FindNOCCode(data[indexes[ConverterConstants.INDEX_NOC]].OuterHtml);
             var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCacheModel.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
 
             if (participant != null)
             {
                 var archer = new ARCArcher
                 {
                     Name = athleteModel.Name,
-                    NOCCode = nocCacheModel.Code,
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModel.Number,
+                    NOC = nocCacheModel.Code,
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
                     Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDouble(data[value1].InnerText) : null,
                     TargetsHit = indexes.TryGetValue(ConverterConstants.INDEX_TH, out int value2) ? this.RegExpService.MatchInt(data[value2].InnerText) : null,
                     Score = indexes.TryGetValue(ConverterConstants.INDEX_SCORE, out int value3) ? this.RegExpService.MatchInt(data[value3].InnerText) : null,
@@ -2903,7 +3234,7 @@ public class ResultConverter : BaseOlympediaConverter
                 {
                     var data = row.Elements("td").ToList();
                     var athleteModel = this.OlympediaService.FindAthlete(data[indexes[ConverterConstants.INDEX_NAME]].OuterHtml);
-                    var participant = round.Archers.FirstOrDefault(x => x.AthleteNumber == athleteModel.Number);
+                    var participant = round.Archers.FirstOrDefault(x => x.Code == athleteModel.Code);
                     if (participant != null)
                     {
                         participant.Points30Meters = title.EndsWith("30 m") ? (indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value) ? this.RegExpService.MatchInt(data[value].InnerText) : null) : null;
@@ -2963,13 +3294,13 @@ public class ResultConverter : BaseOlympediaConverter
         {
             var data = rows[i].Elements("td").ToList();
             var athleteModel = this.OlympediaService.FindAthlete(data[2].OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
             var archer = new ARCMatchArcher
             {
                 Name = athleteModel.Name,
-                AthleteNumber = athleteModel.Number,
-                ParticipantId = participant.Id,
-                NOCCode = team.NOCCode,
+                Code = athleteModel.Code,
+                Id = participant.Id,
+                NOC = team.NOC,
                 Arrow1 = indexes.TryGetValue(ConverterConstants.INDEX_ARROW_1, out int value1) ? data[value1].InnerText : null,
                 Arrow2 = indexes.TryGetValue(ConverterConstants.INDEX_ARROW_2, out int value2) ? data[value2].InnerText : null,
                 Arrow3 = indexes.TryGetValue(ConverterConstants.INDEX_ARROW_3, out int value3) ? data[value3].InnerText : null,
@@ -3123,8 +3454,8 @@ public class ResultConverter : BaseOlympediaConverter
                 Team1 = new ALPTeam
                 {
                     Name = team1Name,
-                    TeamId = team1.Id,
-                    NOCCode = team1NOCCode
+                    Id = team1.Id,
+                    NOC = team1NOCCode
                 }
             };
 
@@ -3143,8 +3474,8 @@ public class ResultConverter : BaseOlympediaConverter
                 match.Team2 = new ALPTeam
                 {
                     Name = team2Name,
-                    TeamId = team2.Id,
-                    NOCCode = team2NOCCode,
+                    Id = team2.Id,
+                    NOC = team2NOCCode,
                     Result = matchResult.Result2,
                     Points = matchResult.Points2
                 };
@@ -3183,21 +3514,21 @@ public class ResultConverter : BaseOlympediaConverter
             var athleteModel1 = this.OlympediaService.FindAthlete(data[3].OuterHtml);
             var skier1NOCCode = this.OlympediaService.FindNOCCode(data[4].OuterHtml);
             var skier1NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == skier1NOCCode);
-            var skier1Participant = await this.participantsService.GetAsync(athleteModel1.Number, eventCache.Id, skier1NOCCacheModel.Id);
+            var skier1Participant = await this.participantsService.GetAsync(athleteModel1.Code, eventCache.Id, skier1NOCCacheModel.Id);
 
             var athleteModel2 = this.OlympediaService.FindAthlete(data[6].OuterHtml);
             var skier2NOCCode = this.OlympediaService.FindNOCCode(data[7].OuterHtml);
             var skier2NOCCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == skier2NOCCode);
-            var skier2Participant = await this.participantsService.GetAsync(athleteModel2.Number, eventCache.Id, skier2NOCCacheModel.Id);
+            var skier2Participant = await this.participantsService.GetAsync(athleteModel2.Code, eventCache.Id, skier2NOCCacheModel.Id);
 
             var matchResult = this.OlympediaService.GetMatchResult(data[5].OuterHtml, MatchResultType.Points);
 
             var skier1 = new ALPSkier
             {
                 Name = athleteModel1.Name,
-                AthleteNumber = athleteModel1.Number,
-                NOCCode = skier1NOCCode,
-                ParticipantId = skier1Participant.Id,
+                Code = athleteModel1.Code,
+                NOC = skier1NOCCode,
+                Id = skier1Participant.Id,
                 Time = matchResult.Time1,
                 Race = race
             };
@@ -3205,14 +3536,14 @@ public class ResultConverter : BaseOlympediaConverter
             var skier2 = new ALPSkier
             {
                 Name = athleteModel2.Name,
-                AthleteNumber = athleteModel2.Number,
-                NOCCode = skier2NOCCode,
-                ParticipantId = skier2Participant.Id,
+                Code = athleteModel2.Code,
+                NOC = skier2NOCCode,
+                Id = skier2Participant.Id,
                 Time = matchResult.Time2,
                 Race = race
             };
 
-            if (match.Team1.NOCCode == skier1NOCCode)
+            if (match.Team1.NOC == skier1NOCCode)
             {
                 match.Team1.Skiers.Add(skier1);
                 match.Team2.Skiers.Add(skier2);
@@ -3256,16 +3587,16 @@ public class ResultConverter : BaseOlympediaConverter
             var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
             var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
             var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id, nocCacheModel.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
 
             if (participant != null)
             {
                 var skier = new ALPSkier
                 {
                     Name = athleteModel.Name,
-                    NOCCode = nocCacheModel.Code,
-                    ParticipantId = participant.Id,
-                    AthleteNumber = athleteModel.Number,
+                    NOC = nocCacheModel.Code,
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
                     FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
                     Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
                     Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
@@ -3293,7 +3624,7 @@ public class ResultConverter : BaseOlympediaConverter
         var startAltitudeMatch = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Start Altitude:(.*?)<br>");
         var verticalDropMatch = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Vertical Drop:(.*?)<\/td>");
         var athleteModel = courseSetterMatch != null ? this.OlympediaService.FindAthlete(courseSetterMatch.Groups[1].Value) : null;
-        var courseSetter = athleteModel != null ? await this.athletesService.GetAsync(athleteModel.Number) : null;
+        var courseSetter = athleteModel != null ? await this.athletesService.GetAsync(athleteModel.Code) : null;
 
         var gates = this.RegExpService.MatchInt(gatesMatch);
         var length = this.RegExpService.MatchInt(lengthMatch);
@@ -3356,8 +3687,8 @@ public class ResultConverter : BaseOlympediaConverter
                     Team1 = new BKBTeam
                     {
                         Name = team1.Name,
-                        TeamId = team1.Id,
-                        NOCCode = team1NOCCode
+                        Id = team1.Id,
+                        NOC = team1NOCCode
                     }
                 };
 
@@ -3380,8 +3711,8 @@ public class ResultConverter : BaseOlympediaConverter
                     match.Team2 = new BKBTeam
                     {
                         Name = team2.Name,
-                        TeamId = team2.Id,
-                        NOCCode = team2NOCCode,
+                        Id = team2.Id,
+                        NOC = team2NOCCode,
                         Result = matchResult.Result2,
                         Points = matchResult.Points2
                     };
@@ -3557,7 +3888,7 @@ public class ResultConverter : BaseOlympediaConverter
             var data = rows[i].Elements("td").ToList();
 
             var athleteModel = this.OlympediaService.FindAthlete(data[2].OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
             var onePointMatch = this.RegExpService.Match(data[9].InnerText, @"(\d+)\/(\d+)");
             var twoPointMatch = this.RegExpService.Match(data[11].InnerText, @"(\d+)\/(\d+)");
             var freeThrowPointMatch = this.RegExpService.Match(data[15].InnerText, @"(\d+)\/(\d+)");
@@ -3565,9 +3896,9 @@ public class ResultConverter : BaseOlympediaConverter
             var player = new BKBPlayer
             {
                 Name = athleteModel.Name,
-                AthleteNumber = athleteModel.Number,
-                NOCCode = team.NOCCode,
-                ParticipantId = participant.Id,
+                Code = athleteModel.Code,
+                NOC = team.NOC,
+                Id = participant.Id,
                 Position = data[0]?.InnerText.Trim(),
                 Number = this.RegExpService.MatchInt(data[1]?.InnerText),
                 Points = this.RegExpService.MatchInt(data[4]?.InnerText),
@@ -3620,14 +3951,14 @@ public class ResultConverter : BaseOlympediaConverter
             var data = rows[i].Elements("td").ToList();
 
             var athleteModel = this.OlympediaService.FindAthlete(data[2].OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Number, eventCache.Id);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
 
             var player = new BKBPlayer
             {
                 Name = athleteModel.Name,
-                AthleteNumber = athleteModel.Number,
-                ParticipantId = participant.Id,
-                NOCCode = team.NOCCode
+                Code = athleteModel.Code,
+                Id = participant.Id,
+                NOC = team.NOC
             };
 
             if (gameCache.Year >= 2020)
