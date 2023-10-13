@@ -21,4 +21,6 @@ public interface IRegExpService
     int? MatchInt(string text);
 
     double? MatchDouble(string text);
+
+    decimal? MatchDecimal(string text);
 }

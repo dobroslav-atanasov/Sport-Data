@@ -74,6 +74,37 @@ public class RegExpService : IRegExpService
         return null;
     }
 
+    public decimal? MatchDecimal(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        text = Regex.Replace(text, @"\(.*?\)", string.Empty);
+        if (string.IsNullOrEmpty(text) || !text.Any(char.IsDigit))
+        {
+            return null;
+        }
+
+        text = text.Replace(",", ".").Replace("+", string.Empty).Trim();
+
+        var match = Regex.Match(text, @"(\d+)\.(\d+)\.(\d+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        if (match.Success)
+        {
+            return decimal.Parse($"{match.Groups[1].Value}{match.Groups[2].Value},{match.Groups[3].Value}");
+        }
+
+        match = Regex.Match(text, @"([-.\d]+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        if (match.Success)
+        {
+            var number = match.Groups[1].Value.Replace(".", ",");
+            return decimal.Parse(number);
+        }
+
+        return null;
+    }
+
     public MatchCollection Matches(string text, string pattern)
     {
         return Regex.Matches(text, pattern, RegexOptions.IgnoreCase | RegexOptions.Singleline);
