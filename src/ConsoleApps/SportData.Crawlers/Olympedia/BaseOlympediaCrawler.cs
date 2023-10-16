@@ -1,5 +1,7 @@
 ﻿namespace SportData.Crawlers.Olympedia;
 
+using System.Text.RegularExpressions;
+
 using HtmlAgilityPack;
 
 using Microsoft.Extensions.Configuration;
@@ -44,6 +46,73 @@ public abstract class BaseOlympediaCrawler : BaseCrawler
             urls.AddRange(currentUrls);
         }
 
+        return new List<string>
+        {
+            "https://www.olympedia.org/editions/1",
+            "https://www.olympedia.org/editions/2",
+            "https://www.olympedia.org/editions/3",
+            "https://www.olympedia.org/editions/5",
+            "https://www.olympedia.org/editions/6",
+            "https://www.olympedia.org/editions/50",
+            "https://www.olympedia.org/editions/7",
+            "https://www.olympedia.org/editions/8",
+            "https://www.olympedia.org/editions/9",
+            "https://www.olympedia.org/editions/10",
+            "https://www.olympedia.org/editions/11",
+            "https://www.olympedia.org/editions/51",
+            "https://www.olympedia.org/editions/52",
+            "https://www.olympedia.org/editions/12",
+            "https://www.olympedia.org/editions/13",
+            "https://www.olympedia.org/editions/14",
+            "https://www.olympedia.org/editions/15",
+            "https://www.olympedia.org/editions/16",
+            "https://www.olympedia.org/editions/17",
+            "https://www.olympedia.org/editions/18",
+            "https://www.olympedia.org/editions/19",
+            "https://www.olympedia.org/editions/20",
+            "https://www.olympedia.org/editions/21",
+            "https://www.olympedia.org/editions/22",
+            "https://www.olympedia.org/editions/23",
+            "https://www.olympedia.org/editions/24",
+            "https://www.olympedia.org/editions/25",
+            "https://www.olympedia.org/editions/26",
+            "https://www.olympedia.org/editions/53",
+            "https://www.olympedia.org/editions/54",
+            "https://www.olympedia.org/editions/59",
+            "https://www.olympedia.org/editions/61",
+            "https://www.olympedia.org/editions/63",
+            "https://www.olympedia.org/editions/64",
+            "https://www.olympedia.org/editions/372",
+            "https://www.olympedia.org/editions/29",
+            "https://www.olympedia.org/editions/30",
+            "https://www.olympedia.org/editions/31",
+            "https://www.olympedia.org/editions/32",
+            "https://www.olympedia.org/editions/55",
+            "https://www.olympedia.org/editions/56",
+            "https://www.olympedia.org/editions/33",
+            "https://www.olympedia.org/editions/34",
+            "https://www.olympedia.org/editions/35",
+            "https://www.olympedia.org/editions/36",
+            "https://www.olympedia.org/editions/37",
+            "https://www.olympedia.org/editions/38",
+            "https://www.olympedia.org/editions/39",
+            "https://www.olympedia.org/editions/40",
+            "https://www.olympedia.org/editions/41",
+            "https://www.olympedia.org/editions/42",
+            "https://www.olympedia.org/editions/43",
+            "https://www.olympedia.org/editions/44",
+            "https://www.olympedia.org/editions/45",
+            "https://www.olympedia.org/editions/46",
+            "https://www.olympedia.org/editions/47",
+            "https://www.olympedia.org/editions/49",
+            "https://www.olympedia.org/editions/57",
+            "https://www.olympedia.org/editions/58",
+            "https://www.olympedia.org/editions/60",
+            "https://www.olympedia.org/editions/62",
+            "https://www.olympedia.org/editions/72",
+            "https://www.olympedia.org/editions/48",
+        };
+
         return urls;
     }
 
@@ -53,26 +122,50 @@ public abstract class BaseOlympediaCrawler : BaseCrawler
             .HtmlDocument
             .DocumentNode
             .SelectNodes("//table[@class='table table-striped']")?
-            .FirstOrDefault();
+            .Skip(1).FirstOrDefault();
 
-        if (table == null)
+        var asd = Regex.Match(httpModel.HtmlDocument.DocumentNode.OuterHtml, @"<h2>Medal Disciplines<\/h2>\s*<table(.*?)<\/table>", RegexOptions.Singleline);
+        if (asd.Success)
         {
-            return null;
+            if (table == null)
+            {
+                return null;
+            }
+
+            var document = new HtmlDocument();
+            document.LoadHtml(asd.Groups[1].Value);
+
+            var disciplineUrls = document
+                .DocumentNode
+                .SelectNodes("//a")
+                .Select(x => x.Attributes["href"]?.Value)
+                .Where(x => x != null)
+                .Select(x => this.CreateUrl(x, this.Configuration.GetSection(CrawlerConstants.OLYMPEDIA_MAIN_URL).Value))
+                .Distinct()
+                .ToList();
+
+            return disciplineUrls;
         }
 
-        var document = new HtmlDocument();
-        document.LoadHtml(table.OuterHtml);
+        return null;
+        //if (table == null)
+        //{
+        //    return null;
+        //}
 
-        var disciplineUrls = document
-            .DocumentNode
-            .SelectNodes("//a")
-            .Select(x => x.Attributes["href"]?.Value)
-            .Where(x => x != null)
-            .Select(x => this.CreateUrl(x, this.Configuration.GetSection(CrawlerConstants.OLYMPEDIA_MAIN_URL).Value))
-            .Distinct()
-            .ToList();
+        //var document = new HtmlDocument();
+        //document.LoadHtml(table.OuterHtml);
 
-        return disciplineUrls;
+        //var disciplineUrls = document
+        //    .DocumentNode
+        //    .SelectNodes("//a")
+        //    .Select(x => x.Attributes["href"]?.Value)
+        //    .Where(x => x != null)
+        //    .Select(x => this.CreateUrl(x, this.Configuration.GetSection(CrawlerConstants.OLYMPEDIA_MAIN_URL).Value))
+        //    .Distinct()
+        //    .ToList();
+
+        //return disciplineUrls;
     }
 
     protected IReadOnlyCollection<string> GetMedalDisciplineUrls(HttpModel httpModel)

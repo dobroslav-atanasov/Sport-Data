@@ -42,10 +42,23 @@ public abstract class BaseConverter
             var crawlerId = await this.crawlersService.GetCrawlerIdAsync(crawlerName);
             var identifiers = await this.logsService.GetLogIdentifiersAsync(crawlerId);
 
-            //identifiers = new List<Guid>
-            //{
-            //    Guid.Parse("aa427cab-7bf3-4ab6-ac2e-ba361d8395df")
-            //};
+            identifiers = new List<Guid>
+            {
+                Guid.Parse("3ecc281a-0f0a-4857-80ad-53cb05c3f231"),
+                Guid.Parse("ebe52e4b-dc68-47d4-8eff-f847c1b9d2f4"),
+                Guid.Parse("771cf26f-6d70-4c38-8320-da95764b6223"),
+                Guid.Parse("c48cada5-33c2-434a-adf1-5d25dab5eb44"),
+                Guid.Parse("1fc03d32-8df3-404c-ad79-a8c5733e511b"),
+                Guid.Parse("c9bbb435-fb48-4226-9a2d-037be6b7db19"),
+                Guid.Parse("f16b7525-5eeb-47a7-888b-5f47f59289e3"),
+                Guid.Parse("edd8dcb7-5089-473f-bed9-7217d4b167da"),
+                Guid.Parse("f84c4774-7846-43ae-8660-ba4d9004487f"),
+                Guid.Parse("caf7190c-70d6-4024-8644-3c7d3a4475e6"),
+                Guid.Parse("54ec48a2-61fa-41b5-9288-d7ba16e78135"),
+                Guid.Parse("6f6354bc-9921-4246-973b-f72aa78a21be"),
+                Guid.Parse("db03a1a2-fc82-4341-9017-79552750fe15"),
+                Guid.Parse("0147714a-2fac-4133-a7c7-2151a7a31233"),
+            };
 
             await identifiers.ParallelForEachAsync(async identifier =>
             {

@@ -26,6 +26,7 @@ using SportData.Data.Models.OlympicGames.Basketball;
 using SportData.Data.Models.OlympicGames.Gymnastics;
 using SportData.Data.Models.OlympicGames.Gymnastics.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.Skiing.AlpineSkiing;
+using SportData.Data.Models.OlympicGames.Volleyball.BeachVolleyball;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Data.SportDataDb.Interfaces;
 using SportData.Services.Interfaces;
@@ -109,8 +110,11 @@ public class ResultConverter : BaseOlympediaConverter
                         //case DisciplineConstants.BADMINTON:
                         //    await this.ProcessBadmintonAsync(options);
                         //    break;
-                        case DisciplineConstants.BASEBALL:
-                            await this.ProcessBaseballAsync(options);
+                        //case DisciplineConstants.BASEBALL:
+                        //    await this.ProcessBaseballAsync(options);
+                        //    break;
+                        case DisciplineConstants.BEACH_VOLLEYBALL:
+                            await this.ProcessBeachVolleyballAsync(options);
                             break;
 
                     }
@@ -412,6 +416,74 @@ public class ResultConverter : BaseOlympediaConverter
     }
     #endregion PRIVATE
 
+    #region BEACH VOLLEYBALL
+    private async Task ProcessBeachVolleyballAsync(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<VBVRound>(options.HtmlDocument, options.Event.Name);
+
+        var teams = await this.GetBeachVolleyballTeamsAsync(options.StandingTable, options.Event);
+
+        foreach (var table in options.Tables)
+        {
+            var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+            var round = this.CreateBeachVolleyballnRound(eventRound.Dates.From, format, table.Round, eventRound.EventName);
+            var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+
+            foreach (var row in rows.Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)))
+            {
+                var data = row.Elements("td").ToList();
+
+            }
+        }
+
+        var resultJson = this.CreateResult<VBVRound>(options.Event, options.Discipline, options.Game);
+        resultJson.Rounds = eventRound.Rounds;
+
+        var json = JsonSerializer.Serialize(resultJson);
+        var result = new Result
+        {
+            EventId = options.Event.Id,
+            Json = json
+        };
+
+        //await this.resultsService.AddOrUpdateAsync(result);
+    }
+
+    private async Task<Dictionary<string, VBVTeam>> GetBeachVolleyballTeamsAsync(TableModel table, EventCacheModel eventCache)
+    {
+        var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        var pairs = new Dictionary<string, Team>();
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var team = await this.teamsService.GetAsync(name, nocCodeCache.Id, eventCache.Id);
+
+            var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
+            var key = $"{string.Join(string.Empty, athleteModels.Select(x => x.Code))}";
+            pairs[key] = team;
+        }
+
+        return pairs;
+    }
+
+    private VBVRound CreateBeachVolleyballnRound(DateTime? date, string format, RoundType roundType, string eventName)
+    {
+        return new VBVRound
+        {
+            Date = date,
+            Format = format,
+            EventName = eventName,
+            Round = roundType
+        };
+    }
+    #endregion BEACH VOLLEYBALL
+
     #region BASEBALL
     private async Task ProcessBaseballAsync(ConvertOptions options)
     {
@@ -485,12 +557,17 @@ public class ResultConverter : BaseOlympediaConverter
 
                     if (options.Game.Year <= 2016)
                     {
-                        this.SetBSBTeamStatistics(match.Team1, tables[0]);
-                        this.SetBSBTeamStatistics(match.Team2, tables[1]);
+                        this.SetBSBTeamStatistics(match.Team1, tables[0], null);
+                        this.SetBSBTeamStatistics(match.Team2, tables[1], null);
                     }
                     else
                     {
-                        // todo 2020 with first table!!!!!!!
+                        var html = htmlDocument.DocumentNode.SelectSingleNode("//table[@class='table table-striped']").OuterHtml;
+                        var tableDocument = new HtmlDocument();
+                        tableDocument.LoadHtml(html);
+                        var tableRows = tableDocument.DocumentNode.SelectNodes("//tr").Skip(1).ToList();
+                        this.SetBSBTeamStatistics(match.Team1, tables[0], tableRows[0]);
+                        this.SetBSBTeamStatistics(match.Team2, tables[1], tableRows[1]);
                     }
 
                     var matchResult = this.OlympediaService.GetMatchResult($"{match.Team1.Points}-{match.Team2.Points}", MatchResultType.Points);
@@ -514,34 +591,56 @@ public class ResultConverter : BaseOlympediaConverter
             Json = json
         };
 
-        //await this.resultsService.AddOrUpdateAsync(result);
+        await this.resultsService.AddOrUpdateAsync(result);
     }
 
-    private void SetBSBTeamStatistics(BSBTeam team, TableModel table)
+    private void SetBSBTeamStatistics(BSBTeam team, TableModel table, HtmlNode node)
     {
         var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
         var row = rows.Skip(rows.Count - 2).Take(1).FirstOrDefault();
         var data = row.Elements("td").ToList();
 
-        team.Inning1 = this.RegExpService.MatchInt(data[1].InnerText);
-        team.Inning2 = this.RegExpService.MatchInt(data[2].InnerText);
-        team.Inning3 = this.RegExpService.MatchInt(data[3].InnerText);
-        team.Inning4 = this.RegExpService.MatchInt(data[4].InnerText);
-        team.Inning5 = this.RegExpService.MatchInt(data[5].InnerText);
-        team.Inning6 = this.RegExpService.MatchInt(data[6].InnerText);
-        team.Inning7 = this.RegExpService.MatchInt(data[7].InnerText);
-        team.Inning8 = this.RegExpService.MatchInt(data[8].InnerText);
-        team.Inning9 = this.RegExpService.MatchInt(data[9].InnerText);
-        team.Inning10 = this.RegExpService.MatchInt(data[10].InnerText);
-        team.Inning11 = this.RegExpService.MatchInt(data[11].InnerText);
-        team.Inning12 = this.RegExpService.MatchInt(data[12].InnerText);
-        team.Inning13 = this.RegExpService.MatchInt(data[13].InnerText);
-        team.Inning14 = this.RegExpService.MatchInt(data[14].InnerText);
-        team.Inning15 = this.RegExpService.MatchInt(data[15].InnerText);
-        team.Points = (int)this.RegExpService.MatchDecimal(data[16].InnerText);
-        team.Hits = this.RegExpService.MatchInt(data[17].InnerText);
-        team.Errors = this.RegExpService.MatchInt(data[18].InnerText);
-        team.LOB = this.RegExpService.MatchInt(data[19].InnerText);
+        if (node == null)
+        {
+            team.Inning1 = this.RegExpService.MatchInt(data[1].InnerText);
+            team.Inning2 = this.RegExpService.MatchInt(data[2].InnerText);
+            team.Inning3 = this.RegExpService.MatchInt(data[3].InnerText);
+            team.Inning4 = this.RegExpService.MatchInt(data[4].InnerText);
+            team.Inning5 = this.RegExpService.MatchInt(data[5].InnerText);
+            team.Inning6 = this.RegExpService.MatchInt(data[6].InnerText);
+            team.Inning7 = this.RegExpService.MatchInt(data[7].InnerText);
+            team.Inning8 = this.RegExpService.MatchInt(data[8].InnerText);
+            team.Inning9 = this.RegExpService.MatchInt(data[9].InnerText);
+            team.Inning10 = this.RegExpService.MatchInt(data[10].InnerText);
+            team.Inning11 = this.RegExpService.MatchInt(data[11].InnerText);
+            team.Inning12 = this.RegExpService.MatchInt(data[12].InnerText);
+            team.Inning13 = this.RegExpService.MatchInt(data[13].InnerText);
+            team.Inning14 = this.RegExpService.MatchInt(data[14].InnerText);
+            team.Inning15 = this.RegExpService.MatchInt(data[15].InnerText);
+            team.Points = (int)this.RegExpService.MatchDecimal(data[16].InnerText);
+            team.Hits = this.RegExpService.MatchInt(data[17].InnerText);
+            team.Errors = this.RegExpService.MatchInt(data[18].InnerText);
+            team.LOB = this.RegExpService.MatchInt(data[19].InnerText);
+        }
+        else
+        {
+            team.Hits = this.RegExpService.MatchInt(data[3].InnerText);
+            team.Errors = this.RegExpService.MatchInt(data[4].InnerText);
+            team.LOB = this.RegExpService.MatchInt(data[5].InnerText);
+
+            var tdData = node.Elements("td").ToList();
+            team.Points = (int)this.RegExpService.MatchDecimal(tdData[3].InnerText);
+            team.Inning1 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(4)?.InnerText);
+            team.Inning2 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(5)?.InnerText);
+            team.Inning3 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(6)?.InnerText);
+            team.Inning4 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(7)?.InnerText);
+            team.Inning5 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(8)?.InnerText);
+            team.Inning6 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(9)?.InnerText);
+            team.Inning7 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(10)?.InnerText);
+            team.Inning8 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(11)?.InnerText);
+            team.Inning9 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(12)?.InnerText);
+            team.Inning10 = this.RegExpService.MatchInt(tdData.ElementAtOrDefault(13)?.InnerText);
+        }
     }
 
     private async Task SetBSBPlayersAsync(BSBTeam team, TableModel table, EventCacheModel eventCache, GameCacheModel gameCache)
