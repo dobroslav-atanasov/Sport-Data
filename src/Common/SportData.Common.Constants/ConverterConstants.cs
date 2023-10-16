@@ -212,4 +212,13 @@ public static class ConverterConstants
     public const string INDEX_ATH_ROUND_5 = "ath round 5";
     public const string INDEX_ATH_ROUND_6 = "ath round 6";
     public const string INDEX_ATH_ORDER = "ath st order";
+    public const string INDEX_SERVICE_ATTEMPTS = "service attempts";
+    public const string INDEX_SERVICE_FAULTS = "service faults";
+    public const string INDEX_SERVICE_ACES = "service aces";
+    public const string INDEX_FASTEST_SERVE = "fastest serve";
+    public const string INDEX_ATTACK_ATTEMPTS = "attack attempts";
+    public const string INDEX_ATTACK_SUCCESSES = "attack successes";
+    public const string INDEX_BLOCK_SUCCESSES = "block successes";
+    public const string INDEX_OPPONENT_ERRORS = "opponent errors";
+    public const string INDEX_DIG_SUCCESSES = "dig successes";
 }
