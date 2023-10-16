@@ -863,8 +863,32 @@ public class OlympediaService : IOlympediaService
                 case "st. order":
                     indexes[ConverterConstants.INDEX_ATH_ORDER] = i;
                     break;
-                case "":
-                    // TODO
+                case "service attempts":
+                    indexes[ConverterConstants.INDEX_SERVICE_ATTEMPTS] = i;
+                    break;
+                case "service faults":
+                    indexes[ConverterConstants.INDEX_SERVICE_FAULTS] = i;
+                    break;
+                case "service aces":
+                    indexes[ConverterConstants.INDEX_SERVICE_ACES] = i;
+                    break;
+                case "fastest serve":
+                    indexes[ConverterConstants.INDEX_FASTEST_SERVE] = i;
+                    break;
+                case "attack attempts":
+                    indexes[ConverterConstants.INDEX_ATTACK_ATTEMPTS] = i;
+                    break;
+                case "attack successes":
+                    indexes[ConverterConstants.INDEX_ATTACK_SUCCESSES] = i;
+                    break;
+                case "block successes":
+                    indexes[ConverterConstants.INDEX_BLOCK_SUCCESSES] = i;
+                    break;
+                case "opponent errors":
+                    indexes[ConverterConstants.INDEX_OPPONENT_ERRORS] = i;
+                    break;
+                case "dig successes":
+                    indexes[ConverterConstants.INDEX_DIG_SUCCESSES] = i;
                     break;
             }
         }
