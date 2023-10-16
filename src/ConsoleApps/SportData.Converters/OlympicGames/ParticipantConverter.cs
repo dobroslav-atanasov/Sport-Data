@@ -75,7 +75,7 @@ public class ParticipantConverter : BaseOlympediaConverter
                             if (trRow.InnerHtml.ToLower().Contains("coach"))
                             {
                                 var athleteModel = this.OlympediaService.FindAthlete(trRow.OuterHtml);
-                                var coach = await this.athletesService.GetAsync(athleteModel.Number);
+                                var coach = await this.athletesService.GetAsync(athleteModel.Code);
                                 if (coach != null)
                                 {
                                     team.CoachId = coach.Id;
@@ -88,7 +88,7 @@ public class ParticipantConverter : BaseOlympediaConverter
                                 var nocCode = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Id == team.NOCId);
                                 foreach (var athleteModel in athleteNumbers)
                                 {
-                                    var participant = await this.CreateParticipantAsync(athleteModel.Number, nocCode.Code, team.Medal, team.FinishStatus, eventCacheModel, gameCacheModel);
+                                    var participant = await this.CreateParticipantAsync(athleteModel.Code, nocCode.Code, team.Medal, team.FinishStatus, eventCacheModel, gameCacheModel);
 
                                     if (participant != null)
                                     {
@@ -108,7 +108,7 @@ public class ParticipantConverter : BaseOlympediaConverter
                             var finishStatus = this.OlympediaService.FindStatus(trRow.OuterHtml);
                             if (athleteModel != null && countryCode != null)
                             {
-                                await this.CreateParticipantAsync(athleteModel.Number, countryCode, medalType, finishStatus, eventCacheModel, gameCacheModel);
+                                await this.CreateParticipantAsync(athleteModel.Code, countryCode, medalType, finishStatus, eventCacheModel, gameCacheModel);
                             }
                         }
                     }
