@@ -22,5 +22,7 @@ public enum RoundType
     PreliminaryRound = 17,
     RunOne = 18,
     RunTwo = 19,
-    RunThree = 20
+    RunThree = 20,
+    Eightfinals = 21,
+    LuckyLoser = 22,
 }
