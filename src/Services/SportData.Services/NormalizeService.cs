@@ -730,6 +730,11 @@ public class NormalizeService : INormalizeService
             case "classification round 17-20":
             case "classification round 17-23":
             case "classification round 21-23":
+            case "classification round one":
+            case "classification round two":
+            case "classification round three":
+            case "classification final 1":
+            case "classification final 2":
                 roundType = RoundType.Classification;
                 break;
             case "semi-finals":
@@ -811,6 +816,18 @@ public class NormalizeService : INormalizeService
             case "run #2":
             case "run #21":
                 roundType = RoundType.RunTwo;
+                break;
+            case "run #3":
+                roundType = RoundType.RunThree;
+                break;
+            case "eighth-finals":
+                roundType = RoundType.Eightfinals;
+                break;
+            case "run #4":
+                roundType = RoundType.RunFour;
+                break;
+            case "lucky loser round":
+                roundType = RoundType.LuckyLoser;
                 break;
         }
 
