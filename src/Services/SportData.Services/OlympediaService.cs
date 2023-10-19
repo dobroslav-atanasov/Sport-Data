@@ -155,6 +155,7 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_NAME] = i;
                     break;
                 case "time":
+                case "adjusted time":
                     indexes[ConverterConstants.INDEX_TIME] = i;
                     break;
                 case "run 1":
@@ -890,6 +891,83 @@ public class OlympediaService : IOlympediaService
                 case "dig successes":
                     indexes[ConverterConstants.INDEX_DIG_SUCCESSES] = i;
                     break;
+                case "race":
+                    indexes[ConverterConstants.INDEX_RACE] = i;
+                    break;
+                case "start behind":
+                    indexes[ConverterConstants.INDEX_START_BEHIND] = i;
+                    break;
+                case "skiing":
+                    indexes[ConverterConstants.INDEX_SKIING] = i;
+                    break;
+                case "shooting 1":
+                    indexes[ConverterConstants.INDEX_SHOOTING_1] = i;
+                    break;
+                case "shooting 2":
+                    indexes[ConverterConstants.INDEX_SHOOTING_2] = i;
+                    break;
+                case "shooting 3":
+                    indexes[ConverterConstants.INDEX_SHOOTING_3] = i;
+                    break;
+                case "shooting 4":
+                    indexes[ConverterConstants.INDEX_SHOOTING_4] = i;
+                    break;
+                case "shooting 1 misses":
+                    indexes[ConverterConstants.INDEX_SHOOTING_1_MISSES] = i;
+                    break;
+                case "shooting 2 misses":
+                    indexes[ConverterConstants.INDEX_SHOOTING_2_MISSES] = i;
+                    break;
+                case "shooting 3 misses":
+                    indexes[ConverterConstants.INDEX_SHOOTING_3_MISSES] = i;
+                    break;
+                case "shooting 4 misses":
+                    indexes[ConverterConstants.INDEX_SHOOTING_4_MISSES] = i;
+                    break;
+                case "shooting 1 extra shots":
+                    indexes[ConverterConstants.INDEX_SHOOTING_1_EXTRA_SHOTS] = i;
+                    break;
+                case "shooting 2 extra shots":
+                    indexes[ConverterConstants.INDEX_SHOOTING_2_EXTRA_SHOTS] = i;
+                    break;
+                case "extra shots":
+                    indexes[ConverterConstants.INDEX_EXTRA_SHOTS] = i;
+                    break;
+                case "run 3":
+                case "run #3":
+                    indexes[ConverterConstants.INDEX_RUN3] = i;
+                    break;
+                case "run 4":
+                case "run #4":
+                    indexes[ConverterConstants.INDEX_RUN4] = i;
+                    break;
+                case "intermediate 1":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_1] = i;
+                    break;
+                case "intermediate 2":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_2] = i;
+                    break;
+                case "intermediate 3":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_3] = i;
+                    break;
+                case "intermediate 4":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_4] = i;
+                    break;
+                case "split 1":
+                    indexes[ConverterConstants.INDEX_SPLIT_1] = i;
+                    break;
+                case "split 2":
+                    indexes[ConverterConstants.INDEX_SPLIT_2] = i;
+                    break;
+                case "split 3":
+                    indexes[ConverterConstants.INDEX_SPLIT_3] = i;
+                    break;
+                case "split 4":
+                    indexes[ConverterConstants.INDEX_SPLIT_4] = i;
+                    break;
+                case "split 5":
+                    indexes[ConverterConstants.INDEX_SPLIT_5] = i;
+                    break;
             }
         }
 
@@ -1069,6 +1147,8 @@ public class OlympediaService : IOlympediaService
             {
                 result.Games1 = new List<int?> { int.Parse(match.Groups[1].Value) };
                 result.Games2 = new List<int?> { int.Parse(match.Groups[2].Value) };
+
+                var points = result.Games1[0].Value > result.Games2[0].Value ? result.Points1++ : result.Points2++;
 
                 result.Result1 = ResultType.Win;
                 result.Result2 = ResultType.Lose;
