@@ -257,10 +257,23 @@ public class DateService : IDateService
             var match = this.regExpService.Match(text, pattern);
             if (match != null)
             {
-                var formats = new string[] { "h\\-mm\\:ss.fff", "h\\-mm\\:s.fff", "h\\-m\\:ss.fff", "h\\-m\\:s.fff",
-                    "h\\-mm\\:ss.ff", "h\\-mm\\:s.ff", "h\\-m\\:ss.ff", "h\\-m\\:s.ff",
-                    "h\\-mm\\:ss.f", "h\\-mm\\:s.f", "h\\-m\\:ss.f", "h\\-m\\:s.f",
-                    "h\\-mm\\:ss", "h\\-mm\\:s", "h\\-m\\:ss", "h\\-m\\:s",
+                var formats = new string[] {
+                    "h\\-mm\\:ss\\.fff",
+                    "h\\-mm\\:ss\\.ff",
+                    "h\\-mm\\:ss\\.f",
+                    "h\\-mm\\:ss",
+                    "h\\-mm\\:s\\.fff",
+                    "h\\-mm\\:s\\.ff",
+                    "h\\-mm\\:s\\.f",
+                    "h\\-mm\\:s",
+                    "h\\-m\\:ss\\.fff",
+                    "h\\-m\\:ss\\.ff",
+                    "h\\-m\\:ss\\.f",
+                    "h\\-m\\:ss",
+                    "h\\-m\\:s\\.fff",
+                    "h\\-m\\:s\\.ff",
+                    "h\\-m\\:s\\.f",
+                    "h\\-m\\:s",
                     "mm\\:ss", "mm\\:s", "m\\:ss", "m\\:s", "mm\\:ss\\.fff", "mm\\:ss\\.ff", "mm\\:ss\\.f", "m\\:ss\\.fff",
                     "m\\:ss\\.f", "m\\:ss\\.f", "m\\:s\\.fff", "m\\:s\\.ff", "m\\:s\\.f", "ss\\.fff", "ss\\.ff", "ss\\.f", "s\\.fff", "s\\.ff", "s\\.f", "ss", "s" };
                 if (TimeSpan.TryParseExact(match.Groups[0].Value, formats, null, out TimeSpan timeResult))
