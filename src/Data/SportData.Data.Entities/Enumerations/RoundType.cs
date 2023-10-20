@@ -25,4 +25,5 @@ public enum RoundType
     RunThree = 20,
     Eightfinals = 21,
     LuckyLoser = 22,
+    RunFour = 23,
 }
