@@ -414,18 +414,21 @@ public class ResultConverter : BaseOlympediaConverter
             var athleteModel = this.OlympediaService.FindAthlete(match.Groups[1].Value);
             var nocCode = this.OlympediaService.FindNOCCode(match.Groups[1].Value);
             var nocCodeCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
-            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCodeCache.Id);
-
-            var judge = new BaseJudge
+            if (nocCodeCache != null)
             {
-                Id = participant == null ? Guid.Empty : participant.Id,
-                Code = athleteModel.Code,
-                Name = athleteModel.Name,
-                NOC = nocCode,
-                Title = title
-            };
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCodeCache.Id);
 
-            return judge;
+                var judge = new BaseJudge
+                {
+                    Id = participant == null ? Guid.Empty : participant.Id,
+                    Code = athleteModel.Code,
+                    Name = athleteModel.Name,
+                    NOC = nocCode,
+                    Title = title
+                };
+
+                return judge;
+            }
         }
 
         return null;
@@ -467,7 +470,7 @@ public class ResultConverter : BaseOlympediaConverter
         foreach (var table in options.Tables)
         {
             var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
-            var round = this.CreateBeachVolleyballnRound(eventRound.Dates.From, format, table.Round, eventRound.EventName);
+            var round = this.CreateRound<BOXRound>(eventRound.Dates.From, format, table.Round, eventRound.EventName);
             var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
 
             foreach (var row in rows.Where(x => this.OlympediaService.IsMatchNumber(x.InnerText)))
@@ -514,6 +517,7 @@ public class ResultConverter : BaseOlympediaConverter
 
                 if (matchResult != BOXResult.None)
                 {
+                    match.Boxer1.Result = ResultType.Win;
                     var boxer2 = await this.participantsService.GetAsync(boxer2AthleteModel.Code, options.Event.Id);
                     match.Boxer2 = new BOXBoxer
                     {
@@ -521,14 +525,70 @@ public class ResultConverter : BaseOlympediaConverter
                         Code = boxer2AthleteModel.Code,
                         Name = boxer2AthleteModel.Name,
                         NOC = boxer2NOCCode,
+                        Result = ResultType.Lose
                     };
 
-                    // find document
+                    var document = options.Documents.FirstOrDefault(x => x.Url.EndsWith($"{match.ResultId}"));
+                    if (document != null)
+                    {
+                        var htmlDocument = this.CreateHtmlDocument(document);
+                        var inRoundText = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<tr>\s*<th>Round</th>\s*<td>(.*?)<\/td>\s*<\/tr>");
+                        var timeText = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<tr>\s*<th>Time</th>\s*<td>(.*?)<\/td>\s*<\/tr>");
+
+                        match.Judges = await this.SetBOXJudgesAsync(htmlDocument, options.Event);
+                        match.InRound = this.RegExpService.MatchInt(inRoundText);
+                        match.Time = this.dateService.ParseTime(timeText);
+
+                        var resultDocument = new HtmlDocument();
+                        resultDocument.LoadHtml(htmlDocument.DocumentNode.SelectSingleNode("//table[@class='table table-striped']").OuterHtml);
+
+                        var resultRows = resultDocument.DocumentNode.SelectNodes("//tr");
+                        var resultHeaders = resultRows.First().Elements("th").Select(x => x.InnerText).ToList();
+                        var resultIndexes = this.OlympediaService.FindIndexes(resultHeaders);
+
+                        for (int i = 1; i < resultRows.Count; i++)
+                        {
+                            var resultData = resultRows[i].Elements("td").ToList();
+                            if (i % 2 == 0)
+                            {
+                                this.SetBOXBoxers(match.Boxer2, resultIndexes, resultData);
+                            }
+                            else
+                            {
+                                this.SetBOXBoxers(match.Boxer1, resultIndexes, resultData);
+                            }
+                        }
+                    }
                 }
+
+                round.Matches.Add(match);
             }
+
+            eventRound.Rounds.Add(round);
         }
 
-        //await this.ProcessJsonAsync(eventRound, options);
+        await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private void SetBOXBoxers(BOXBoxer boxer, Dictionary<string, int> indexes, List<HtmlNode> data)
+    {
+        var points = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value1) ? this.RegExpService.MatchDecimal(data[value1].InnerText) : null;
+        points ??= indexes.TryGetValue(ConverterConstants.INDEX_SCORE, out int value2) ? this.RegExpService.MatchDecimal(data[value2].InnerText) : null;
+        points ??= indexes.TryGetValue(ConverterConstants.INDEX_JUDGES_FAVORING, out int value3) ? this.RegExpService.MatchDecimal(data[value3].InnerText) : null;
+        var trunks = indexes.TryGetValue(ConverterConstants.INDEX_TRUNKS, out int value4) ? data[value4].InnerText.Replace("–", string.Empty) : null;
+
+        boxer.Points = points ?? 0;
+        boxer.Trunks = string.IsNullOrEmpty(trunks) ? null : trunks;
+        boxer.TotalPoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value5) ? this.RegExpService.MatchInt(data[value5].InnerText) : null;
+        boxer.Round1 = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_1_POINTS, out int value6) ? this.RegExpService.MatchInt(data[value6].InnerText) : null;
+        boxer.Round2 = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_2_POINTS, out int value7) ? this.RegExpService.MatchInt(data[value7].InnerText) : null;
+        boxer.Round3 = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_3_POINTS, out int value8) ? this.RegExpService.MatchInt(data[value8].InnerText) : null;
+        boxer.Round4 = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_4_POINTS, out int value9) ? this.RegExpService.MatchInt(data[value9].InnerText) : null;
+        boxer.Judge1 = indexes.TryGetValue(ConverterConstants.INDEX_JUDGE_1_POINTS, out int value10) ? this.RegExpService.MatchInt(data[value10].InnerText) : null;
+        boxer.Judge2 = indexes.TryGetValue(ConverterConstants.INDEX_JUDGE_2_POINTS, out int value11) ? this.RegExpService.MatchInt(data[value11].InnerText) : null;
+        boxer.Judge3 = indexes.TryGetValue(ConverterConstants.INDEX_JUDGE_3_POINTS, out int value12) ? this.RegExpService.MatchInt(data[value12].InnerText) : null;
+        boxer.Judge4 = indexes.TryGetValue(ConverterConstants.INDEX_JUDGE_4_POINTS, out int value13) ? this.RegExpService.MatchInt(data[value13].InnerText) : null;
+        boxer.Judge5 = indexes.TryGetValue(ConverterConstants.INDEX_JUDGE_5_POINTS, out int value14) ? this.RegExpService.MatchInt(data[value14].InnerText) : null;
     }
 
     private async Task<List<BaseJudge>> SetBOXJudgesAsync(HtmlDocument htmlDocument, EventCacheModel eventCache)
