@@ -3,5 +3,5 @@
 public enum MatchResultType
 {
     Points = 1,
-    Games = 2
+    Games = 2,
 }
