@@ -246,4 +246,15 @@ public static class ConverterConstants
     public const string INDEX_SPLIT_3 = "split 3";
     public const string INDEX_SPLIT_4 = "split 4";
     public const string INDEX_SPLIT_5 = "split 5";
+    public const string INDEX_JUDGES_FAVORING = "judges favoring";
+    public const string INDEX_TRUNKS = "trunks";
+    public const string INDEX_ROUND_1_POINTS = "round 1 points";
+    public const string INDEX_ROUND_2_POINTS = "round 2 points";
+    public const string INDEX_ROUND_3_POINTS = "round 3 points";
+    public const string INDEX_ROUND_4_POINTS = "round 4 points";
+    public const string INDEX_JUDGE_1_POINTS = "judge 1 score";
+    public const string INDEX_JUDGE_2_POINTS = "judge 2 score";
+    public const string INDEX_JUDGE_3_POINTS = "judge 3 score";
+    public const string INDEX_JUDGE_4_POINTS = "judge 4 score";
+    public const string INDEX_JUDGE_5_POINTS = "judge 5 score";
 }
