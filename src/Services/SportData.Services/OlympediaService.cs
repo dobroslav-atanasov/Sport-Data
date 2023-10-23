@@ -177,6 +177,9 @@ public class OlympediaService : IOlympediaService
                 case "tp":
                 case "team points":
                 case "final points (raw points)":
+                case "tie-breaker":
+                case "total judges' points":
+                case "original total judges' points":
                     indexes[ConverterConstants.INDEX_POINTS] = i;
                     break;
                 case "10s":
@@ -967,6 +970,44 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "split 5":
                     indexes[ConverterConstants.INDEX_SPLIT_5] = i;
+                    break;
+                case "judges favoring":
+                    indexes[ConverterConstants.INDEX_JUDGES_FAVORING] = i;
+                    break;
+                case "trunks":
+                    indexes[ConverterConstants.INDEX_TRUNKS] = i;
+                    break;
+                case "round 1 score":
+                    indexes[ConverterConstants.INDEX_ROUND_1_POINTS] = i;
+                    break;
+                case "round 2 score":
+                    indexes[ConverterConstants.INDEX_ROUND_2_POINTS] = i;
+                    break;
+                case "round 3 score":
+                    indexes[ConverterConstants.INDEX_ROUND_3_POINTS] = i;
+                    break;
+                case "round 4 score":
+                    indexes[ConverterConstants.INDEX_ROUND_4_POINTS] = i;
+                    break;
+                case "judge #1 score":
+                case "original judge #1 score":
+                    indexes[ConverterConstants.INDEX_JUDGE_1_POINTS] = i;
+                    break;
+                case "judge #2 score":
+                case "original judge #2 score":
+                    indexes[ConverterConstants.INDEX_JUDGE_2_POINTS] = i;
+                    break;
+                case "judge #3 score":
+                case "original judge #3 score":
+                    indexes[ConverterConstants.INDEX_JUDGE_3_POINTS] = i;
+                    break;
+                case "judge #4 score":
+                case "original judge #4 score":
+                    indexes[ConverterConstants.INDEX_JUDGE_4_POINTS] = i;
+                    break;
+                case "judge #5 score":
+                case "original judge #5 score":
+                    indexes[ConverterConstants.INDEX_JUDGE_5_POINTS] = i;
                     break;
             }
         }
