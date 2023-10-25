@@ -257,4 +257,13 @@ public static class ConverterConstants
     public const string INDEX_JUDGE_3_POINTS = "judge 3 score";
     public const string INDEX_JUDGE_4_POINTS = "judge 4 score";
     public const string INDEX_JUDGE_5_POINTS = "judge 5 score";
+    public const string INDEX_TOTAL_TIME = "total time";
+    public const string INDEX_PENALTY_SECONDS = "penalty seconds";
+    public const string INDEX_SPLIT_250_500 = "split 250 500";
+    public const string INDEX_SPLIT_500_750 = "split 500 750";
+    public const string INDEX_SPLIT_500_1000 = "split 500 1000";
+    public const string INDEX_SPLIT_750_1000 = "split 750 1000";
+    public const string INDEX_SPLIT_250 = "split 250";
+    public const string INDEX_SPLIT_500 = "split 500";
+    public const string INDEX_SPLIT_750 = "split 1000";
 }
