@@ -101,6 +101,7 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "nr":
                 case "number":
+                case "bib":
                     indexes[ConverterConstants.INDEX_NR] = i;
                     break;
                 case "seed":
@@ -180,6 +181,7 @@ public class OlympediaService : IOlympediaService
                 case "tie-breaker":
                 case "total judges' points":
                 case "original total judges' points":
+                case "total":
                     indexes[ConverterConstants.INDEX_POINTS] = i;
                     break;
                 case "10s":
@@ -956,6 +958,21 @@ public class OlympediaService : IOlympediaService
                 case "intermediate 4":
                     indexes[ConverterConstants.INDEX_INTERMEDIATE_4] = i;
                     break;
+                case "intermediate 5":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_5] = i;
+                    break;
+                case "intermediate 6":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_6] = i;
+                    break;
+                case "intermediate 7":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_7] = i;
+                    break;
+                case "intermediate 8":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_8] = i;
+                    break;
+                case "intermediate 9":
+                    indexes[ConverterConstants.INDEX_INTERMEDIATE_9] = i;
+                    break;
                 case "split 1":
                     indexes[ConverterConstants.INDEX_SPLIT_1] = i;
                     break;
@@ -1009,6 +1026,86 @@ public class OlympediaService : IOlympediaService
                 case "original judge #5 score":
                     indexes[ConverterConstants.INDEX_JUDGE_5_POINTS] = i;
                     break;
+                case "total time":
+                    indexes[ConverterConstants.INDEX_TOTAL_TIME] = i;
+                    break;
+                case "penalty seconds":
+                    indexes[ConverterConstants.INDEX_PENALTY_SECONDS] = i;
+                    break;
+                case "250-500 m":
+                case "250-500 m Time":
+                    indexes[ConverterConstants.INDEX_SPLIT_250_500] = i;
+                    break;
+                case "500-750 m":
+                    indexes[ConverterConstants.INDEX_SPLIT_500_750] = i;
+                    break;
+                case "500-1,000 m":
+                    indexes[ConverterConstants.INDEX_SPLIT_500_1000] = i;
+                    break;
+                case "750-1,000 m":
+                    indexes[ConverterConstants.INDEX_SPLIT_750_1000] = i;
+                    break;
+                case "250 m":
+                    indexes[ConverterConstants.INDEX_SPLIT_250] = i;
+                    break;
+                case "500 m":
+                    indexes[ConverterConstants.INDEX_SPLIT_500] = i;
+                    break;
+                case "750 m":
+                    indexes[ConverterConstants.INDEX_SPLIT_750] = i;
+                    break;
+                case "leg 1":
+                    indexes[ConverterConstants.INDEX_LEG_1] = i;
+                    break;
+                case "leg 2":
+                    indexes[ConverterConstants.INDEX_LEG_2] = i;
+                    break;
+                case "leg 3":
+                    indexes[ConverterConstants.INDEX_LEG_3] = i;
+                    break;
+                case "freestyle":
+                    indexes[ConverterConstants.INDEX_FREESTYLE] = i;
+                    break;
+                case "classical":
+                    indexes[ConverterConstants.INDEX_CLASSICAL] = i;
+                    break;
+                case "pit stop":
+                    indexes[ConverterConstants.INDEX_PIT_STOP] = i;
+                    break;
+                case "%":
+                    indexes[ConverterConstants.INDEX_PERCENT] = i;
+                    break;
+                case "best time":
+                    indexes[ConverterConstants.INDEX_BEST_TIME] = i;
+                    break;
+                case "race #1":
+                    indexes[ConverterConstants.INDEX_RACE_1] = i;
+                    break;
+                case "race #2":
+                    indexes[ConverterConstants.INDEX_RACE_2] = i;
+                    break;
+                case "race #3":
+                    indexes[ConverterConstants.INDEX_RACE_3] = i;
+                    break;
+                case "race #4":
+                    indexes[ConverterConstants.INDEX_RACE_4] = i;
+                    break;
+                case "race #5":
+                    indexes[ConverterConstants.INDEX_RACE_5] = i;
+                    break;
+                case "run 1 points":
+                    indexes[ConverterConstants.INDEX_RUN_1_POINTS] = i;
+                    break;
+                case "run 2 points":
+                    indexes[ConverterConstants.INDEX_RUN_2_POINTS] = i;
+                    break;
+                case "run 3 points":
+                    indexes[ConverterConstants.INDEX_RUN_3_POINTS] = i;
+                    break;
+                case "margin":
+                    indexes[ConverterConstants.INDEX_MARGIN] = i;
+                    break;
+
             }
         }
 
