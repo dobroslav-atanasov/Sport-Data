@@ -241,6 +241,11 @@ public static class ConverterConstants
     public const string INDEX_INTERMEDIATE_2 = "intermediate 2";
     public const string INDEX_INTERMEDIATE_3 = "intermediate 3";
     public const string INDEX_INTERMEDIATE_4 = "intermediate 4";
+    public const string INDEX_INTERMEDIATE_5 = "intermediate 5";
+    public const string INDEX_INTERMEDIATE_6 = "intermediate 6";
+    public const string INDEX_INTERMEDIATE_7 = "intermediate 7";
+    public const string INDEX_INTERMEDIATE_8 = "intermediate 8";
+    public const string INDEX_INTERMEDIATE_9 = "intermediate 9";
     public const string INDEX_SPLIT_1 = "split 1";
     public const string INDEX_SPLIT_2 = "split 2";
     public const string INDEX_SPLIT_3 = "split 3";
@@ -266,4 +271,22 @@ public static class ConverterConstants
     public const string INDEX_SPLIT_250 = "split 250";
     public const string INDEX_SPLIT_500 = "split 500";
     public const string INDEX_SPLIT_750 = "split 1000";
+    public const string INDEX_LEG_1 = "leg 1";
+    public const string INDEX_LEG_2 = "leg 2";
+    public const string INDEX_LEG_3 = "leg 3";
+    public const string INDEX_FREESTYLE = "freestyle";
+    public const string INDEX_CLASSICAL = "classical";
+    public const string INDEX_PIT_STOP = "pit stop";
+    public const string INDEX_PERCENT = "percent";
+    public const string INDEX_BEST_TIME = "best time";
+    public const string INDEX_RACE_1 = "race 1";
+    public const string INDEX_RACE_2 = "race 2";
+    public const string INDEX_RACE_3 = "race 3";
+    public const string INDEX_RACE_4 = "race 4";
+    public const string INDEX_RACE_5 = "race 5";
+    public const string INDEX_RUN_1_POINTS = "run 1 points";
+    public const string INDEX_RUN_2_POINTS = "run 2 points";
+    public const string INDEX_RUN_3_POINTS = "run 3 points";
+    public const string INDEX_MARGIN = "margin";
+
 }
