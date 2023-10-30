@@ -157,6 +157,8 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "time":
                 case "adjusted time":
+                case "time/margin":
+                case "cumulative time":
                     indexes[ConverterConstants.INDEX_TIME] = i;
                     break;
                 case "run 1":
@@ -182,6 +184,8 @@ public class OlympediaService : IOlympediaService
                 case "total judges' points":
                 case "original total judges' points":
                 case "total":
+                case "placements (individual placement)":
+                case "sp":
                     indexes[ConverterConstants.INDEX_POINTS] = i;
                     break;
                 case "10s":
@@ -1079,12 +1083,16 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_BEST_TIME] = i;
                     break;
                 case "race #1":
+                case "race 1 time":
+                case "race time":
                     indexes[ConverterConstants.INDEX_RACE_1] = i;
                     break;
                 case "race #2":
+                case "race 2 time":
                     indexes[ConverterConstants.INDEX_RACE_2] = i;
                     break;
                 case "race #3":
+                case "race 3 time":
                     indexes[ConverterConstants.INDEX_RACE_3] = i;
                     break;
                 case "race #4":
@@ -1105,7 +1113,38 @@ public class OlympediaService : IOlympediaService
                 case "margin":
                     indexes[ConverterConstants.INDEX_MARGIN] = i;
                     break;
-
+                case "lap margin":
+                case "lg":
+                    indexes[ConverterConstants.INDEX_LAP_MARGIN] = i;
+                    break;
+                case "races won":
+                    indexes[ConverterConstants.INDEX_RACES_WON] = i;
+                    break;
+                case "10 km scratch":
+                case "15 km scratch":
+                    indexes[ConverterConstants.INDEX_SCRATCH_POINTS] = i;
+                    break;
+                case "20 km points race":
+                case "30 km points race":
+                    indexes[ConverterConstants.INDEX_POINTS_RACE] = i;
+                    break;
+                case "500 m time trial":
+                case "1,000 m time trial":
+                    indexes[ConverterConstants.INDEX_TIME_TRIAL_POINTS] = i;
+                    break;
+                case "250 m flying start":
+                    indexes[ConverterConstants.INDEX_FLYING_START_POINTS] = i;
+                    break;
+                case "elimination race":
+                    indexes[ConverterConstants.INDEX_ELIMINATION_RACE_POINTS] = i;
+                    break;
+                case "3,000 m individual pursuit":
+                case "4,000 m individual pursuit":
+                    indexes[ConverterConstants.INDEX_INDIVIDUAL_PURSUIT_POINTS] = i;
+                    break;
+                case "200st":
+                    indexes[ConverterConstants.INDEX_SPRINT_TIME] = i;
+                    break;
             }
         }
 
