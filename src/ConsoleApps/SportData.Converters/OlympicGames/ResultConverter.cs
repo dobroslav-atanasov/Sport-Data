@@ -35,6 +35,7 @@ using SportData.Data.Models.OlympicGames.Cycling.BMXFreestyle;
 using SportData.Data.Models.OlympicGames.Cycling.BMXRacing;
 using SportData.Data.Models.OlympicGames.Cycling.MountainBike;
 using SportData.Data.Models.OlympicGames.Cycling.Road;
+using SportData.Data.Models.OlympicGames.Cycling.Track;
 using SportData.Data.Models.OlympicGames.Gymnastics;
 using SportData.Data.Models.OlympicGames.Gymnastics.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.Skiing.AlpineSkiing;
@@ -165,11 +166,14 @@ public class ResultConverter : BaseOlympediaConverter
                         //case DisciplineConstants.CYCLING_MOUNTAIN_BIKE:
                         //    await this.ProcessCyclingMountainBikeAsync(options);
                         //    break;
-                        case DisciplineConstants.CYCLING_ROAD:
-                            await this.ProcessCyclingRoadAsync(options);
-                            break;
-                        case DisciplineConstants.CYCLING_TRACK:
-                            Console.WriteLine($"{group.Identifier} % 5");
+                        //case DisciplineConstants.CYCLING_ROAD:
+                        //    await this.ProcessCyclingRoadAsync(options);
+                        //    break;
+                        //case DisciplineConstants.CYCLING_TRACK:
+                        //    await this.ProcessCyclingTrackAsync(options);
+                        //    break;
+                        case DisciplineConstants.DIVING:
+                            await this.ProcessDivingAsync(options);
                             break;
                     }
                 }
@@ -491,68 +495,388 @@ public class ResultConverter : BaseOlympediaConverter
     }
     #endregion PRIVATE
 
-    #region CYCLING
-    private async Task ProcessCyclingRoadAsync(ConvertOptions options)
+    #region DIVING
+    private async Task ProcessDivingAsync(ConvertOptions options)
     {
-        var eventRound = this.CreateEventRound<CRDRound>(options.HtmlDocument, options.Event.Name);
-        if (options.Event.IsTeamEvent)
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"{options.Event.Name} - {options.Event.OriginalName}");
+        sb.AppendLine($"{options.Game.Year}");
+        sb.AppendLine($"--------------------- Standing table ---------------------");
+        if (!options.Tables.Any())
         {
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"{options.Event.Name} - {options.Event.OriginalName}");
-            sb.AppendLine($"{options.Game.Year}");
-            sb.AppendLine($"--------------------- Standing table ---------------------");
-            if (!options.Tables.Any())
+            var standingHeaders = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
+            foreach (var item in standingHeaders)
             {
-                var standingHeaders = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-                foreach (var item in standingHeaders)
+                sb.AppendLine(item);
+            }
+        }
+
+        if (options.Tables.Any())
+        {
+            sb.AppendLine($"--------------------- Tables ---------------------");
+            foreach (var table in options.Tables)
+            {
+                var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
+                foreach (var item in headers)
+                {
+                    sb.AppendLine(item);
+                }
+                sb.AppendLine("------");
+            }
+        }
+
+        if (options.Documents.Any())
+        {
+            sb.AppendLine("--------------------- Documents ---------------------");
+            foreach (var document in options.Documents)
+            {
+                var htmlDocument = this.CreateHtmlDocument(document);
+                var table = this.GetStandingTable(htmlDocument, options.Event);
+                var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+                sb.AppendLine(title);
+                var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
+                foreach (var item in headers)
                 {
                     sb.AppendLine(item);
                 }
             }
+        }
 
-            if (options.Tables.Any())
+        sb.AppendLine("=======================================================================")
+        ;
+
+        var asd = File.ReadAllLines("tables.txt").ToList();
+        asd.Add(sb.ToString());
+        File.WriteAllLines("tables.txt", asd);
+    }
+    #endregion DIVING
+    #region CYCLING
+    private async Task ProcessCyclingTrackAsync(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<CTRRound>(options.HtmlDocument, options.Event.Name);
+
+        if (options.Event.IsTeamEvent)
+        {
+            if (!options.Tables.Any())
             {
-                sb.AppendLine($"--------------------- Tables ---------------------");
+                var round = this.CreateRound<CTRRound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+                await this.SetCTRTeamsAsync(round, options.StandingTable.HtmlDocument, options.Event, HeatType.None);
+                eventRound.Rounds.Add(round);
+            }
+            else
+            {
                 foreach (var table in options.Tables)
                 {
-                    var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-                    foreach (var item in headers)
+                    var round = this.CreateRound<CTRRound>(eventRound.Dates.From, eventRound.Format, table.Round, eventRound.EventName);
+
+                    var heats = this.SplitHeats(table);
+                    if (heats.Any())
                     {
-                        sb.AppendLine(item);
+                        foreach (var heat in heats)
+                        {
+                            var heatType = this.NormalizeService.MapHeats(heat.Title);
+                            await this.SetCTRTeamsAsync(round, heat.HtmlDocument, options.Event, heatType);
+                        }
                     }
-                    sb.AppendLine("------");
+                    else
+                    {
+                        await this.SetCTRTeamsAsync(round, table.HtmlDocument, options.Event, HeatType.None);
+                    }
+
+                    eventRound.Rounds.Add(round);
                 }
             }
-
-            if (options.Documents.Any())
-            {
-                sb.AppendLine("--------------------- Documents ---------------------");
-                foreach (var document in options.Documents)
-                {
-                    var htmlDocument = this.CreateHtmlDocument(document);
-                    var table = this.GetStandingTable(htmlDocument, options.Event);
-                    var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
-                    sb.AppendLine(title);
-                    var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-                    foreach (var item in headers)
-                    {
-                        sb.AppendLine(item);
-                    }
-                }
-            }
-
-            sb.AppendLine("=======================================================================")
-            ;
-
-            var asd = File.ReadAllLines("tables.txt").ToList();
-            asd.Add(sb.ToString());
-            File.WriteAllLines("tables.txt", asd);
         }
         else
         {
+            if (!options.Tables.Any() || eventRound.EventName == "Course De Primes")
+            {
+                var round = this.CreateRound<CTRRound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+                await this.SetCTRCyclistsAsync(round, options.StandingTable.HtmlDocument, options.Event, HeatType.None);
+                eventRound.Rounds.Add(round);
+            }
+            else
+            {
+                foreach (var table in options.Tables)
+                {
+                    var round = this.CreateRound<CTRRound>(eventRound.Dates.From, eventRound.Format, table.Round, eventRound.EventName);
 
+                    var heats = this.SplitHeats(table);
+                    if (heats.Any())
+                    {
+                        foreach (var heat in heats)
+                        {
+                            var heatType = this.NormalizeService.MapHeats(heat.Title);
+                            await this.SetCTRCyclistsAsync(round, heat.HtmlDocument, options.Event, heatType);
+                        }
+                    }
+                    else
+                    {
+                        await this.SetCTRCyclistsAsync(round, table.HtmlDocument, options.Event, HeatType.None);
+                    }
+
+                    eventRound.Rounds.Add(round);
+                }
+            }
         }
+
         await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private async Task SetCTRTeamsAsync(CTRRound round, HtmlDocument htmlDocument, EventCacheModel eventCache, HeatType heat)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        CTRTeam ctrTeam = null;
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            if (nocCode != null)
+            {
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(nocCacheModel.Id, eventCache.Id);
+
+                ctrTeam = new CTRTeam
+                {
+                    Id = team.Id,
+                    Name = name,
+                    NOC = nocCode,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                    Record = this.OlympediaService.FindRecord(row.OuterHtml),
+                    Heat = heat,
+                    Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value2) ? this.dateService.ParseTime(data[value2].InnerText) : null,
+                    Margin = indexes.TryGetValue(ConverterConstants.INDEX_MARGIN, out int value5) ? data[value5].InnerText : null,
+                    Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value6) ? this.RegExpService.MatchInt(data[value6].InnerText) : null,
+                    Wins = indexes.TryGetValue(ConverterConstants.INDEX_RACES_WON, out int value7) ? this.RegExpService.MatchInt(data[value7].InnerText) : null,
+                };
+
+                round.Teams.Add(ctrTeam);
+            }
+            else
+            {
+                var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == ctrTeam.NOC);
+
+                foreach (var athleteModel in athleteModels)
+                {
+                    var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+
+                    var cyclist = new CTRCyclist
+                    {
+                        Id = participant.Id,
+                        Code = athleteModel.Code,
+                        Name = athleteModel.Name,
+                        NOC = nocCode,
+                    };
+
+                    ctrTeam.Cyclists.Add(cyclist);
+                }
+            }
+        }
+    }
+
+    private async Task SetCTRCyclistsAsync(CTRRound round, HtmlDocument htmlDocument, EventCacheModel eventCache, HeatType heat)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
+
+            var cyclist = new CTRCyclist
+            {
+                Id = participant != null ? participant.Id : Guid.Empty,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                Heat = heat,
+                Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
+                Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value2) ? this.dateService.ParseTime(data[value2].InnerText) : null,
+                SprintTime = indexes.TryGetValue(ConverterConstants.INDEX_SPRINT_TIME, out int value3) ? this.dateService.ParseTime(data[value3].InnerText) : null,
+                LapMargin = indexes.TryGetValue(ConverterConstants.INDEX_LAP_MARGIN, out int value4) ? data[value4].InnerText : null,
+                Margin = indexes.TryGetValue(ConverterConstants.INDEX_MARGIN, out int value5) ? data[value5].InnerText : null,
+                Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value6) ? this.RegExpService.MatchDecimal(data[value6].InnerText) : null,
+                Wins = indexes.TryGetValue(ConverterConstants.INDEX_RACES_WON, out int value7) ? this.RegExpService.MatchInt(data[value7].InnerText) : null,
+                Race1 = indexes.TryGetValue(ConverterConstants.INDEX_RACE_1, out int value8) ? this.dateService.ParseTime(data[value8].InnerText) : null,
+                Race2 = indexes.TryGetValue(ConverterConstants.INDEX_RACE_2, out int value9) ? this.dateService.ParseTime(data[value9].InnerText) : null,
+                Race3 = indexes.TryGetValue(ConverterConstants.INDEX_RACE_3, out int value10) ? this.dateService.ParseTime(data[value10].InnerText) : null,
+                EliminationRacePoints = indexes.TryGetValue(ConverterConstants.INDEX_ELIMINATION_RACE_POINTS, out int value11) ? this.RegExpService.MatchInt(data[value11].InnerText) : null,
+                FlyingStartPoints = indexes.TryGetValue(ConverterConstants.INDEX_FLYING_START_POINTS, out int value12) ? this.RegExpService.MatchInt(data[value12].InnerText) : null,
+                IndividualPursuitPoints = indexes.TryGetValue(ConverterConstants.INDEX_INDIVIDUAL_PURSUIT_POINTS, out int value13) ? this.RegExpService.MatchInt(data[value13].InnerText) : null,
+                PointRacePoints = indexes.TryGetValue(ConverterConstants.INDEX_POINTS_RACE, out int value14) ? this.RegExpService.MatchInt(data[value14].InnerText) : null,
+                ScratchPoints = indexes.TryGetValue(ConverterConstants.INDEX_SCRATCH_POINTS, out int value15) ? this.RegExpService.MatchInt(data[value15].InnerText) : null,
+                TimeTrialPoints = indexes.TryGetValue(ConverterConstants.INDEX_TIME_TRIAL_POINTS, out int value16) ? this.RegExpService.MatchInt(data[value16].InnerText) : null,
+            };
+
+            round.Cyclists.Add(cyclist);
+        }
+    }
+
+    private async Task ProcessCyclingRoadAsync(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<CRDRound>(options.HtmlDocument, options.Event.Name);
+
+        var round = this.CreateRound<CRDRound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+        round.Road = this.SetCRDRoad(options.HtmlDocument);
+
+        if (options.Event.IsTeamEvent)
+        {
+            await this.SetCRDTeamsAsync(round, options.StandingTable.HtmlDocument, options.Event);
+        }
+        else
+        {
+            await this.SetCRDCyclistsAsync(round, options.StandingTable.HtmlDocument, options.Event);
+        }
+
+        eventRound.Rounds.Add(round);
+
+        await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private async Task SetCRDTeamsAsync(CRDRound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        CRDTeam crdTeam = null;
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            if (nocCode != null)
+            {
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(nocCacheModel.Id, eventCache.Id);
+
+                crdTeam = new CRDTeam
+                {
+                    Id = team.Id,
+                    Name = name,
+                    NOC = nocCode,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchInt(data[value1].InnerText) : null,
+                    Time = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value2) ? this.dateService.ParseTime(data[value2].InnerText) : null
+                };
+
+                round.Teams.Add(crdTeam);
+            }
+            else
+            {
+                var athleteModels = this.OlympediaService.FindAthletes(row.OuterHtml);
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == crdTeam.NOC);
+
+                foreach (var athleteModel in athleteModels)
+                {
+                    var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+
+                    var cyclist = new CRDCyclist
+                    {
+                        Id = participant.Id,
+                        Code = athleteModel.Code,
+                        Name = athleteModel.Name,
+                        NOC = nocCode,
+                    };
+
+                    crdTeam.Cyclists.Add(cyclist);
+                }
+            }
+        }
+    }
+
+    private async Task SetCRDCyclistsAsync(CRDRound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            if (athleteModel == null)
+            {
+                continue;
+            }
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id);
+
+            var margin = indexes.TryGetValue(ConverterConstants.INDEX_MARGIN, out int value1) ? this.dateService.ParseTime(data[value1].InnerText) : null;
+            var timeText = indexes.TryGetValue(ConverterConstants.INDEX_TIME, out int value2) ? data[value2].InnerText : null;
+
+            TimeSpan? time = null;
+            if (timeText.Trim() == "same time")
+            {
+                time = round.Cyclists.LastOrDefault().Time;
+            }
+            else if (timeText.Trim().StartsWith("at"))
+            {
+                margin = this.dateService.ParseTime(timeText);
+                time = round.Cyclists.FirstOrDefault().Time + margin;
+            }
+            else
+            {
+                time = this.dateService.ParseTime(timeText);
+            }
+
+            if (margin != null && time == null)
+            {
+                time = round.Cyclists.FirstOrDefault().Time + margin;
+            }
+
+            var cyclist = new CRDCyclist
+            {
+                Id = participant != null ? participant.Id : Guid.Empty,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                Time = time,
+                Number = indexes.TryGetValue(ConverterConstants.INDEX_NR, out int value5) ? this.RegExpService.MatchInt(data[value5].InnerText) : null,
+                Indermediate1 = indexes.TryGetValue(ConverterConstants.INDEX_INTERMEDIATE_1, out int value12) ? this.dateService.ParseTime(data[value12].InnerText) : null,
+                Indermediate2 = indexes.TryGetValue(ConverterConstants.INDEX_INTERMEDIATE_2, out int value13) ? this.dateService.ParseTime(data[value13].InnerText) : null,
+                Indermediate3 = indexes.TryGetValue(ConverterConstants.INDEX_INTERMEDIATE_3, out int value14) ? this.dateService.ParseTime(data[value14].InnerText) : null,
+                Indermediate4 = indexes.TryGetValue(ConverterConstants.INDEX_INTERMEDIATE_4, out int value15) ? this.dateService.ParseTime(data[value15].InnerText) : null,
+                Indermediate5 = indexes.TryGetValue(ConverterConstants.INDEX_INTERMEDIATE_5, out int value16) ? this.dateService.ParseTime(data[value16].InnerText) : null,
+            };
+
+            round.Cyclists.Add(cyclist);
+        }
+    }
+
+    private CRDRoad SetCRDRoad(HtmlDocument htmlDocument)
+    {
+        var distance = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Distance:(.*?)km");
+        var inter1 = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Intermediate 1:(.*?)km");
+        var inter2 = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Intermediate 2:(.*?)km");
+        var inter3 = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Intermediate 3:(.*?)km");
+        var inter4 = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Intermediate 4:(.*?)km");
+        var inter5 = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"Intermediate 5:(.*?)km");
+
+        return new CRDRoad
+        {
+            Distance = this.RegExpService.MatchDecimal(distance),
+            Intermediate1 = this.RegExpService.MatchDecimal(inter1),
+            Intermediate2 = this.RegExpService.MatchDecimal(inter2),
+            Intermediate3 = this.RegExpService.MatchDecimal(inter3),
+            Intermediate4 = this.RegExpService.MatchDecimal(inter4),
+            Intermediate5 = this.RegExpService.MatchDecimal(inter5),
+        };
     }
 
     private async Task ProcessCyclingMountainBikeAsync(ConvertOptions options)
