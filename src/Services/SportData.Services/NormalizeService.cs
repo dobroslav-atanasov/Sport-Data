@@ -442,16 +442,37 @@ public class NormalizeService : INormalizeService
         {
             case "heat one":
             case "heat #1":
+            case "final a":
+            case "match 1/2":
+            case "final heat one":
+            case "match 1-6":
+            case "heat 1/2":
+            case "heat 1-6":
                 heat = HeatType.One; break;
             case "heat two":
             case "heat #2":
             case "re-run of heat two":
+            case "final b":
+            case "match 3/4":
+            case "heat two re-run":
+            case "final heat two":
+            case "match 7-10":
+            case "heat 3/4":
+            case "heat 7-12":
                 heat = HeatType.Two; break;
             case "heat three":
             case "heat #3":
+            case "match 5-8":
+            case "match 5-7":
+            case "heat 5-8":
+            case "heat 5/6":
                 heat = HeatType.Three; break;
             case "heat four":
             case "heat #4":
+            case "repêchage final":
+            case "match 9-12":
+            case "heat 9-12":
+            case "heat 7/8":
                 heat = HeatType.Four; break;
             case "heat five":
             case "heat #5":
@@ -741,6 +762,7 @@ public class NormalizeService : INormalizeService
             case "semi-finals3":
                 roundType = RoundType.Semifinals;
                 break;
+            case "quarter finals":
             case "quarter-finals":
             case "quarter-finals 64032":
                 roundType = RoundType.Quaterfinals;
@@ -770,6 +792,7 @@ public class NormalizeService : INormalizeService
                 roundType = RoundType.RoundOne;
                 break;
             case "round one repêchage":
+            case "round one repêchage final":
                 roundType = RoundType.RoundOneRepechage;
                 break;
             case "round two":
@@ -778,10 +801,14 @@ public class NormalizeService : INormalizeService
                 roundType = RoundType.RoundTwo;
                 break;
             case "round two repêchage":
+            case "round two repêchage final":
                 roundType = RoundType.RoundTwoRepechage;
                 break;
             case "round three":
                 roundType = RoundType.RoundThree;
+                break;
+            case "round three repêchage":
+                roundType = RoundType.RoundThreeRepechage;
                 break;
             case "ranking round":
                 roundType = RoundType.RankingRound;
@@ -800,6 +827,12 @@ public class NormalizeService : INormalizeService
                 roundType = RoundType.Figures;
                 break;
             case "repêchage":
+            case "repêchage final":
+            case "repêchage heats":
+            case "quarter-finals repêchage":
+            case "semi-finals repêchage":
+            case "1/8-final repêchage":
+            case "1/8-final repêchage final":
                 roundType = RoundType.Repechage;
                 break;
             case "preliminary round":
@@ -828,6 +861,9 @@ public class NormalizeService : INormalizeService
                 break;
             case "lucky loser round":
                 roundType = RoundType.LuckyLoser;
+                break;
+            case "seeding round":
+                roundType = RoundType.SeedingRound;
                 break;
         }
 
@@ -888,9 +924,9 @@ public class NormalizeService : INormalizeService
             .Replace("Two-Man Teams With Cesta", "Team")
             .Replace("Eights", "Eight")
             .Replace("Coxed Fours", "Coxed Four")
-            .Replace("Coxed Pairs", "Coxed Pair")
+            .Replace("Coxed Teams", "Coxed Pair")
             .Replace("Coxless Fours", "Coxless Four")
-            .Replace("Coxless Pairs", "Coxless Pair")
+            .Replace("Coxless Teams", "Coxless Pair")
             .Replace("Covered Courts", "Indoor")
             //.Replace("", "")
             //.Replace("", "")
