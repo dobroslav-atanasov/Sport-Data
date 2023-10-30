@@ -288,5 +288,13 @@ public static class ConverterConstants
     public const string INDEX_RUN_2_POINTS = "run 2 points";
     public const string INDEX_RUN_3_POINTS = "run 3 points";
     public const string INDEX_MARGIN = "margin";
-
+    public const string INDEX_LAP_MARGIN = "lap margin";
+    public const string INDEX_RACES_WON = "races won";
+    public const string INDEX_SCRATCH_POINTS = "scratch points";
+    public const string INDEX_POINTS_RACE = "points race";
+    public const string INDEX_TIME_TRIAL_POINTS = "time trial points";
+    public const string INDEX_FLYING_START_POINTS = "flying start points";
+    public const string INDEX_ELIMINATION_RACE_POINTS = "elimination points";
+    public const string INDEX_INDIVIDUAL_PURSUIT_POINTS = "individual pursuit points";
+    public const string INDEX_SPRINT_TIME = "sprint time";
 }
