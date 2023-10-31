@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <DocumentationFile>SportDataModels.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Services\SportData.Services.Mapper\SportData.Services.Mapper.csproj" />
+    <ProjectReference Include="..\SportData.Data.Common\SportData.Data.Common.csproj" />
+    <ProjectReference Include="..\SportData.Data.Entities\SportData.Data.Entities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="OlympicGames\Aquatics\ArtisticSwimming\" />
+  </ItemGroup>
+
+</Project>
