@@ -4,6 +4,7 @@ using SportData.Common.Constants;
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
+using SportData.Data.Models.OlympicGames.Equestrian;
 using SportData.Services.Interfaces;
 
 public class OlympediaService : IOlympediaService
@@ -175,9 +176,13 @@ public class OlympediaService : IOlympediaService
                 case "slalom":
                     indexes[ConverterConstants.INDEX_SLALOM] = i;
                     break;
+                case "tp":
+                case "grand prix freestyle technical points":
+                    indexes[ConverterConstants.INDEX_TECHNICAL_POINTS] = i;
+                    break;
                 case "points":
                 case "total points":
-                case "tp":
+                //case "tp":
                 case "team points":
                 case "final points (raw points)":
                 case "tie-breaker":
@@ -186,6 +191,8 @@ public class OlympediaService : IOlympediaService
                 case "total":
                 case "placements (individual placement)":
                 case "sp":
+                case "dp":
+                case "j'p":
                     indexes[ConverterConstants.INDEX_POINTS] = i;
                     break;
                 case "10s":
@@ -380,6 +387,7 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_VAULT_OFF_2] = i;
                     break;
                 case "fp":
+                case "frp":
                     indexes[ConverterConstants.INDEX_FINAL_POINTS] = i;
                     break;
                 case "line penalty":
@@ -522,25 +530,60 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_SWA_OVERALL_IMPRESSION] = i;
                     break;
                 case "execution judge 1 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_1_POINTS] = i;
+                case "j1":
+                case "j1s":
+                case "e1":
+                case "ej1s":
+                case "judge k":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_1_POINTS] = i;
                     break;
                 case "execution judge 2 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_2_POINTS] = i;
+                case "j2":
+                case "j2s":
+                case "e2":
+                case "ej2s":
+                case "judge e":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_2_POINTS] = i;
                     break;
                 case "execution judge 3 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_3_POINTS] = i;
+                case "j3":
+                case "j3s":
+                case "e3":
+                case "ej3s":
+                case "judge h":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_3_POINTS] = i;
                     break;
                 case "execution judge 4 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_4_POINTS] = i;
+                case "j4":
+                case "j4s":
+                case "e4":
+                case "ej4s":
+                case "judge c":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_4_POINTS] = i;
                     break;
                 case "execution judge 5 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_5_POINTS] = i;
+                case "j5":
+                case "j5s":
+                case "e5":
+                case "ej5s":
+                case "judge m":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_5_POINTS] = i;
                     break;
                 case "execution judge 6 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_6_POINTS] = i;
+                case "j6":
+                case "j6s":
+                case "e6":
+                case "ej6s":
+                case "judge b":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_6_POINTS] = i;
                     break;
                 case "execution judge 7 points":
-                    indexes[ConverterConstants.INDEX_SWA_EXECUTION_JUDGE_7_POINTS] = i;
+                case "j7":
+                case "j7s":
+                case "e7":
+                case "ej7s":
+                case "judge f":
+                    indexes[ConverterConstants.INDEX_EXECUTION_JUDGE_7_POINTS] = i;
                     break;
                 case "overall impression judge 1 points":
                 case "artistic impression judge 1 points":
@@ -573,7 +616,9 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_SWA_PENALTIES] = i;
                     break;
                 case "difficulty":
-                    indexes[ConverterConstants.INDEX_SWA_DIFFICULTY] = i;
+                case "dd":
+                case "dod":
+                    indexes[ConverterConstants.INDEX_DIFFICULTY] = i;
                     break;
                 case "routine 1 points":
                     indexes[ConverterConstants.INDEX_SWA_ROUTINE_1_POINTS] = i;
@@ -1068,6 +1113,7 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_LEG_3] = i;
                     break;
                 case "freestyle":
+                case "grand prix freestyle points":
                     indexes[ConverterConstants.INDEX_FREESTYLE] = i;
                     break;
                 case "classical":
@@ -1144,6 +1190,41 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "200st":
                     indexes[ConverterConstants.INDEX_SPRINT_TIME] = i;
+                    break;
+                case "dive":
+                case "dc#":
+                    indexes[ConverterConstants.INDEX_DIVE] = i;
+                    break;
+                case "j'o":
+                case "ordinals":
+                    indexes[ConverterConstants.INDEX_ORDINALS] = i;
+                    break;
+                case "s1":
+                case "sj1s":
+                    indexes[ConverterConstants.INDEX_SYNCHRONIZATION_JUDGE_1_SCORE] = i;
+                    break;
+                case "qrp":
+                    indexes[ConverterConstants.INDEX_QUALIFICATION_POINTS] = i;
+                    break;
+                case "s-fp":
+                case "s-frp":
+                    indexes[ConverterConstants.INDEX_SEMI_FINALS_POINTS] = i;
+                    break;
+                case "artistic points":
+                case "grand prix freestyle artistic points":
+                    indexes[ConverterConstants.INDEX_ARTISTIC_POINTS] = i;
+                    break;
+                case "grand prix special points":
+                    indexes[ConverterConstants.INDEX_SPECIAL_POINTS] = i;
+                    break;
+                case "raw points":
+                    indexes[ConverterConstants.INDEX_RAW_POINTS] = i;
+                    break;
+                case "adjusted points":
+                    indexes[ConverterConstants.INDEX_ADJUSTED_POINTS] = i;
+                    break;
+                case "percentage points":
+                    indexes[ConverterConstants.INDEX_PERCENTAGE_POINTS] = i;
                     break;
             }
         }
@@ -1523,5 +1604,23 @@ public class OlympediaService : IOlympediaService
         }
 
         return 0;
+    }
+
+    public Horse FindHorse(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+        {
+            var match = this.regExpService.Match(text, @"<a href=""/horses/(\d+)"">(.*?)</a>");
+            if (match != null)
+            {
+                return new Horse
+                {
+                    Code = int.Parse(match.Groups[1].Value),
+                    Name = match.Groups[2].Value.Trim()
+                };
+            }
+        }
+
+        return null;
     }
 }
