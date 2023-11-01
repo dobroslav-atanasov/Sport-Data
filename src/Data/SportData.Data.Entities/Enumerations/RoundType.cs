@@ -27,5 +27,8 @@ public enum RoundType
     LuckyLoser = 22,
     RunFour = 23,
     SeedingRound = 24,
-    RoundThreeRepechage = 25
+    RoundThreeRepechage = 25,
+    GrandPrix = 26,
+    GrandPrixSpecial = 27,
+    GrandPrixFreestyle = 28,
 }
