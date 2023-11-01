@@ -3,6 +3,7 @@
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
+using SportData.Data.Models.OlympicGames.Equestrian;
 
 public interface IOlympediaService
 {
@@ -47,4 +48,6 @@ public interface IOlympediaService
     DecisionType FindDecision(string text);
 
     int FindSeedNumber(string text);
+
+    Horse FindHorse(string text);
 }
