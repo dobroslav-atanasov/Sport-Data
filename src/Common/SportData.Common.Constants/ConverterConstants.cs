@@ -312,4 +312,12 @@ public static class ConverterConstants
     public const string INDEX_RAW_POINTS = "raw points";
     public const string INDEX_ADJUSTED_POINTS = "adjusted points";
     public const string INDEX_PERCENTAGE_POINTS = "percentage points";
+    public const string INDEX_CROSS_COUNTRY = "cross country";
+    public const string INDEX_CROSS_COUNTRY_5 = "cross country 5";
+    public const string INDEX_CROSS_COUNTRY_20 = "cross country 20";
+    public const string INDEX_CROSS_COUNTRY_50 = "cross country 50";
+    public const string INDEX_JUMPING = "jumping";
+    public const string INDEX_DRESSAGE = "dressage";
+    public const string INDEX_JUMPING_QUALIFICATION = "jumping qualification";
+    public const string INDEX_STEEPLECHASE = "steeplechase";
 }
