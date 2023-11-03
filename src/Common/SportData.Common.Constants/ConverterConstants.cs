@@ -320,4 +320,9 @@ public static class ConverterConstants
     public const string INDEX_DRESSAGE = "dressage";
     public const string INDEX_JUMPING_QUALIFICATION = "jumping qualification";
     public const string INDEX_STEEPLECHASE = "steeplechase";
+
+    public const string INDEX_JUMP_OFF_PENALTY_1 = "jump off penalty 1";
+    public const string INDEX_JUMP_OFF_PENALTY_2 = "jump off penalty 2";
+    public const string INDEX_JUMP_OFF_TIME = "jump off time";
+    public const string INDEX_JUMP_PENALTY = "jump penalty";
 }
