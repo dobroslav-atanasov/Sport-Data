@@ -2,10 +2,10 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
-using SportData.Data.Entities.Enumerations;
-using SportData.Data.Entities.OlympicGames.Enumerations;
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
+using global::SportData.Data.Entities.Enumerations;
+using global::SportData.Data.Entities.OlympicGames.Enumerations;
 
 [Table("Participants", Schema = "dbo")]
 public class Participant : BaseDeletableEntity<Guid>, IUpdatable<Participant>

@@ -2,8 +2,8 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
 
 [Table("Cities", Schema = "dbo")]
 public class City : BaseDeletableEntity<int>, IUpdatable<City>

@@ -3,9 +3,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
-using SportData.Data.Entities.Enumerations;
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
+using global::SportData.Data.Entities.Enumerations;
 
 [Table("Events", Schema = "dbo")]
 public class Event : BaseDeletableEntity<int>, IUpdatable<Event>

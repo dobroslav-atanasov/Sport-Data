@@ -3,8 +3,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
 
 [Table("Venues", Schema = "dbo")]
 public class Venue : BaseDeletableEntity<int>, IUpdatable<Venue>

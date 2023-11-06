@@ -3,9 +3,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
-using SportData.Data.Entities.OlympicGames.Enumerations;
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
+using global::SportData.Data.Entities.OlympicGames.Enumerations;
 
 [Table("Games", Schema = "dbo")]
 public class Game : BaseDeletableEntity<int>, IUpdatable<Game>

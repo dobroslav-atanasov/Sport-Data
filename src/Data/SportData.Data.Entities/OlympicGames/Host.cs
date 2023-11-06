@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Interfaces;
 
 [Table("Hosts", Schema = "dbo")]
 public class Host : ICheckableEntity, IDeletableEntity

@@ -3,8 +3,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
 
 [Table("Disciplines", Schema = "dbo")]
 public class Discipline : BaseDeletableEntity<int>, IUpdatable<Discipline>

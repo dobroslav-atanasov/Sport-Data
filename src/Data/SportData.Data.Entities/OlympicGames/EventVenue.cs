@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Interfaces;
 
 [Table("EventsVenues", Schema = "dbo")]
 public class EventVenue : ICheckableEntity, IDeletableEntity

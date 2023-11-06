@@ -3,6 +3,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using global::SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Models;
+
 [Table("NOCs", Schema = "dbo")]
 public class NOC : BaseDeletableEntity<int>, IUpdatable<NOC>
 {

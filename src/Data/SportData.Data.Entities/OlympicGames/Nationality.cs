@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
+using global::SportData.Data.Common.Interfaces;
 
 [Table("Nationalities", Schema = "dbo")]
 public class Nationality : ICheckableEntity, IDeletableEntity
