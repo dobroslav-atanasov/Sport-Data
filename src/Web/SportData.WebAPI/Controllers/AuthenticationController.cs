@@ -2,8 +2,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
-using SportData.Data.Entities;
+using SportData.Data.Entities.SportData;
 using SportData.Data.Models.Authentication;
 using SportData.Data.Models.Entities.Enumerations;
 

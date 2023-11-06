@@ -10,7 +10,7 @@ using Microsoft.OpenApi.Models;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
-using SportData.Data.Entities;
+using SportData.Data.Entities.SportData;
 using SportData.Web.Infrastructure.Filters.Swagger;
 
 public class Program

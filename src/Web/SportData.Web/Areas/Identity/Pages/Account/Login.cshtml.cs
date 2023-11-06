@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-
-using SportData.Data.Entities;
+using SportData.Data.Entities.SportData;
 
 public class LoginModel : PageModel
 {

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 using SportData.Common.Constants;
 using SportData.Data.Contexts;
-using SportData.Data.Entities;
+using SportData.Data.Entities.SportData;
 using SportData.Data.Options;
 using SportData.Data.Seeders;
 using SportData.Web.Infrastructure.Filters;
