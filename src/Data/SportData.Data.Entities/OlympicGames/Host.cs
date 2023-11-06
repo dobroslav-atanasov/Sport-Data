@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 
-[Table("Hosts", Schema = "og")]
+[Table("Hosts", Schema = "dbo")]
 public class Host : ICheckableEntity, IDeletableEntity
 {
     public int CityId { get; set; }

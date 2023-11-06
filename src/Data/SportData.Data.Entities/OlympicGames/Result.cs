@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
 
-[Table("Results", Schema = "og")]
+[Table("Results", Schema = "dbo")]
 public class Result : BaseDeletableEntity<Guid>, IUpdatable<Result>
 {
     public int EventId { get; set; }

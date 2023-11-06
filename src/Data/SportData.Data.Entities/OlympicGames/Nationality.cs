@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 
-[Table("Nationalities", Schema = "og")]
+[Table("Nationalities", Schema = "dbo")]
 public class Nationality : ICheckableEntity, IDeletableEntity
 {
     public Guid AthleteId { get; set; }

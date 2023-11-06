@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
 
-[Table("Cities", Schema = "og")]
+[Table("Cities", Schema = "dbo")]
 public class City : BaseDeletableEntity<int>, IUpdatable<City>
 {
     public City()

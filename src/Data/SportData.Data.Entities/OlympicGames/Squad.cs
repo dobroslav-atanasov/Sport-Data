@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using SportData.Data.Common.Interfaces;
 
-[Table("Squads", Schema = "og")]
+[Table("Squads", Schema = "dbo")]
 public class Squad : ICheckableEntity, IDeletableEntity
 {
     public Guid ParticipantId { get; set; }

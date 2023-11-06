@@ -6,8 +6,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 
-[Table("Teams", Schema = "og")]
+[Table("Teams", Schema = "dbo")]
 public class Team : BaseDeletableEntity<Guid>, IUpdatable<Team>
 {
     public Team()

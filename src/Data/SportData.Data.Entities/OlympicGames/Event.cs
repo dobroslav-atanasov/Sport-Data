@@ -7,7 +7,7 @@ using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
 
-[Table("Events", Schema = "og")]
+[Table("Events", Schema = "dbo")]
 public class Event : BaseDeletableEntity<int>, IUpdatable<Event>
 {
     public Event()

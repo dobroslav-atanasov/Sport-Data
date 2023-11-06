@@ -5,8 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using SportData.Data.Common.Interfaces;
 using SportData.Data.Common.Models;
 using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 
-[Table("Participants", Schema = "og")]
+[Table("Participants", Schema = "dbo")]
 public class Participant : BaseDeletableEntity<Guid>, IUpdatable<Participant>
 {
     public Participant()

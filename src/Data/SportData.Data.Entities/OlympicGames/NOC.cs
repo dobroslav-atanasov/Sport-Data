@@ -3,11 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using SportData.Data.Common.Interfaces;
-using SportData.Data.Common.Models;
-using SportData.Data.Entities.Countries;
-
-[Table("NOCs", Schema = "og")]
+[Table("NOCs", Schema = "dbo")]
 public class NOC : BaseDeletableEntity<int>, IUpdatable<NOC>
 {
     public NOC()
