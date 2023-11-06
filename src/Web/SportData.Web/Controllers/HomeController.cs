@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 
 using SportData.Data.Contexts;
 using SportData.Data.ViewModels;
-using SportData.Data.ViewModels.Home;
 
 public class HomeController : BaseController
 {
@@ -21,17 +20,17 @@ public class HomeController : BaseController
 
     public IActionResult Index()
     {
-        var users = this.context.Users.Count();
-        this.ViewData["users"] = users;
-        this.ViewBag.Count = 9;
-        var viewModel = new HomeViewModel
-        {
-            Id = 1,
-            Name = "Test",
-            Description = "Description asdasda sdasdasdasdasdasdad",
-        };
+        //var users = this.context.Users.Count();
+        //this.ViewData["users"] = users;
+        //this.ViewBag.Count = 9;
+        //var viewModel = new HomeViewModel
+        //{
+        //    Id = 1,
+        //    Name = "Test",
+        //    Description = "Description asdasda sdasdasdasdasdasdad",
+        //};
 
-        return this.View(viewModel);
+        return this.View();
     }
 
     public IActionResult Privacy()
