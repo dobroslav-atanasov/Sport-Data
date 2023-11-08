@@ -2,6 +2,7 @@
 
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using HtmlAgilityPack;
@@ -12,6 +13,7 @@ using SportData.Common.Constants;
 using SportData.Data.Entities.Crawlers;
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Entities.OlympicGames;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Cache;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
@@ -37,13 +39,18 @@ using SportData.Data.Models.OlympicGames.Cycling.BMXRacing;
 using SportData.Data.Models.OlympicGames.Cycling.MountainBike;
 using SportData.Data.Models.OlympicGames.Cycling.Road;
 using SportData.Data.Models.OlympicGames.Cycling.Track;
+using SportData.Data.Models.OlympicGames.Equestrian.Dressage;
+using SportData.Data.Models.OlympicGames.Equestrian.Driving;
+using SportData.Data.Models.OlympicGames.Equestrian.Eventing;
+using SportData.Data.Models.OlympicGames.Equestrian.Jumping;
+using SportData.Data.Models.OlympicGames.Equestrian.Vaulting;
 using SportData.Data.Models.OlympicGames.Gymnastics;
 using SportData.Data.Models.OlympicGames.Gymnastics.ArtisticGymnastics;
 using SportData.Data.Models.OlympicGames.Skiing.AlpineSkiing;
 using SportData.Data.Models.OlympicGames.Skiing.CrossCountrySkiing;
 using SportData.Data.Models.OlympicGames.Volleyball.BeachVolleyball;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
-using SportData.Services.Data.SportDataDb.Interfaces;
+using SportData.Services.Data.OlympicGamesDb.Interfaces;
 using SportData.Services.Interfaces;
 
 using Document = Data.Entities.Crawlers.Document;
@@ -119,77 +126,82 @@ public class ResultConverter : BaseOlympediaConverter
                         //case DisciplineConstants.ARTISTIC_SWIMMING:
                         //    await this.ProcessArtisticSwimmingAsync(options);
                         //    break;
-                        //case DisciplineConstants.ATHLETICS:
-                        //    await this.ProcessAthleticsAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BADMINTON:
-                        //    await this.ProcessBadmintonAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BASEBALL:
-                        //    await this.ProcessBaseballAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BASQUE_PELOTA:
-                        //    await this.ProcessBasquePelotaAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BEACH_VOLLEYBALL:
-                        //    await this.ProcessBeachVolleyballAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BIATHLON:
-                        //    await this.ProcessBiathlonAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BOBSLEIGH:
-                        //    await this.ProcessBobsleighAsync(options);
-                        //    break;
-                        //case DisciplineConstants.BOXING:
-                        //    await this.ProcessBoxingAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CANOE_SLALOM:
-                        //    await this.ProcessCanoeSlalomAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CANOE_SPRINT:
-                        //    await this.ProcessCanoeSprintAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CRICKET:
-                        //    await this.ProcessCricketAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CROSS_COUNTRY_SKIING:
-                        //    await this.ProcessCrossCountrySkiing(options);
-                        //    break;
-                        //case DisciplineConstants.CURLING:
-                        //    await this.ProcessCurlingSkiing(options);
-                        //    break;
-                        //case DisciplineConstants.CYCLING_BMX_FREESTYLE:
-                        //    await this.ProcessCyclingBMXFreestyleAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CYCLING_BMX_RACING:
-                        //    await this.ProcessCyclingBMXRacingAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CYCLING_MOUNTAIN_BIKE:
-                        //    await this.ProcessCyclingMountainBikeAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CYCLING_ROAD:
-                        //    await this.ProcessCyclingRoadAsync(options);
-                        //    break;
-                        //case DisciplineConstants.CYCLING_TRACK:
-                        //    await this.ProcessCyclingTrackAsync(options);
-                        //    break;
-                        //case DisciplineConstants.DIVING:
-                        //    await this.ProcessDivingAsync(options);
-                        //    break;
-                        case DisciplineConstants.EQUESTRIAN_DRESSAGE:
-                            await this.ProcessEquestrianDressage(options);
+                        case DisciplineConstants.ATHLETICS:
+                            await this.ProcessAthleticsAsync(options);
                             break;
+                            //case DisciplineConstants.BADMINTON:
+                            //    await this.ProcessBadmintonAsync(options);
+                            //    break;
+                            //case DisciplineConstants.BASEBALL:
+                            //    await this.ProcessBaseballAsync(options);
+                            //    break;
+                            //case DisciplineConstants.BASQUE_PELOTA:
+                            //    await this.ProcessBasquePelotaAsync(options);
+                            //    break;
+                            //case DisciplineConstants.BEACH_VOLLEYBALL:
+                            //    await this.ProcessBeachVolleyballAsync(options);
+                            //    break;
+                            //case DisciplineConstants.BIATHLON:
+                            //    await this.ProcessBiathlonAsync(options);
+                            //    break;
+                            //case DisciplineConstants.BOBSLEIGH:
+                            //    await this.ProcessBobsleighAsync(options);
+                            //    break;
+                            //case DisciplineConstants.BOXING:
+                            //    await this.ProcessBoxingAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CANOE_SLALOM:
+                            //    await this.ProcessCanoeSlalomAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CANOE_SPRINT:
+                            //    await this.ProcessCanoeSprintAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CRICKET:
+                            //    await this.ProcessCricketAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CROSS_COUNTRY_SKIING:
+                            //    await this.ProcessCrossCountrySkiing(options);
+                            //    break;
+                            //case DisciplineConstants.CURLING:
+                            //    await this.ProcessCurlingSkiing(options);
+                            //    break;
+                            //case DisciplineConstants.CYCLING_BMX_FREESTYLE:
+                            //    await this.ProcessCyclingBMXFreestyleAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CYCLING_BMX_RACING:
+                            //    await this.ProcessCyclingBMXRacingAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CYCLING_MOUNTAIN_BIKE:
+                            //    await this.ProcessCyclingMountainBikeAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CYCLING_ROAD:
+                            //    await this.ProcessCyclingRoadAsync(options);
+                            //    break;
+                            //case DisciplineConstants.CYCLING_TRACK:
+                            //    await this.ProcessCyclingTrackAsync(options);
+                            //    break;
+                            //case DisciplineConstants.DIVING:
+                            //    await this.ProcessDivingAsync(options);
+                            //    break;
+                            //case DisciplineConstants.EQUESTRIAN_DRESSAGE:
+                            //    TP comment in INDEX_POINTS
+                            //    await this.ProcessEquestrianDressage(options);
+                            //    break;
                             //case DisciplineConstants.EQUESTRIAN_DRIVING:
-                            //    Console.WriteLine($"{group.Identifier} | 2");
+                            //    await this.ProcessEquestrianDriving(options);
                             //    break;
                             //case DisciplineConstants.EQUESTRIAN_EVENTING:
-                            //    Console.WriteLine($"{group.Identifier} | 3");
+                            //    // TODO: Documents are not processed.
+                            //    await this.ProcessEquestrianEventing(options);
                             //    break;
                             //case DisciplineConstants.EQUESTRIAN_JUMPING:
-                            //    Console.WriteLine($"{group.Identifier} | 4");
+                            //    await this.ProcessEquestrianJumping(options);
                             //    break;
                             //case DisciplineConstants.EQUESTRIAN_VAULTING:
-                            //    Console.WriteLine($"{group.Identifier} | 5");
+                            //    await this.ProcessEquestrianVaulting(options);
+                            //    break;
+                            //case DisciplineConstants.FENCING:
+                            //    await this.ProcessFencingAsync(options);
                             //    break;
                     }
                 }
@@ -440,6 +452,21 @@ public class ResultConverter : BaseOlympediaConverter
         return result;
     }
 
+    private async Task<List<BaseJudge>> SetJudgesAsync(HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var matches = this.RegExpService.Matches(htmlDocument.ParsedText, @"<tr class=""(?:referees|hidden_referees)""(?:.*?)<th>(.*?)<\/th>(.*?)<\/tr>");
+        var judges = new List<BaseJudge>();
+        foreach (System.Text.RegularExpressions.Match match in matches)
+        {
+            htmlDocument.LoadHtml(match.Groups[0].Value);
+            var judge = await this.CreateJudgeAsync(htmlDocument, eventCache, @$"<th>{match.Groups[1].Value}<\/th>(.*)", $"{match.Groups[1].Value}");
+            judges.Add(judge);
+        }
+
+        judges.RemoveAll(x => x == null);
+        return judges;
+    }
+
     private EventRoundModel<TModel> CreateEventRound<TModel>(HtmlDocument htmlDocument, string eventName)
     {
         var format = this.RegExpService.MatchFirstGroup(htmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
@@ -453,6 +480,31 @@ public class ResultConverter : BaseOlympediaConverter
             EventName = eventName,
             Dates = dateModel
         };
+    }
+
+    private ResultModel GetResult(Dictionary<string, int> indexes, string name, List<HtmlNode> data, ResultFormat format)
+    {
+        var result = new ResultModel();
+        switch (format)
+        {
+            case ResultFormat.String:
+                result.String = indexes.TryGetValue(name, out int value1) ? data[value1].InnerText : null;
+                break;
+            case ResultFormat.Int:
+                result.Int = indexes.TryGetValue(name, out int value2) ? this.RegExpService.MatchInt(data[value2].InnerText) : null;
+                break;
+            case ResultFormat.Double:
+                result.Double = indexes.TryGetValue(name, out int value3) ? this.RegExpService.MatchDouble(data[value3].InnerText) : null;
+                break;
+            case ResultFormat.Decimal:
+                result.Decimal = indexes.TryGetValue(name, out int value4) ? this.RegExpService.MatchDecimal(data[value4].InnerText) : null;
+                break;
+            case ResultFormat.TimeSpan:
+                result.Time = indexes.TryGetValue(name, out int value5) ? this.dateService.ParseTime(data[value5].InnerText) : null;
+                break;
+        }
+
+        return result;
     }
 
     private async Task<BaseJudge> CreateJudgeAsync(HtmlDocument htmlDocument, EventCacheModel eventCache, string pattern, string title)
@@ -500,70 +552,852 @@ public class ResultConverter : BaseOlympediaConverter
         var resultJson = this.CreateResult<TModel>(options.Event, options.Discipline, options.Game);
         resultJson.Rounds = eventRound.Rounds;
 
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
+        var json = JsonSerializer.Serialize(resultJson, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+
+        var asd = JsonSerializer.Deserialize<ResultJson<TModel>>(json);
+        var result = new SportData.Data.Entities.OlympicGames.Result
         {
             EventId = options.Event.Id,
             Json = json
         };
 
-        await this.resultsService.AddOrUpdateAsync(result);
+        //await this.resultsService.AddOrUpdateAsync(result);
     }
     #endregion PRIVATE
 
-    #region EQUESTRIAN
-    private async Task ProcessEquestrianDressage(ConvertOptions options)
+    #region FENCING
+    private async Task ProcessFencingAsync(ConvertOptions options)
     {
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"{options.Event.Name} - {options.Event.OriginalName}");
-        sb.AppendLine($"{options.Game.Year}");
-        sb.AppendLine($"--------------------- Standing table ---------------------");
-        //if (!options.Tables.Any())
-        //{
-        //    var standingHeaders = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-        //    foreach (var item in standingHeaders)
-        //    {
-        //        sb.AppendLine(item);
-        //    }
-        //}
+        throw new NotImplementedException();
+    }
+    #endregion
 
-        //if (options.Tables.Any())
-        //{
-        //    sb.AppendLine($"--------------------- Tables ---------------------");
-        //    foreach (var table in options.Tables)
-        //    {
-        //        var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-        //        foreach (var item in headers)
-        //        {
-        //            sb.AppendLine(item);
-        //        }
-        //        sb.AppendLine("------");
-        //    }
-        //}
+    #region EQUESTRIAN
+    private async Task ProcessEquestrianVaulting(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<EVARound>(options.HtmlDocument, options.Event.Name);
+        var round = this.CreateRound<EVARound>(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
 
-        if (options.Documents.Any())
+        if (options.Event.IsTeamEvent)
         {
-            sb.AppendLine("--------------------- Documents ---------------------");
-            foreach (var document in options.Documents)
+            await this.SetEVATeamsAsync(round, options.StandingTable.HtmlDocument, options.Event);
+        }
+        else
+        {
+            await this.SetEVAEquestriansAsync(round, options.StandingTable.HtmlDocument, options.Event);
+        }
+
+        eventRound.Rounds.Add(round);
+        await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private async Task SetEVATeamsAsync(EVARound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        EVATeam evaTeam = null;
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+
+            var points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal;
+            points ??= this.GetResult(indexes, ConverterConstants.INDEX_PENALTY, data, ResultFormat.Decimal).Decimal;
+
+            if (nocCode != null)
             {
-                var htmlDocument = this.CreateHtmlDocument(document);
-                var table = this.GetStandingTable(htmlDocument, options.Event);
-                var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
-                sb.AppendLine(title);
-                var headers = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//th").Where(x => !string.IsNullOrEmpty(x.InnerText)).Select(x => x.InnerText).ToList();
-                foreach (var item in headers)
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(nocCacheModel.Id, eventCache.Id);
+
+                evaTeam = new EVATeam
                 {
-                    sb.AppendLine(item);
+                    Id = team.Id,
+                    Name = name,
+                    NOC = nocCode,
+                    Points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal
+                };
+
+                round.Teams.Add(evaTeam);
+            }
+            else
+            {
+                var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == evaTeam.NOC);
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+
+                var equestrian = new EVAEquestrian
+                {
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
+                    Name = athleteModel.Name,
+                    NOC = nocCode,
+                    Points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal
+                };
+
+                evaTeam.Equestrians.Add(equestrian);
+            }
+        }
+    }
+
+    private async Task SetEVAEquestriansAsync(EVARound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+
+            var equestrian = new EVAEquestrian
+            {
+                Id = participant.Id,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                Points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal
+            };
+
+            round.Equestrians.Add(equestrian);
+        }
+    }
+
+    private async Task ProcessEquestrianJumping(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<EJPRound>(options.HtmlDocument, options.Event.Name);
+
+        if (options.Event.IsTeamEvent)
+        {
+            if (options.Tables.Any())
+            {
+                if (options.Tables.Count == 1)
+                {
+                    var round = this.CreateRound<EJPRound>(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
+                    await this.SetEJRTeamsAsync(round, options.StandingTable.HtmlDocument, options.Event);
+                    this.ConvertEJPTeamsDocuments(round, options.Documents, options.Event);
+                    eventRound.Rounds.Add(round);
                 }
+
+                foreach (var table in options.Tables)
+                {
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+                    var dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                    var dateModel = this.dateService.ParseDate(dateString);
+                    var round = this.CreateRound<EJPRound>(dateModel.From, format, table.Round, eventRound.EventName);
+                    await this.SetEJRTeamsAsync(round, table.HtmlDocument, options.Event);
+                    this.ConvertEJPTeamsDocuments(round, options.Documents, options.Event);
+                    eventRound.Rounds.Add(round);
+                }
+            }
+            else
+            {
+                var round = this.CreateRound<EJPRound>(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
+                await this.SetEJRTeamsAsync(round, options.StandingTable.HtmlDocument, options.Event);
+                this.ConvertEJPTeamsDocuments(round, options.Documents, options.Event);
+                eventRound.Rounds.Add(round);
+            }
+        }
+        else
+        {
+            if (options.Tables.Any())
+            {
+                foreach (var table in options.Tables)
+                {
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+                    var dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                    var dateModel = this.dateService.ParseDate(dateString);
+                    var round = this.CreateRound<EJPRound>(dateModel.From, format, table.Round, eventRound.EventName);
+                    await this.SetEJREquestriansAsync(round, table.HtmlDocument, options.Event);
+                    this.ConvertEJPDocuments(round, options.Documents, options.Event);
+                    eventRound.Rounds.Add(round);
+                }
+            }
+            else
+            {
+                var round = this.CreateRound<EJPRound>(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
+                await this.SetEJREquestriansAsync(round, options.StandingTable.HtmlDocument, options.Event);
+                this.ConvertEJPDocuments(round, options.Documents, options.Event);
+                eventRound.Rounds.Add(round);
             }
         }
 
-        sb.AppendLine("=======================================================================")
-        ;
+        await this.ProcessJsonAsync(eventRound, options);
+    }
 
-        var asd = File.ReadAllLines("tables.txt").ToList();
-        asd.Add(sb.ToString());
-        File.WriteAllLines("tables.txt", asd);
+    private void ConvertEJPTeamsDocuments(EJPRound round, IOrderedEnumerable<Document> documents, EventCacheModel eventCache)
+    {
+        foreach (var document in documents)
+        {
+            var htmlDocument = this.CreateHtmlDocument(document);
+            var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+            if (!title.ToLower().Contains("standings"))
+            {
+                title = title.Replace(eventCache.OriginalName, string.Empty).Replace("–", string.Empty).Trim().ToLower();
+                var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+                var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+                var indexes = this.OlympediaService.FindIndexes(headers);
+
+                foreach (var row in rows.Skip(1))
+                {
+                    var data = row.Elements("td").ToList();
+                    var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+
+                    var points = this.GetResult(indexes, ConverterConstants.INDEX_INDIVIDUAL_POINTS, data, ResultFormat.Decimal).Decimal;
+                    var jump = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_PENALTY, data, ResultFormat.Int).Int;
+                    var time = this.GetResult(indexes, ConverterConstants.INDEX_TIME_PENALTY, data, ResultFormat.Int).Int;
+
+                    EJPPart part = null;
+                    if (nocCode != null)
+                    {
+                        var team = round.Teams.FirstOrDefault(x => x.NOC == nocCode);
+
+                        if (team == null)
+                        {
+                            continue;
+                        }
+                        if (title == "round #1" || title == "part #1")
+                        {
+                            part = team.Parts.ElementAtOrDefault(0);
+                        }
+                        else if (title == "round #2" || title == "part #2")
+                        {
+                            part = team.Parts.ElementAtOrDefault(1);
+                        }
+                    }
+                    else
+                    {
+                        var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                        var equstrian = round.Equestrians.FirstOrDefault(x => x.Code == athleteModel.Code);
+
+                        if (equstrian == null)
+                        {
+                            continue;
+                        }
+                        if (title == "round #1" || title == "part #1")
+                        {
+                            part = equstrian.Parts.ElementAtOrDefault(0);
+                        }
+                        else if (title == "round #2" || title == "part #2")
+                        {
+                            part = equstrian.Parts.ElementAtOrDefault(1);
+                        }
+                    }
+
+                    if (part != null)
+                    {
+                        if (points != null)
+                        {
+                            part.PenaltyPoints = points;
+                        }
+
+                        part.JumpPenaltyPoints = jump;
+                        part.TimePenaltyPoints = time;
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task SetEJRTeamsAsync(EJPRound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        EJPTeam ejpTeam = null;
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+
+            var points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal;
+            points ??= this.GetResult(indexes, ConverterConstants.INDEX_PENALTY, data, ResultFormat.Decimal).Decimal;
+
+            if (nocCode != null)
+            {
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(nocCacheModel.Id, eventCache.Id);
+
+                ejpTeam = new EJPTeam
+                {
+                    Id = team.Id,
+                    Name = name,
+                    NOC = nocCode,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                    PenaltyPoints = points,
+                    Time = this.GetResult(indexes, ConverterConstants.INDEX_TIME, data, ResultFormat.TimeSpan).Time,
+                    TimePenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_TIME_PENALTY, data, ResultFormat.Int).Int,
+                    JumpOff1PenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_PENALTY_1, data, ResultFormat.Decimal).Decimal,
+                    JumpOffTime = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_TIME, data, ResultFormat.Decimal).Decimal,
+                    JumpPenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_PENALTY, data, ResultFormat.Int).Int,
+                };
+
+                var part = this.GetResult(indexes, ConverterConstants.INDEX_ROUND_1, data, ResultFormat.Decimal).Decimal;
+                if (part != null)
+                {
+                    ejpTeam.Parts.Add(new EJPPart { PenaltyPoints = part });
+                }
+
+                part = this.GetResult(indexes, ConverterConstants.INDEX_ROUND_2, data, ResultFormat.Decimal).Decimal;
+                if (part != null)
+                {
+                    ejpTeam.Parts.Add(new EJPPart { PenaltyPoints = part });
+                }
+
+                round.Teams.Add(ejpTeam);
+            }
+            else
+            {
+                var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == ejpTeam.NOC);
+                var horse = this.OlympediaService.FindHorse(row.OuterHtml);
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+
+                points ??= this.GetResult(indexes, ConverterConstants.INDEX_INDIVIDUAL_POINTS, data, ResultFormat.Decimal).Decimal;
+
+                var equestrian = new EJPEquestrian
+                {
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
+                    Name = athleteModel.Name,
+                    NOC = nocCode,
+                    Horse = horse,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Number = this.GetResult(indexes, ConverterConstants.INDEX_NR, data, ResultFormat.Int).Int,
+                    PenaltyPoints = points,
+                    Distance = this.GetResult(indexes, ConverterConstants.INDEX_DISTANCE, data, ResultFormat.Decimal).Decimal,
+                    Time = this.GetResult(indexes, ConverterConstants.INDEX_TIME, data, ResultFormat.TimeSpan).Time,
+                    TimePenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_TIME_PENALTY, data, ResultFormat.Int).Int,
+                    JumpOff1PenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_PENALTY_1, data, ResultFormat.Decimal).Decimal,
+                    JumpOffTime = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_TIME, data, ResultFormat.Decimal).Decimal,
+                    JumpPenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_PENALTY, data, ResultFormat.Int).Int,
+                };
+
+                var part = this.GetResult(indexes, ConverterConstants.INDEX_ROUND_1, data, ResultFormat.Decimal).Decimal;
+                if (part != null)
+                {
+                    equestrian.Parts.Add(new EJPPart { PenaltyPoints = part });
+                }
+
+                part = this.GetResult(indexes, ConverterConstants.INDEX_ROUND_2, data, ResultFormat.Decimal).Decimal;
+                if (part != null)
+                {
+                    equestrian.Parts.Add(new EJPPart { PenaltyPoints = part });
+                }
+
+                ejpTeam.Equestrians.Add(equestrian);
+            }
+        }
+    }
+
+    private void ConvertEJPDocuments(EJPRound round, IOrderedEnumerable<Document> documents, EventCacheModel eventCache)
+    {
+        foreach (var document in documents)
+        {
+            var htmlDocument = this.CreateHtmlDocument(document);
+            var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+            if (!title.ToLower().Contains("standings"))
+            {
+                title = title.Replace(eventCache.OriginalName, string.Empty).Replace("–", string.Empty).Trim().ToLower();
+                var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+                var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+                var indexes = this.OlympediaService.FindIndexes(headers);
+
+                foreach (var row in rows.Skip(1))
+                {
+                    var data = row.Elements("td").ToList();
+                    var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                    var equstrian = round.Equestrians.FirstOrDefault(x => x.Code == athleteModel.Code);
+
+                    if (equstrian == null)
+                    {
+                        continue;
+                    }
+                    var jump = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_PENALTY, data, ResultFormat.Int).Int;
+                    var time = this.GetResult(indexes, ConverterConstants.INDEX_TIME_PENALTY, data, ResultFormat.Int).Int;
+
+                    EJPPart part = null;
+                    if (title == "round #1" || title == "part #1")
+                    {
+                        part = equstrian.Parts.ElementAtOrDefault(0);
+                    }
+                    else if (title == "round #2" || title == "part #2")
+                    {
+                        part = equstrian.Parts.ElementAtOrDefault(1);
+                    }
+                    else if (title == "round #3" || title == "part #3")
+                    {
+                        part = equstrian.Parts.ElementAtOrDefault(2);
+                    }
+
+                    if (part != null)
+                    {
+                        part.JumpPenaltyPoints = jump;
+                        part.TimePenaltyPoints = time;
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task SetEJREquestriansAsync(EJPRound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            if (nocCacheModel == null)
+            {
+                continue;
+            }
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+            var horse = this.OlympediaService.FindHorse(row.OuterHtml);
+
+            var points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal;
+            points ??= this.GetResult(indexes, ConverterConstants.INDEX_PENALTY, data, ResultFormat.Decimal).Decimal;
+
+            var equestrian = new EJPEquestrian
+            {
+                Id = participant.Id,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                Horse = horse,
+                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                Number = this.GetResult(indexes, ConverterConstants.INDEX_NR, data, ResultFormat.Int).Int,
+                PenaltyPoints = points,
+                Distance = this.GetResult(indexes, ConverterConstants.INDEX_DISTANCE, data, ResultFormat.Decimal).Decimal,
+                Time = this.GetResult(indexes, ConverterConstants.INDEX_TIME, data, ResultFormat.TimeSpan).Time,
+                TimePenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_TIME_PENALTY, data, ResultFormat.Int).Int,
+                JumpOff1PenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_PENALTY_1, data, ResultFormat.Decimal).Decimal,
+                JumpOff2PenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_PENALTY_2, data, ResultFormat.Decimal).Decimal,
+                JumpOffTime = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_OFF_TIME, data, ResultFormat.Decimal).Decimal,
+                JumpPenaltyPoints = this.GetResult(indexes, ConverterConstants.INDEX_JUMP_PENALTY, data, ResultFormat.Int).Int,
+            };
+
+            var part = this.GetResult(indexes, ConverterConstants.INDEX_PART_1, data, ResultFormat.Decimal).Decimal;
+            part ??= this.GetResult(indexes, ConverterConstants.INDEX_ROUND_1, data, ResultFormat.Decimal).Decimal;
+            if (part != null)
+            {
+                equestrian.Parts.Add(new EJPPart { PenaltyPoints = part });
+            }
+
+            part = this.GetResult(indexes, ConverterConstants.INDEX_PART_2, data, ResultFormat.Decimal).Decimal;
+            part ??= this.GetResult(indexes, ConverterConstants.INDEX_ROUND_2, data, ResultFormat.Decimal).Decimal;
+            if (part != null)
+            {
+                equestrian.Parts.Add(new EJPPart { PenaltyPoints = part });
+            }
+
+            part = this.GetResult(indexes, ConverterConstants.INDEX_PART_3, data, ResultFormat.Decimal).Decimal;
+            part ??= this.GetResult(indexes, ConverterConstants.INDEX_ROUND_3, data, ResultFormat.Decimal).Decimal;
+            if (part != null)
+            {
+                equestrian.Parts.Add(new EJPPart { PenaltyPoints = part });
+            }
+
+            round.Equestrians.Add(equestrian);
+        }
+    }
+
+    private async Task ProcessEquestrianEventing(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<EVERound>(options.HtmlDocument, options.Event.Name);
+        var round = this.CreateRound<EVERound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+
+        if (options.Event.IsTeamEvent)
+        {
+            await this.SetEVETeamsAsync(round, options.StandingTable.HtmlDocument, options.Event);
+        }
+        else
+        {
+            await this.SetEVEEquestriansAsync(round, options.StandingTable.HtmlDocument, options.Event);
+        }
+
+        eventRound.Rounds.Add(round);
+        await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private async Task SetEVETeamsAsync(EVERound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        EVETeam eveTeam = null;
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+
+            var points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal;
+            points ??= this.GetResult(indexes, ConverterConstants.INDEX_PENALTY, data, ResultFormat.Decimal).Decimal;
+
+            if (nocCode != null)
+            {
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(nocCacheModel.Id, eventCache.Id);
+
+                eveTeam = new EVETeam
+                {
+                    Id = team.Id,
+                    Name = name,
+                    NOC = nocCode,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Points = points,
+                    CrossCountry = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY, data, ResultFormat.Decimal).Decimal,
+                    CrossCountry5km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_5, data, ResultFormat.Decimal).Decimal,
+                    CrossCountry20km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_20, data, ResultFormat.Decimal).Decimal,
+                    CrossCountry50km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_50, data, ResultFormat.Decimal).Decimal,
+                    Dressage = this.GetResult(indexes, ConverterConstants.INDEX_DRESSAGE, data, ResultFormat.Decimal).Decimal,
+                    Jumping = this.GetResult(indexes, ConverterConstants.INDEX_JUMPING, data, ResultFormat.Decimal).Decimal,
+                    JumpingQualification = this.GetResult(indexes, ConverterConstants.INDEX_JUMPING_QUALIFICATION, data, ResultFormat.Decimal).Decimal,
+                    Steeplechase = this.GetResult(indexes, ConverterConstants.INDEX_STEEPLECHASE, data, ResultFormat.Decimal).Decimal
+                };
+
+                round.Teams.Add(eveTeam);
+            }
+            else
+            {
+                var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == eveTeam.NOC);
+                var horse = this.OlympediaService.FindHorse(row.OuterHtml);
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+
+                var equestrian = new EVEEquestrian
+                {
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
+                    Name = athleteModel.Name,
+                    NOC = nocCode,
+                    Horse = horse,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Points = points,
+                    Number = this.GetResult(indexes, ConverterConstants.INDEX_NR, data, ResultFormat.Int).Int,
+                    CrossCountry = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY, data, ResultFormat.Decimal).Decimal,
+                    CrossCountry5km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_5, data, ResultFormat.Decimal).Decimal,
+                    CrossCountry20km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_20, data, ResultFormat.Decimal).Decimal,
+                    CrossCountry50km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_50, data, ResultFormat.Decimal).Decimal,
+                    Dressage = this.GetResult(indexes, ConverterConstants.INDEX_DRESSAGE, data, ResultFormat.Decimal).Decimal,
+                    Jumping = this.GetResult(indexes, ConverterConstants.INDEX_JUMPING, data, ResultFormat.Decimal).Decimal,
+                    JumpingQualification = this.GetResult(indexes, ConverterConstants.INDEX_JUMPING_QUALIFICATION, data, ResultFormat.Decimal).Decimal,
+                    Steeplechase = this.GetResult(indexes, ConverterConstants.INDEX_STEEPLECHASE, data, ResultFormat.Decimal).Decimal
+                };
+
+                eveTeam.Equestrians.Add(equestrian);
+            }
+        }
+    }
+
+    private async Task SetEVEEquestriansAsync(EVERound round, HtmlDocument htmlDocument, EventCacheModel eventCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+            var horse = this.OlympediaService.FindHorse(row.OuterHtml);
+
+            var points = this.GetResult(indexes, ConverterConstants.INDEX_POINTS, data, ResultFormat.Decimal).Decimal;
+            points ??= this.GetResult(indexes, ConverterConstants.INDEX_PENALTY, data, ResultFormat.Decimal).Decimal;
+
+            var equestrian = new EVEEquestrian
+            {
+                Id = participant.Id,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                Horse = horse,
+                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                Points = points,
+                Number = this.GetResult(indexes, ConverterConstants.INDEX_NR, data, ResultFormat.Int).Int,
+                CrossCountry = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY, data, ResultFormat.Decimal).Decimal,
+                CrossCountry5km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_5, data, ResultFormat.Decimal).Decimal,
+                CrossCountry20km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_20, data, ResultFormat.Decimal).Decimal,
+                CrossCountry50km = this.GetResult(indexes, ConverterConstants.INDEX_CROSS_COUNTRY_50, data, ResultFormat.Decimal).Decimal,
+                Dressage = this.GetResult(indexes, ConverterConstants.INDEX_DRESSAGE, data, ResultFormat.Decimal).Decimal,
+                Jumping = this.GetResult(indexes, ConverterConstants.INDEX_JUMPING, data, ResultFormat.Decimal).Decimal,
+                JumpingQualification = this.GetResult(indexes, ConverterConstants.INDEX_JUMPING_QUALIFICATION, data, ResultFormat.Decimal).Decimal,
+                Steeplechase = this.GetResult(indexes, ConverterConstants.INDEX_STEEPLECHASE, data, ResultFormat.Decimal).Decimal
+            };
+
+            round.Equestrians.Add(equestrian);
+        }
+    }
+
+    private async Task ProcessEquestrianDriving(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<EDVRound>(options.HtmlDocument, options.Event.Name);
+        var round = this.CreateRound<EDVRound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+
+        var rows = options.StandingTable.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, options.Event.Id, nocCacheModel.Id);
+
+            var equestrian = new EDVEquestrian
+            {
+                Id = participant.Id,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+            };
+
+            round.Equestrians.Add(equestrian);
+        }
+
+        eventRound.Rounds.Add(round);
+        await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private async Task ProcessEquestrianDressage(ConvertOptions options)
+    {
+        var eventRound = this.CreateEventRound<EDRRound>(options.HtmlDocument, options.Event.Name);
+
+        if (options.Event.IsTeamEvent)
+        {
+            if (options.Tables.Any())
+            {
+                foreach (var table in options.Tables)
+                {
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+                    var dateString = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>\s*Date\s*<\/th>\s*<td>(.*?)<\/td>");
+                    var dateModel = this.dateService.ParseDate(dateString);
+                    var round = this.CreateRound<EDRRound>(dateModel.From, format, table.Round, eventRound.EventName);
+                    round.Judges = await this.SetJudgesAsync(table.HtmlDocument, options.Event);
+                    await this.SetEDRTeamsAsync(round, table.HtmlDocument, options.Event, options.Game);
+                    eventRound.Rounds.Add(round);
+                }
+            }
+            else
+            {
+                var round = this.CreateRound<EDRRound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+                round.Judges = await this.SetJudgesAsync(options.HtmlDocument, options.Event);
+                await this.SetEDRTeamsAsync(round, options.StandingTable.HtmlDocument, options.Event, options.Game);
+                eventRound.Rounds.Add(round);
+            }
+        }
+        else
+        {
+            if (options.Tables.Any())
+            {
+                foreach (var table in options.Tables)
+                {
+                    var format = this.RegExpService.MatchFirstGroup(table.HtmlDocument.DocumentNode.OuterHtml, @"<th>Format<\/th>\s*<td(?:.*?)>(.*?)<\/td>");
+                    var round = this.CreateRound<EDRRound>(table.FromDate, format, table.Round, eventRound.EventName);
+                    round.Judges = await this.SetJudgesAsync(table.HtmlDocument, options.Event);
+                    var heats = this.SplitHeats(table);
+                    if (heats.Any())
+                    {
+                        foreach (var heat in heats)
+                        {
+                            var group = this.NormalizeService.MapGroupType(heat.Title);
+                            await this.SetEDREquestriansAsync(round, heat.HtmlDocument, options.Event, group, true);
+                        }
+                    }
+                    else
+                    {
+                        await this.SetEDREquestriansAsync(round, table.HtmlDocument, options.Event, GroupType.None, false);
+                    }
+
+                    var results = this.OlympediaService.FindResults(table.HtmlDocument.DocumentNode.OuterHtml);
+                    this.ConvertEDRDocuments(round, options.Documents, options.Event, results);
+                    eventRound.Rounds.Add(round);
+                }
+            }
+            else
+            {
+                var round = this.CreateRound<EDRRound>(eventRound.Dates.From, eventRound.Format, RoundType.Final, eventRound.EventName);
+                round.Judges = await this.SetJudgesAsync(options.HtmlDocument, options.Event);
+                await this.SetEDREquestriansAsync(round, options.StandingTable.HtmlDocument, options.Event, GroupType.None, false);
+                this.ConvertEDRDocuments(round, options.Documents, options.Event, options.Documents.Select(x => int.Parse(x.Url.Split("/").Last())).ToList());
+                eventRound.Rounds.Add(round);
+            }
+        }
+
+        await this.ProcessJsonAsync(eventRound, options);
+    }
+
+    private async Task SetEDRTeamsAsync(EDRRound round, HtmlDocument htmlDocument, EventCacheModel eventCache, GameCacheModel gameCache)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        EDRTeam edrTeam = null;
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var name = data[indexes[ConverterConstants.INDEX_NAME]].InnerText.Trim();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            if (nocCode != null)
+            {
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+                var team = await this.teamsService.GetAsync(nocCacheModel.Id, eventCache.Id);
+
+                edrTeam = new EDRTeam
+                {
+                    Id = team.Id,
+                    Name = name,
+                    NOC = nocCode,
+                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                    Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDecimal(data[value1].InnerText) : null
+                };
+
+                round.Teams.Add(edrTeam);
+            }
+            else
+            {
+                var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == edrTeam.NOC);
+                var horse = this.OlympediaService.FindHorse(row.OuterHtml);
+
+                var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+                var points = indexes.TryGetValue(ConverterConstants.INDEX_INDIVIDUAL_POINTS, out int value1) ? this.RegExpService.MatchDecimal(data[value1].InnerText) : null;
+                points ??= indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value2) ? this.RegExpService.MatchDecimal(data[value2].InnerText) : null;
+
+                var equestrian = new EDREquestrian
+                {
+                    Id = participant.Id,
+                    Code = athleteModel.Code,
+                    Name = athleteModel.Name,
+                    NOC = nocCode,
+                    Points = points,
+                    Horse = horse
+                };
+
+                if (gameCache.Year == 2020)
+                {
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge K", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_1_POINTS, out int value11) ? this.RegExpService.MatchDecimal(data[value11].InnerText) : null });
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge E", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_2_POINTS, out int value12) ? this.RegExpService.MatchDecimal(data[value12].InnerText) : null });
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge H", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_3_POINTS, out int value13) ? this.RegExpService.MatchDecimal(data[value13].InnerText) : null });
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge C", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_4_POINTS, out int value14) ? this.RegExpService.MatchDecimal(data[value14].InnerText) : null });
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge M", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_5_POINTS, out int value15) ? this.RegExpService.MatchDecimal(data[value15].InnerText) : null });
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge B", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_6_POINTS, out int value16) ? this.RegExpService.MatchDecimal(data[value16].InnerText) : null });
+                    equestrian.Scores.Add(new EDRScore { Judge = "Judge F", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_7_POINTS, out int value17) ? this.RegExpService.MatchDecimal(data[value17].InnerText) : null });
+                }
+
+                edrTeam.Equestrians.Add(equestrian);
+            }
+        }
+    }
+
+    private void ConvertEDRDocuments(EDRRound round, IOrderedEnumerable<Document> documents, EventCacheModel eventCache, IList<int> results)
+    {
+        foreach (var result in results)
+        {
+            var document = documents.FirstOrDefault(x => x.Url.EndsWith($"{result}"));
+            if (document != null)
+            {
+                var htmlDocument = this.CreateHtmlDocument(document);
+                var title = htmlDocument.DocumentNode.SelectSingleNode("//h1").InnerText;
+                if (!title.ToLower().Contains("summary"))
+                {
+                    title = title.Replace(eventCache.OriginalName, string.Empty).Replace("–", string.Empty).Trim();
+
+                    var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+                    var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+                    var indexes = this.OlympediaService.FindIndexes(headers);
+
+                    foreach (var row in rows.Skip(1))
+                    {
+                        var data = row.Elements("td").ToList();
+                        var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+                        var equstrian = round.Equestrians.FirstOrDefault(x => x.Code == athleteModel.Code);
+
+                        var score = new EDRScore
+                        {
+                            Judge = title,
+                            Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDecimal(data[value1].InnerText) : null,
+                            ArtisticPoints = indexes.TryGetValue(ConverterConstants.INDEX_ARTISTIC_POINTS, out int value3) ? this.RegExpService.MatchDecimal(data[value3].InnerText) : null,
+                            PercentagePoints = indexes.TryGetValue(ConverterConstants.INDEX_PERCENTAGE_POINTS, out int value6) ? this.RegExpService.MatchDecimal(data[value6].InnerText) : null,
+                            RawPoints = indexes.TryGetValue(ConverterConstants.INDEX_RAW_POINTS, out int value7) ? this.RegExpService.MatchDecimal(data[value7].InnerText) : null,
+                            TechnicalPoints = indexes.TryGetValue(ConverterConstants.INDEX_TECHNICAL_POINTS, out int value9) ? this.RegExpService.MatchDecimal(data[value9].InnerText) : null,
+                        };
+
+                        equstrian.Scores.Add(score);
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task SetEDREquestriansAsync(EDRRound round, HtmlDocument htmlDocument, EventCacheModel eventCache, GroupType group, bool isJudge)
+    {
+        var rows = htmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
+        var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
+        var indexes = this.OlympediaService.FindIndexes(headers);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var data = row.Elements("td").ToList();
+            var nocCode = this.OlympediaService.FindNOCCode(row.OuterHtml);
+            var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == nocCode);
+            var athleteModel = this.OlympediaService.FindAthlete(row.OuterHtml);
+            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventCache.Id, nocCacheModel.Id);
+            var horse = this.OlympediaService.FindHorse(row.OuterHtml);
+
+            var equestrian = new EDREquestrian
+            {
+                Id = participant.Id,
+                Code = athleteModel.Code,
+                Name = athleteModel.Name,
+                NOC = nocCode,
+                Horse = horse,
+                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                Group = group,
+                Points = indexes.TryGetValue(ConverterConstants.INDEX_POINTS, out int value1) ? this.RegExpService.MatchDecimal(data[value1].InnerText) : null,
+                AdjustedPoints = indexes.TryGetValue(ConverterConstants.INDEX_ADJUSTED_POINTS, out int value2) ? this.RegExpService.MatchDecimal(data[value2].InnerText) : null,
+                ArtisticPoints = indexes.TryGetValue(ConverterConstants.INDEX_ARTISTIC_POINTS, out int value3) ? this.RegExpService.MatchDecimal(data[value3].InnerText) : null,
+                FreestylePoints = indexes.TryGetValue(ConverterConstants.INDEX_FREESTYLE, out int value4) ? this.RegExpService.MatchDecimal(data[value4].InnerText) : null,
+                Ordinals = indexes.TryGetValue(ConverterConstants.INDEX_ORDINALS, out int value5) ? this.RegExpService.MatchDecimal(data[value5].InnerText) : null,
+                PercentagePoints = indexes.TryGetValue(ConverterConstants.INDEX_PERCENTAGE_POINTS, out int value6) ? this.RegExpService.MatchDecimal(data[value6].InnerText) : null,
+                RawPoints = indexes.TryGetValue(ConverterConstants.INDEX_RAW_POINTS, out int value7) ? this.RegExpService.MatchDecimal(data[value7].InnerText) : null,
+                SpecialPoints = indexes.TryGetValue(ConverterConstants.INDEX_SPECIAL_POINTS, out int value8) ? this.RegExpService.MatchDecimal(data[value8].InnerText) : null,
+                TechnicalPoints = indexes.TryGetValue(ConverterConstants.INDEX_TECHNICAL_POINTS, out int value9) ? this.RegExpService.MatchDecimal(data[value9].InnerText) : null,
+            };
+
+            if (isJudge)
+            {
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge K", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_1_POINTS, out int value11) ? this.RegExpService.MatchDecimal(data[value11].InnerText) : null });
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge E", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_2_POINTS, out int value12) ? this.RegExpService.MatchDecimal(data[value12].InnerText) : null });
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge H", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_3_POINTS, out int value13) ? this.RegExpService.MatchDecimal(data[value13].InnerText) : null });
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge C", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_4_POINTS, out int value14) ? this.RegExpService.MatchDecimal(data[value14].InnerText) : null });
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge M", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_5_POINTS, out int value15) ? this.RegExpService.MatchDecimal(data[value15].InnerText) : null });
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge B", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_6_POINTS, out int value16) ? this.RegExpService.MatchDecimal(data[value16].InnerText) : null });
+                equestrian.Scores.Add(new EDRScore { Judge = "Judge F", Points = indexes.TryGetValue(ConverterConstants.INDEX_EXECUTION_JUDGE_7_POINTS, out int value17) ? this.RegExpService.MatchDecimal(data[value17].InnerText) : null });
+            }
+
+            round.Equestrians.Add(equestrian);
+        }
     }
     #endregion EQUESTRIAN
 
@@ -572,11 +1406,10 @@ public class ResultConverter : BaseOlympediaConverter
     {
         var eventRound = this.CreateEventRound<DIVRound>(options.HtmlDocument, options.Event.Name);
 
-
         if (options.Event.IsTeamEvent)
         {
             var round = this.CreateRound<DIVRound>(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
-            round.Judges = await this.SetDIVJudgesAsync(options.HtmlDocument, options.Event);
+            round.Judges = await this.SetJudgesAsync(options.HtmlDocument, options.Event);
             await this.SetDIVPairsAsync(round, options.StandingTable.HtmlDocument, options.Event);
             this.ConvertDIVPairsDocumentsAsync(round, options.Documents, options.Event);
             eventRound.Rounds.Add(round);
@@ -588,7 +1421,7 @@ public class ResultConverter : BaseOlympediaConverter
                 foreach (var table in options.Tables)
                 {
                     var round = this.CreateRound<DIVRound>(table.FromDate, eventRound.Format, table.Round, eventRound.EventName);
-                    round.Judges = await this.SetDIVJudgesAsync(table.HtmlDocument, options.Event);
+                    round.Judges = await this.SetJudgesAsync(table.HtmlDocument, options.Event);
 
                     var heats = this.SplitHeats(table);
                     if (heats.Any())
@@ -612,7 +1445,7 @@ public class ResultConverter : BaseOlympediaConverter
             else
             {
                 var round = this.CreateRound<DIVRound>(eventRound.Dates.From, eventRound.Format, RoundType.FinalRound, eventRound.EventName);
-                round.Judges = await this.SetDIVJudgesAsync(options.HtmlDocument, options.Event);
+                round.Judges = await this.SetJudgesAsync(options.HtmlDocument, options.Event);
                 await this.SetDIVDiversAsync(round, options.StandingTable.HtmlDocument, options.Event, GroupType.None);
                 var results = this.OlympediaService.FindResults(options.HtmlDocument.ParsedText);
                 this.ConvertDIVDocuments(round, options.Documents, options.Event, results);
@@ -621,21 +1454,6 @@ public class ResultConverter : BaseOlympediaConverter
         }
 
         await this.ProcessJsonAsync(eventRound, options);
-    }
-
-    private async Task<List<BaseJudge>> SetDIVJudgesAsync(HtmlDocument htmlDocument, EventCacheModel eventCache)
-    {
-        var matches = this.RegExpService.Matches(htmlDocument.ParsedText, @"<tr class=""(?:referees|hidden_referees)""(?:.*?)<th>(.*?)<\/th>(.*?)<\/tr>");
-        var judges = new List<BaseJudge>();
-        foreach (System.Text.RegularExpressions.Match match in matches)
-        {
-            htmlDocument.LoadHtml(match.Groups[0].Value);
-            var judge = await this.CreateJudgeAsync(htmlDocument, eventCache, @$"<th>{match.Groups[1].Value}<\/th>(.*)", $"{match.Groups[1].Value}");
-            judges.Add(judge);
-        }
-
-        judges.RemoveAll(x => x == null);
-        return judges;
     }
 
     private void ConvertDIVPairsDocumentsAsync(DIVRound round, IOrderedEnumerable<Document> documents, EventCacheModel eventCache)
@@ -2783,17 +3601,7 @@ public class ResultConverter : BaseOlympediaConverter
 
         eventRound.Rounds.Add(round);
 
-        var resultJson = this.CreateResult<PELRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
     #endregion BASQUE PELOTA
 
@@ -2816,17 +3624,7 @@ public class ResultConverter : BaseOlympediaConverter
         }
         eventRound.Rounds.Add(round);
 
-        var resultJson = this.CreateResult<BTHRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task SetBTHTeamsAsync(BTHRound round, TableModel table, EventCacheModel eventCache)
@@ -3073,17 +3871,7 @@ public class ResultConverter : BaseOlympediaConverter
             eventRound.Rounds.Add(round);
         }
 
-        var resultJson = this.CreateResult<VBVRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task SetVBVPlayersAsync(VBVTeam team, TableModel table, EventCacheModel eventCache)
@@ -3323,17 +4111,7 @@ public class ResultConverter : BaseOlympediaConverter
             eventRound.Rounds.Add(round);
         }
 
-        var resultJson = this.CreateResult<BSBRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private void SetBSBTeamStatistics(BSBTeam team, TableModel table, HtmlNode node)
@@ -3733,17 +4511,7 @@ public class ResultConverter : BaseOlympediaConverter
             eventRound.Rounds.Add(round);
         }
 
-        var resultJson = this.CreateResult<BDMRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task<List<BDMPlayer>> GetBadmintonPlayersAsync(TableModel table, EventCacheModel eventCache)
@@ -3907,17 +4675,7 @@ public class ResultConverter : BaseOlympediaConverter
             eventRound.Rounds.Add(round);
         }
 
-        var resultJson = this.CreateResult<ATHRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private void SetATHCombinedResults(ATHRound round, IOrderedEnumerable<Document> documents, EventCacheModel eventCache, DisciplineCacheModel disciplineCache, GameCacheModel gameCache)
@@ -4054,31 +4812,31 @@ public class ResultConverter : BaseOlympediaConverter
                         }
                         else
                         {
-                            if (indexes.ContainsKey(ConverterConstants.INDEX_ATH_ROUND_1))
+                            if (indexes.ContainsKey(ConverterConstants.INDEX_ROUND_1))
                             {
                                 result.Attempts.Add(new ATHFieldAttempt
                                 {
-                                    Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ATH_ROUND_1, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null,
+                                    Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_1, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null,
                                     Tries = this.MapATHTries(data[value10].InnerText.Trim(), round.EventName),
                                     AttemptOrder = 1,
                                     Record = this.OlympediaService.FindRecord(row.OuterHtml),
                                 });
                             }
-                            if (indexes.ContainsKey(ConverterConstants.INDEX_ATH_ROUND_2))
+                            if (indexes.ContainsKey(ConverterConstants.INDEX_ROUND_2))
                             {
                                 result.Attempts.Add(new ATHFieldAttempt
                                 {
-                                    Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ATH_ROUND_2, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null,
+                                    Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_2, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null,
                                     Tries = this.MapATHTries(data[value11].InnerText.Trim(), round.EventName),
                                     AttemptOrder = 2,
                                     Record = this.OlympediaService.FindRecord(row.OuterHtml),
                                 });
                             }
-                            if (indexes.ContainsKey(ConverterConstants.INDEX_ATH_ROUND_3))
+                            if (indexes.ContainsKey(ConverterConstants.INDEX_ROUND_3))
                             {
                                 result.Attempts.Add(new ATHFieldAttempt
                                 {
-                                    Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ATH_ROUND_3, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null,
+                                    Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_3, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null,
                                     Tries = this.MapATHTries(data[value12].InnerText.Trim(), round.EventName),
                                     AttemptOrder = 3,
                                     Record = this.OlympediaService.FindRecord(row.OuterHtml),
@@ -4212,31 +4970,31 @@ public class ResultConverter : BaseOlympediaConverter
                 }
                 else
                 {
-                    if (indexes.ContainsKey(ConverterConstants.INDEX_ATH_ROUND_1))
+                    if (indexes.ContainsKey(ConverterConstants.INDEX_ROUND_1))
                     {
                         athlete.Attempts.Add(new ATHFieldAttempt
                         {
-                            Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ATH_ROUND_1, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null,
+                            Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_1, out int value10) ? this.RegExpService.MatchDouble(data[value10].InnerText) : null,
                             Tries = this.MapATHTries(data[value10].InnerText.Trim(), round.EventName),
                             AttemptOrder = 1,
                             Record = this.OlympediaService.FindRecord(row.OuterHtml),
                         });
                     }
-                    if (indexes.ContainsKey(ConverterConstants.INDEX_ATH_ROUND_2))
+                    if (indexes.ContainsKey(ConverterConstants.INDEX_ROUND_2))
                     {
                         athlete.Attempts.Add(new ATHFieldAttempt
                         {
-                            Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ATH_ROUND_2, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null,
+                            Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_2, out int value11) ? this.RegExpService.MatchDouble(data[value11].InnerText) : null,
                             Tries = this.MapATHTries(data[value11].InnerText.Trim(), round.EventName),
                             AttemptOrder = 2,
                             Record = this.OlympediaService.FindRecord(row.OuterHtml),
                         });
                     }
-                    if (indexes.ContainsKey(ConverterConstants.INDEX_ATH_ROUND_3))
+                    if (indexes.ContainsKey(ConverterConstants.INDEX_ROUND_3))
                     {
                         athlete.Attempts.Add(new ATHFieldAttempt
                         {
-                            Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ATH_ROUND_3, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null,
+                            Measurement = indexes.TryGetValue(ConverterConstants.INDEX_ROUND_3, out int value12) ? this.RegExpService.MatchDouble(data[value12].InnerText) : null,
                             Tries = this.MapATHTries(data[value12].InnerText.Trim(), round.EventName),
                             AttemptOrder = 3,
                             Record = this.OlympediaService.FindRecord(row.OuterHtml),
@@ -4683,16 +5441,7 @@ public class ResultConverter : BaseOlympediaConverter
             }
         }
 
-        var resultJson = this.CreateResult<SWARound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task SetSWAEventResultsAsync(SWARound round, TableModel table, EventCacheModel eventCache, string info)
@@ -5076,16 +5825,7 @@ public class ResultConverter : BaseOlympediaConverter
             }
         }
 
-        var resultJson = this.CreateResult<GARRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task SetGARTeamsAsync(GARRound round, TableModel table, EventCacheModel eventCache)
@@ -5582,16 +6322,7 @@ public class ResultConverter : BaseOlympediaConverter
             }
         }
 
-        var resultJson = this.CreateResult<ARCRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private void ConvertArcheryTeamAdditionalInfo(ARCRound round, IList<int> results, IOrderedEnumerable<Document> documents)
@@ -6252,16 +6983,7 @@ public class ResultConverter : BaseOlympediaConverter
             }
         }
 
-        var resultJson = this.CreateResult<ALPRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task SetALPTeamMatchesAsync(ALPRound round, TableModel table, EventCacheModel eventCache, IOrderedEnumerable<Document> documents)
@@ -6571,16 +7293,7 @@ public class ResultConverter : BaseOlympediaConverter
             eventRound.Rounds.Add(round);
         }
 
-        var resultJson = this.CreateResult<BKBRound>(options.Event, options.Discipline, options.Game);
-        resultJson.Rounds = eventRound.Rounds;
-        var json = JsonSerializer.Serialize(resultJson);
-        var result = new Result
-        {
-            EventId = options.Event.Id,
-            Json = json
-        };
-
-        await this.resultsService.AddOrUpdateAsync(result);
+        await this.ProcessJsonAsync(eventRound, options);
     }
 
     private async Task SetBasketballPlayersStatisticsAsync(BKBMatch match, Document document, GameCacheModel gameCache, EventCacheModel eventCache, DisciplineCacheModel disciplineCache)

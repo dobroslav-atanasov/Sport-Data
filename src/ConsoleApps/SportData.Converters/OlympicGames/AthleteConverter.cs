@@ -9,7 +9,7 @@ using SportData.Data.Entities.Crawlers;
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Entities.OlympicGames;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
-using SportData.Services.Data.SportDataDb.Interfaces;
+using SportData.Services.Data.OlympicGamesDb.Interfaces;
 using SportData.Services.Interfaces;
 
 public class AthleteConverter : BaseOlympediaConverter
