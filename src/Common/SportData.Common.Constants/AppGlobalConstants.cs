@@ -8,6 +8,7 @@ public static class AppGlobalConstants
     public const string APP_SETTINGS_FILE = "appsettings.json";
 
     public const string CRAWLER_STORAGE_CONNECTION_STRING = "CrawlerStorageConnectionString";
+    public const string OLYMPIC_GAMES_CONNECTION_STRING = "OlympicGamesConnectionString";
     public const string SPORT_DATA_CONNECTION_STRING = "SportDataConnectionString";
 
     public const string AUTOMAPPER_MODELS_ASSEMBLY = "SportData.Data.Models";
