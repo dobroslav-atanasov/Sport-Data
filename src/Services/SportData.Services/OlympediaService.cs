@@ -2,6 +2,7 @@
 
 using SportData.Common.Constants;
 using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
 using SportData.Data.Models.OlympicGames.Equestrian;
@@ -176,13 +177,13 @@ public class OlympediaService : IOlympediaService
                 case "slalom":
                     indexes[ConverterConstants.INDEX_SLALOM] = i;
                     break;
-                case "tp":
+                //case "tp":
                 case "grand prix freestyle technical points":
                     indexes[ConverterConstants.INDEX_TECHNICAL_POINTS] = i;
                     break;
                 case "points":
                 case "total points":
-                //case "tp":
+                case "tp":
                 case "team points":
                 case "final points (raw points)":
                 case "tie-breaker":
@@ -222,17 +223,24 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "1st half":
                 case "part #1":
+                case "round one penalties":
                     indexes[ConverterConstants.INDEX_PART_1] = i;
                     break;
                 case "2nd half":
                 case "part #2":
+                case "round two penalties":
                     indexes[ConverterConstants.INDEX_PART_2] = i;
+                    break;
+                case "part #3":
+                case "round three penalties":
+                    indexes[ConverterConstants.INDEX_PART_3] = i;
                     break;
                 case "set points":
                     indexes[ConverterConstants.INDEX_SET_POINTS] = i;
                     break;
                 case "ip":
                 case "individual points":
+                case "individual penalty points":
                     indexes[ConverterConstants.INDEX_INDIVIDUAL_POINTS] = i;
                     break;
                 case "set 1":
@@ -397,10 +405,16 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.INDEX_OTHER_PENALTY] = i;
                     break;
                 case "penalty":
+                case "penalty points":
+                case "total penalty points":
+                case "faults":
+                case "team penalty points":
                     indexes[ConverterConstants.INDEX_PENALTY] = i;
                     break;
                 case "time penalty":
                 case "penalty time":
+                case "time penalties":
+                case "time fault/other faults":
                     indexes[ConverterConstants.INDEX_TIME_PENALTY] = i;
                     break;
                 case "qp(50%)":
@@ -875,7 +889,7 @@ public class OlympediaService : IOlympediaService
                 case "group c round one":
                 case "group d round one":
                 case "group e round one":
-                    indexes[ConverterConstants.INDEX_ATH_ROUND_1] = i;
+                    indexes[ConverterConstants.INDEX_ROUND_1] = i;
                     break;
                 case "r2":
                 case "round #2":
@@ -888,7 +902,7 @@ public class OlympediaService : IOlympediaService
                 case "group c round three":
                 case "group d round three":
                 case "group e round three":
-                    indexes[ConverterConstants.INDEX_ATH_ROUND_2] = i;
+                    indexes[ConverterConstants.INDEX_ROUND_2] = i;
                     break;
                 case "r3":
                 case "round #3":
@@ -901,7 +915,7 @@ public class OlympediaService : IOlympediaService
                 case "group c round two":
                 case "group d round two":
                 case "group e round two":
-                    indexes[ConverterConstants.INDEX_ATH_ROUND_3] = i;
+                    indexes[ConverterConstants.INDEX_ROUND_3] = i;
                     break;
                 case "r4":
                 case "round #4":
@@ -1225,6 +1239,45 @@ public class OlympediaService : IOlympediaService
                     break;
                 case "percentage points":
                     indexes[ConverterConstants.INDEX_PERCENTAGE_POINTS] = i;
+                    break;
+                case "cross-country":
+                    indexes[ConverterConstants.INDEX_CROSS_COUNTRY] = i;
+                    break;
+                case "cross-country (5 km)":
+                    indexes[ConverterConstants.INDEX_CROSS_COUNTRY_5] = i;
+                    break;
+                case "cross-country (20 km)":
+                    indexes[ConverterConstants.INDEX_CROSS_COUNTRY_20] = i;
+                    break;
+                case "cross-country (50 km)":
+                    indexes[ConverterConstants.INDEX_CROSS_COUNTRY_50] = i;
+                    break;
+                case "dressage":
+                    indexes[ConverterConstants.INDEX_DRESSAGE] = i;
+                    break;
+                case "jumping":
+                case "jumping final":
+                    indexes[ConverterConstants.INDEX_JUMPING] = i;
+                    break;
+                case "jumping qualification":
+                    indexes[ConverterConstants.INDEX_JUMPING_QUALIFICATION] = i;
+                    break;
+                case "steeplechase":
+                    indexes[ConverterConstants.INDEX_STEEPLECHASE] = i;
+                    break;
+                case "1st jump-off faults":
+                case "jump-off faults":
+                case "jump-off points/time":
+                    indexes[ConverterConstants.INDEX_JUMP_OFF_PENALTY_1] = i;
+                    break;
+                case "2nd jump-off faults":
+                    indexes[ConverterConstants.INDEX_JUMP_OFF_PENALTY_2] = i;
+                    break;
+                case "jump-off time":
+                    indexes[ConverterConstants.INDEX_JUMP_OFF_TIME] = i;
+                    break;
+                case "jump penalties":
+                    indexes[ConverterConstants.INDEX_JUMP_PENALTY] = i;
                     break;
             }
         }
