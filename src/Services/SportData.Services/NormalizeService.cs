@@ -3,6 +3,7 @@
 using System.Text.RegularExpressions;
 
 using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Enumerations;
 using SportData.Data.Models.OlympicGames.Athletics;
 using SportData.Data.Models.OlympicGames.Gymnastics;
@@ -376,20 +377,29 @@ public class NormalizeService : INormalizeService
             case "group a":
             case "group a1":
             case "group one":
+            case "pool one":
+            case "round one pool one":
                 group = GroupType.A;
                 break;
             case "group b":
             case "group b1":
             case "group two":
+            case "pool two":
+            case "round one pool two":
                 group = GroupType.B;
                 break;
             case "group c":
+            case "pool three":
+            case "round one pool three":
                 group = GroupType.C;
                 break;
             case "group d":
+            case "pool four":
+            case "round one pool four":
                 group = GroupType.D;
                 break;
             case "group e":
+            case "pool five":
                 group = GroupType.E;
                 break;
             case "group f":
@@ -864,6 +874,20 @@ public class NormalizeService : INormalizeService
                 break;
             case "seeding round":
                 roundType = RoundType.SeedingRound;
+                break;
+            case "grand prix freestyle":
+                roundType = RoundType.GrandPrixFreestyle;
+                break;
+            case "grand prix special":
+                roundType = RoundType.GrandPrixSpecial;
+                break;
+            case "grand prix":
+                roundType = RoundType.GrandPrix;
+                break;
+            case "jump-off":
+            case "jump-off for 1-2":
+            case "jump-off for 3-9":
+                roundType = RoundType.JumpOff;
                 break;
         }
 
