@@ -2,7 +2,8 @@
 
 public enum ResultType
 {
-    Draw = 0,
+    None = 0,
     Win = 1,
     Lose = 2,
+    Draw = 3,
 }
