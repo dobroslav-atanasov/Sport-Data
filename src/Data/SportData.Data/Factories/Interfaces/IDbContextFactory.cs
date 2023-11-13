@@ -6,5 +6,5 @@ public interface IDbContextFactory
 {
     CrawlerStorageDbContext CreateCrawlerStorageDbContext();
 
-    SportDataDbContext CreateSportDataDbContext();
+    OlympicGamesDbContext CreateOlympicGamesDbContext();
 }
