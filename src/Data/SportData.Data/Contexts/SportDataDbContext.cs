@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 using SportData.Data.Common.Interfaces;
-using SportData.Data.Entities;
-using SportData.Data.Entities.Countries;
+using SportData.Data.Entities.SportData;
 
 public class SportDataDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
