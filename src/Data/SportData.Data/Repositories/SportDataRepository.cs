@@ -77,6 +77,4 @@ public class SportDataRepository<TEntity> : IRepository<TEntity>, IDeletableEnti
             this.Context?.Dispose();
         }
     }
-
-
 }
