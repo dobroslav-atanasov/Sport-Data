@@ -1,6 +1,6 @@
 ﻿namespace SportData.Services.Data.SportDataDb.Interfaces;
 
-using SportData.Data.Entities.Countries;
+using SportData.Data.Entities.SportData;
 
 public interface ICountriesService
 {

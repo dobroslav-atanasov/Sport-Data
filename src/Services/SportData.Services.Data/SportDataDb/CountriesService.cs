@@ -1,6 +1,6 @@
 ﻿namespace SportData.Services.Data.SportDataDb;
 
-using SportData.Data.Entities.Countries;
+using SportData.Data.Entities.SportData;
 using SportData.Data.Repositories;
 using SportData.Services.Data.SportDataDb.Interfaces;
 

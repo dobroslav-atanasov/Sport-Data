@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using SportData.Data.Entities.Crawlers;
-using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.Crawlers.Enumerations;
 using SportData.Data.Factories.Interfaces;
 using SportData.Data.Repositories;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
