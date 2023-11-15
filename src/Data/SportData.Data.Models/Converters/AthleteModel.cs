@@ -1,6 +1,6 @@
 ﻿namespace SportData.Data.Models.Converters;
 
-using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 
 public class AthleteModel
 {
