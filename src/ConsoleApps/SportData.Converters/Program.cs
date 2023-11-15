@@ -17,8 +17,8 @@ using SportData.Data.Repositories;
 using SportData.Services;
 using SportData.Services.Data.CrawlerStorageDb;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
-using SportData.Services.Data.SportDataDb;
-using SportData.Services.Data.SportDataDb.Interfaces;
+using SportData.Services.Data.OlympicGamesDb;
+using SportData.Services.Data.OlympicGamesDb.Interfaces;
 using SportData.Services.Interfaces;
 using SportData.Services.Mapper;
 
@@ -33,6 +33,7 @@ public class Program
     private static async Task StartConvertersAscyn(ServiceProvider services)
     {
         //await services.GetService<CountryDataConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
+        //await services.GetService<CountryConverter>().ConvertAsync(ConverterConstants.COUNTRY_CONVERTER);
         //await services.GetService<NOCConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_NOC_CONVERTER);
         //await services.GetService<GameConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_GAME_CONVERTER);
         //await services.GetService<SportDisciplineConverter>().ConvertAsync(ConverterConstants.OLYMPEDIA_SPORT_DISCIPLINE_CONVERTER);
@@ -66,17 +67,22 @@ public class Program
         MapperConfig.RegisterMapper(Assembly.Load(AppGlobalConstants.AUTOMAPPER_MODELS_ASSEMBLY));
 
         // DATABASE
-        var sportDataDbOptions = new DbContextOptionsBuilder<SportDataDbContext>()
-            .UseLazyLoadingProxies(true)
-            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING))
-            .Options;
-
         var crawlerStorageDbOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
             .UseLazyLoadingProxies(true)
             .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING))
             .Options;
 
-        var dbContextFactory = new DbContextFactory(crawlerStorageDbOptions, sportDataDbOptions);
+        var sportDataDbOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
+            .UseLazyLoadingProxies(true)
+            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING))
+            .Options;
+
+        var olympicGamesDbOptions = new DbContextOptionsBuilder<OlympicGamesDbContext>()
+            .UseLazyLoadingProxies(true)
+            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.OLYMPIC_GAMES_CONNECTION_STRING))
+            .Options;
+
+        var dbContextFactory = new DbContextFactory(crawlerStorageDbOptions, olympicGamesDbOptions);
         services.AddSingleton<IDbContextFactory>(dbContextFactory);
 
         services.AddDbContext<SportDataDbContext>(options =>
@@ -122,8 +128,10 @@ public class Program
         services.AddScoped<ITeamsService, TeamsService>();
         services.AddScoped<ISquadsService, SquadsService>();
         services.AddScoped<IResultsService, ResultsService>();
+        services.AddScoped<Services.Data.SportDataDb.Interfaces.ICountriesService, Services.Data.SportDataDb.CountriesService>();
 
         services.AddScoped<CountryDataConverter>();
+        services.AddScoped<CountryConverter>();
         services.AddScoped<NOCConverter>();
         services.AddScoped<GameConverter>();
         services.AddScoped<SportDisciplineConverter>();
