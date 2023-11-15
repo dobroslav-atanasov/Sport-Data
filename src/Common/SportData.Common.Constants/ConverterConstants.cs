@@ -205,9 +205,9 @@ public static class ConverterConstants
     public const string INDEX_TOTAL_ATTEMPTS = "total attempts";
     public const string INDEX_TOTAL_MISSES = "total misses";
     public const string INDEX_MISSES = "misses";
-    public const string INDEX_ATH_ROUND_1 = "ath round 1";
-    public const string INDEX_ATH_ROUND_2 = "ath round 2";
-    public const string INDEX_ATH_ROUND_3 = "ath round 3";
+    public const string INDEX_ROUND_1 = "ath round 1";
+    public const string INDEX_ROUND_2 = "ath round 2";
+    public const string INDEX_ROUND_3 = "ath round 3";
     public const string INDEX_ATH_ROUND_4 = "ath round 4";
     public const string INDEX_ATH_ROUND_5 = "ath round 5";
     public const string INDEX_ATH_ROUND_6 = "ath round 6";
@@ -320,9 +320,9 @@ public static class ConverterConstants
     public const string INDEX_DRESSAGE = "dressage";
     public const string INDEX_JUMPING_QUALIFICATION = "jumping qualification";
     public const string INDEX_STEEPLECHASE = "steeplechase";
-
     public const string INDEX_JUMP_OFF_PENALTY_1 = "jump off penalty 1";
     public const string INDEX_JUMP_OFF_PENALTY_2 = "jump off penalty 2";
     public const string INDEX_JUMP_OFF_TIME = "jump off time";
     public const string INDEX_JUMP_PENALTY = "jump penalty";
+    public const string INDEX_PART_3 = "part 3";
 }
