@@ -56,17 +56,12 @@ public class Program
         });
 
         // DATABASE
-        var sportDataDbOptions = new DbContextOptionsBuilder<SportDataDbContext>()
-            .UseLazyLoadingProxies(true)
-            .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.SPORT_DATA_CONNECTION_STRING))
-            .Options;
-
         var crawlerStorageDbOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
             .UseLazyLoadingProxies(true)
             .UseSqlServer(configuration.GetConnectionString(AppGlobalConstants.CRAWLER_STORAGE_CONNECTION_STRING))
             .Options;
 
-        var dbContextFactory = new DbContextFactory(crawlerStorageDbOptions, sportDataDbOptions);
+        var dbContextFactory = new DbContextFactory(crawlerStorageDbOptions, null);
         services.AddSingleton<IDbContextFactory>(dbContextFactory);
 
         services.AddDbContext<CrawlerStorageDbContext>(options =>
