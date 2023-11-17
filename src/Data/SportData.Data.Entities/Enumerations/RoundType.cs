@@ -31,4 +31,5 @@ public enum RoundType
     GrandPrix = 26,
     GrandPrixSpecial = 27,
     GrandPrixFreestyle = 28,
+    JumpOff = 29
 }
