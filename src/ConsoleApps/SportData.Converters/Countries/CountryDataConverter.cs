@@ -6,8 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using SportData.Common.Constants;
-using SportData.Data.Entities.Countries;
 using SportData.Data.Entities.Crawlers;
+using SportData.Data.Entities.SportData;
 using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Data.SportDataDb.Interfaces;
 using SportData.Services.Interfaces;
