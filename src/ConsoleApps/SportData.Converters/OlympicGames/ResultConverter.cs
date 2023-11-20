@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using SportData.Common.Constants;
 using SportData.Data.Entities.Crawlers;
 using SportData.Data.Entities.Enumerations;
-using SportData.Data.Entities.OlympicGames;
 using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Cache;
 using SportData.Data.Models.Converters;
@@ -4284,7 +4283,7 @@ public class ResultConverter : BaseOlympediaConverter
     {
         var eventRound = this.CreateEventRound<BDMRound>(options.HtmlDocument, options.Event.Name);
 
-        var pairs = new Dictionary<string, Team>();
+        var pairs = new Dictionary<string, SportData.Data.Entities.OlympicGames.Team>();
         var players = new List<BDMPlayer>();
         if (options.Event.IsTeamEvent)
         {
@@ -4545,13 +4544,13 @@ public class ResultConverter : BaseOlympediaConverter
         return players;
     }
 
-    private async Task<Dictionary<string, Team>> GetBadmintonPairsAsync(TableModel table, EventCacheModel eventCache)
+    private async Task<Dictionary<string, SportData.Data.Entities.OlympicGames.Team>> GetBadmintonPairsAsync(TableModel table, EventCacheModel eventCache)
     {
         var rows = table.HtmlDocument.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr");
         var headers = rows.First().Elements("th").Select(x => x.InnerText).ToList();
         var indexes = this.OlympediaService.FindIndexes(headers);
 
-        var pairs = new Dictionary<string, Team>();
+        var pairs = new Dictionary<string, SportData.Data.Entities.OlympicGames.Team>();
         foreach (var row in rows.Skip(1))
         {
             var data = row.Elements("td").ToList();
