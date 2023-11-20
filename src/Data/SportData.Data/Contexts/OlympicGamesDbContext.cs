@@ -7,14 +7,25 @@ using SportData.Data.Entities.OlympicGames;
 
 public class OlympicGamesDbContext : DbContext
 {
+    public OlympicGamesDbContext()
+    {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseSqlServer("Server=.;Database=OlympicGamesDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True");
+    }
+
     public OlympicGamesDbContext(DbContextOptions<OlympicGamesDbContext> options)
-        :base(options)
-    {        
+        : base(options)
+    {
     }
 
     public virtual DbSet<Athlete> Athletes { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
+
+    public virtual DbSet<Country> Countries { get; set; }
 
     public virtual DbSet<Discipline> Disciplines { get; set; }
 
