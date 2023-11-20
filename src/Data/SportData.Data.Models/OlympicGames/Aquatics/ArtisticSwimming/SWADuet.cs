@@ -1,6 +1,6 @@
 ﻿namespace SportData.Data.Models.OlympicGames.Aquatics.ArtisticSwimming;
 
-using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.OlympicGames.Base;
 
 public class SWADuet : BaseTeam
