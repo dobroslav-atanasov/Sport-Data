@@ -7,15 +7,6 @@ using SportData.Data.Entities.OlympicGames;
 
 public class OlympicGamesDbContext : DbContext
 {
-    public OlympicGamesDbContext()
-    {
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlServer("Server=.;Database=OlympicGamesDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True");
-    }
-
     public OlympicGamesDbContext(DbContextOptions<OlympicGamesDbContext> options)
         : base(options)
     {
