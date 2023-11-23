@@ -2,6 +2,7 @@
 
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Entities.OlympicGames.Enumerations;
+using SportData.Data.Models.Converters;
 using SportData.Data.Models.Enumerations;
 using SportData.Data.Models.OlympicGames.Athletics;
 using SportData.Data.Models.OlympicGames.Gymnastics;
@@ -34,4 +35,6 @@ public interface INormalizeService
 
     string CleanEventName(string text);
     string MapAthleticsCombinedEvents(string text);
+
+    RoundModel MapRound(string title);
 }
