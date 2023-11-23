@@ -76,6 +76,8 @@ public class Program
         services.AddScoped<IMD5Hash, MD5Hash>();
         services.AddScoped<IZipService, ZipService>();
         services.AddScoped<IRegExpService, RegExpService>();
+        services.AddScoped<IOlympediaService, OlympediaService>();
+        services.AddScoped<IDateService, DateService>();
 
         services.AddScoped<ICrawlersService, CrawlersService>();
         services.AddScoped<IGroupsService, GroupsService>();
