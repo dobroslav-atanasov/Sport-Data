@@ -37,4 +37,6 @@ public interface INormalizeService
     string MapAthleticsCombinedEvents(string text);
 
     RoundModel MapRound(string title);
+
+    GroupModel MapGroup(string title, string html);
 }
