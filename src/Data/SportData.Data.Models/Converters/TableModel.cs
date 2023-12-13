@@ -2,10 +2,12 @@
 
 using HtmlAgilityPack;
 
-using SportData.Data.Entities.Enumerations;
-
 public class TableModel
 {
+    public int Order { get; set; }
+
+    public string OriginalHtml { get; set; }
+
     public string Html { get; set; }
 
     public int EventId { get; set; }
@@ -21,15 +23,21 @@ public class TableModel
         }
     }
 
+    public DateTime? From { get; set; }
+
+    public DateTime? To { get; set; }
+
     public string Title { get; set; }
 
-    public RoundType Round { get; set; }
+    public RoundModel Type { get; set; }
 
-    public string RoundInfo { get; set; }
+    public string Format { get; set; }
 
-    public GroupType GroupType { get; set; }
+    public List<GroupModel> Groups { get; set; } = new();
 
-    public DateTime? FromDate { get; set; }
+    public HtmlNodeCollection Rows { get; set; }
 
-    public DateTime? ToDate { get; set; }
+    public List<string> Headers { get; set; } = new();
+
+    public Dictionary<string, int> Indexes { get; set; } = new();
 }
