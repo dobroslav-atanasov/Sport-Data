@@ -3,7 +3,6 @@
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Converters;
-using SportData.Data.Models.Enumerations;
 using SportData.Data.Models.OlympicGames.Athletics;
 using SportData.Data.Models.OlympicGames.Gymnastics;
 
@@ -21,7 +20,7 @@ public interface INormalizeService
 
     string MapCityNameAndYearToNOCCode(string cityName, int year);
 
-    RoundType MapRoundType(string text);
+    //RoundType MapRoundType(string text);
 
     GYMType MapGymnasticsType(string text);
 
@@ -29,9 +28,9 @@ public interface INormalizeService
 
     ATHEventGroup MapAthleticsEventGroup(string text);
 
-    HeatType MapHeats(string text);
+    //HeatType MapHeats(string text);
 
-    GroupType MapGroupType(string text);
+    //GroupType MapGroupType(string text);
 
     string CleanEventName(string text);
     string MapAthleticsCombinedEvents(string text);
