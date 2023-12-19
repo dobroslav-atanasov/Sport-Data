@@ -3,14 +3,13 @@
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Converters;
-using SportData.Data.Models.Enumerations;
-using SportData.Data.Models.OlympicGames.Equestrian;
+using SportData.Data.Models.OlympicGames;
 
 public interface IOlympediaService
 {
     List<AthleteModel> FindAthletes(string text);
 
-    IList<string> FindCountryCodes(string text);
+    IList<string> FindNOCCodes(string text);
 
     List<int> FindVenues(string text);
 
@@ -18,25 +17,19 @@ public interface IOlympediaService
 
     string FindNOCCode(string text);
 
-    Dictionary<string, int> FindIndexes(List<string> headers);
-
     MedalType FindMedal(string text);
 
+    MedalType FindMedal(string text, RoundType round);
+
     FinishStatus FindStatus(string text);
-
-    IList<AthleteModel> GetAthletes(string text);
-
-    bool IsMatchNumber(string text);
-
-    bool IsAthleteNumber(string text);
 
     int FindMatchNumber(string text);
 
     int FindResultNumber(string text);
 
-    MatchResult GetMatchResult(string text, MatchResultType type);
+    string FindLocation(string html);
 
-    MatchType FindMatchType(RoundType round, string text);
+    //MatchResultOld GetMatchResult(string text, MatchResultType type);
 
     string FindMatchInfo(string text);
 
@@ -50,5 +43,11 @@ public interface IOlympediaService
 
     int FindSeedNumber(string text);
 
+    void SetWinAndLose(MatchModel match);
+
     Horse FindHorse(string text);
+
+    Dictionary<string, int> GetIndexes(List<string> headers);
+
+    Dictionary<string, int> FindIndexes(List<string> headers);
 }
