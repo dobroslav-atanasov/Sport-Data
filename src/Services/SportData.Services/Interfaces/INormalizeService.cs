@@ -3,8 +3,6 @@
 using SportData.Data.Entities.Enumerations;
 using SportData.Data.Entities.OlympicGames.Enumerations;
 using SportData.Data.Models.Converters;
-using SportData.Data.Models.OlympicGames.Athletics;
-using SportData.Data.Models.OlympicGames.Gymnastics;
 
 public interface INormalizeService
 {
@@ -22,20 +20,21 @@ public interface INormalizeService
 
     //RoundType MapRoundType(string text);
 
-    GYMType MapGymnasticsType(string text);
+    //GYMType MapGymnasticsType(string text);
 
     GenderType MapGenderType(string text);
 
-    ATHEventGroup MapAthleticsEventGroup(string text);
+    //ATHEventGroup MapAthleticsEventGroup(string text);
 
     //HeatType MapHeats(string text);
 
     //GroupType MapGroupType(string text);
 
     string CleanEventName(string text);
-    string MapAthleticsCombinedEvents(string text);
+
+    //string MapAthleticsCombinedEvents(string text);
 
     RoundModel MapRound(string title);
 
-    GroupModel MapGroup(string title, string html);
+    TableModel MapGroup(string title, string html);
 }
