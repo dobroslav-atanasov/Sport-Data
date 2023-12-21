@@ -29,11 +29,15 @@ public class TableModel
 
     public string Title { get; set; }
 
-    public RoundModel Type { get; set; }
+    public RoundModel Round { get; set; }
 
     public string Format { get; set; }
 
-    public List<GroupModel> Groups { get; set; } = new();
+    public bool IsGroup { get; set; } = false;
+
+    public int Number { get; set; }
+
+    public List<TableModel> Groups { get; set; } = new();
 
     public HtmlNodeCollection Rows { get; set; }
 
