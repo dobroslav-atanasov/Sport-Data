@@ -1,7 +1,5 @@
 ﻿namespace SportData.Converters;
 
-using System.Reflection;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +18,7 @@ using SportData.Services.Data.CrawlerStorageDb.Interfaces;
 using SportData.Services.Data.OlympicGamesDb;
 using SportData.Services.Data.OlympicGamesDb.Interfaces;
 using SportData.Services.Interfaces;
-using SportData.Services.Mapper;
+using SportData.Services.Mapper.Profiles;
 
 public class Program
 {
@@ -64,7 +62,8 @@ public class Program
         });
 
         // AUTOMAPPER
-        MapperConfig.RegisterMapper(Assembly.Load(AppGlobalConstants.AUTOMAPPER_MODELS_ASSEMBLY));
+        services.AddAutoMapper(typeof(OlympicGamesProfile));
+        //MapperConfig.RegisterMapper(Assembly.Load(AppGlobalConstants.AUTOMAPPER_MODELS_ASSEMBLY));
 
         // DATABASE
         var crawlerStorageDbOptions = new DbContextOptionsBuilder<CrawlerStorageDbContext>()
