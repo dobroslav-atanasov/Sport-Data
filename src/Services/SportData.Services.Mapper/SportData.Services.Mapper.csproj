@@ -10,4 +10,9 @@
     <PackageReference Include="AutoMapper" Version="12.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Data\SportData.Data.Entities\SportData.Data.Entities.csproj" />
+    <ProjectReference Include="..\..\Data\SportData.Data.Models\SportData.Data.Models.csproj" />
+  </ItemGroup>
+
 </Project>
