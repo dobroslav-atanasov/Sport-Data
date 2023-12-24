@@ -3718,14 +3718,10 @@ public class OlympediaService : IOlympediaService
                     indexes[ConverterConstants.TieBreak] = i;
                     break;
                 case "Tiebreak 1":
-                    indexes[ConverterConstants.Tiebreak1] = i;
-                    break;
                 case "Tie-break 1":
                     indexes[ConverterConstants.TieBreak1] = i;
                     break;
                 case "Tiebreak 2":
-                    indexes[ConverterConstants.Tiebreak2] = i;
-                    break;
                 case "Tie-break 2":
                     indexes[ConverterConstants.TieBreak2] = i;
                     break;
