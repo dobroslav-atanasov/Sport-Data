@@ -1,10 +1,8 @@
 ﻿namespace SportData.Data.Models.Cache;
 
 using SportData.Data.Entities.Enumerations;
-using SportData.Data.Entities.OlympicGames;
-using SportData.Services.Mapper.Interfaces;
 
-public class EventCacheModel : IMapFrom<Event>
+public class EventCacheModel
 {
     public int Id { get; set; }
 

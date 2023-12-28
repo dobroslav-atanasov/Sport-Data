@@ -1,9 +1,6 @@
 ﻿namespace SportData.Data.Models.Cache;
 
-using SportData.Data.Entities.OlympicGames;
-using SportData.Services.Mapper.Interfaces;
-
-public class NOCCacheModel : IMapFrom<NOC>
+public class NOCCacheModel
 {
     public int Id { get; set; }
 
