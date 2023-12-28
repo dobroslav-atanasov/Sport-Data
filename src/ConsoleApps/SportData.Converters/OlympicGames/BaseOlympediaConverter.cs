@@ -145,8 +145,8 @@ public abstract class BaseOlympediaConverter : BaseConverter
     {
         var list = new List<string>
         {
-            "1900-Archery-Unknown Event, Men",
-            "1920-Shooting-Unknown Event, Men",
+            "1900-Archery-None Event, Men",
+            "1920-Shooting-None Event, Men",
             "1904-Artistic Gymnastics-Individual All-Around, Field Sports, Men"
         };
 
