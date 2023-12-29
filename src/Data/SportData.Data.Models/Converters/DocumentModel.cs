@@ -10,9 +10,11 @@ public class DocumentModel
 
     public DateTime? From { get; set; }
 
+    public DateTime? To { get; set; }
+
     public string Html { get; set; }
 
     public HtmlDocument HtmlDocument { get; set; }
 
-    public List<RoundTableModel> Tables { get; set; } = new();
+    public List<TableModel> Tables { get; set; } = new();
 }
