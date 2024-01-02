@@ -3,21 +3,24 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 
 using SportData.Data.Entities.OlympicGames;
 using SportData.Data.Factories.Interfaces;
 using SportData.Data.Models.Cache;
 using SportData.Services.Data.OlympicGamesDb.Interfaces;
-using SportData.Services.Mapper.Extensions;
 
 public class VenuesService : IVenuesService
 {
     private readonly IDbContextFactory dbContextFactory;
+    private readonly IMapper mapper;
 
-    public VenuesService(IDbContextFactory dbContextFactory)
+    public VenuesService(IDbContextFactory dbContextFactory, IMapper mapper)
     {
         this.dbContextFactory = dbContextFactory;
+        this.mapper = mapper;
     }
 
     public async Task<Venue> AddOrUpdateAsync(Venue venue)
@@ -49,11 +52,12 @@ public class VenuesService : IVenuesService
     {
         using var context = dbContextFactory.CreateOlympicGamesDbContext();
 
-        var models = context
+        var venues = context
             .Venues
             .AsNoTracking()
-            .To<VenueCacheModel>()
             .ToList();
+
+        var models = this.mapper.Map<List<VenueCacheModel>>(venues);
 
         return models;
     }
