@@ -1,14 +1,14 @@
 ﻿namespace SportData.Data.Models.Converters;
 
-using SportData.Data.Entities.Enumerations;
+using SportData.Data.Entities.OlympicGames.Enumerations;
 
 public class RoundModel
 {
     public string Name { get; set; }
 
-    public RoundStatus Status { get; set; }
+    public RoundType Type { get; set; }
 
-    public RoundStatus SubStatus { get; set; }
+    public RoundType SubType { get; set; }
 
     public int Group { get; set; }
 
