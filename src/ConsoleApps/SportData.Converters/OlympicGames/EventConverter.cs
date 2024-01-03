@@ -95,7 +95,7 @@ public class EventConverter : BaseOlympediaConverter
         //var rows = table.Elements("tr");
 
         var athletes = this.OlympediaService.FindAthletes(table.OuterHtml);
-        var codes = this.OlympediaService.FindCountryCodes(table.OuterHtml);
+        var codes = this.OlympediaService.FindNOCCodes(table.OuterHtml);
         var isTeamEvent = false;
         if (athletes.Count != codes.Count)
         {
