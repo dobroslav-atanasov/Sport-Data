@@ -91,11 +91,12 @@ public class ResultConverter : BaseOlympediaConverter
                             await this.ProcessArcheryAsync(options);
                             break;
                         case DisciplineConstants.ARTISTIC_GYMNASTICS:
+                            // TODO: Judges
                             await this.ProcessArtisticGymnasticsAsync(options);
                             break;
-                            //case DisciplineConstants.ARTISTIC_SWIMMING:
-                            //    await this.ProcessArtisticSwimmingAsync(options);
-                            //    break;
+                        case DisciplineConstants.ARTISTIC_SWIMMING:
+                            await this.ProcessArtisticSwimmingAsync(options);
+                            break;
                             //case DisciplineConstants.ATHLETICS:
                             //    await this.ProcessAthleticsAsync(options);
                             //    break;
@@ -644,38 +645,135 @@ public class ResultConverter : BaseOlympediaConverter
     }
     #endregion PRIVATE
 
+    #region ARTISTIC SWIMMING
+    private async Task ProcessArtisticSwimmingAsync(ConvertOptions options)
+    {
+        var rounds = new List<Round<ArtisticSwimming>>();
+
+        if (options.Tables.Count == 1)
+        {
+
+        }
+        else
+        {
+            Console.WriteLine(options.Game.Year);
+            foreach (var table in options.Tables.Skip(1))
+            {
+                foreach (var item in table.Indexes)
+                {
+                    Console.WriteLine(item.Key);
+                }
+                //var round = this.CreateRound<ArtisticSwimming>(table.From, table.To, table.Format, table.Round, options.Event.Name, null);
+                //await this.SetArtisticSwimmingTeamsAsync(round, table, options.Event.Id);
+                //rounds.Add(round);
+            }
+        }
+
+        await this.ProcessJsonAsync(rounds, options);
+    }
+
+    private async Task SetArtisticSwimmingTeamsAsync(Round<ArtisticSwimming> round, TableModel table, int eventId)
+    {
+        foreach (var row in table.Rows.Skip(1))
+        {
+
+        }
+    }
+    #endregion ARTISTIC SWIMMING
+
     #region ARTISTIC GYMNASTICS
     private async Task ProcessArtisticGymnasticsAsync(ConvertOptions options)
     {
         var rounds = new List<Round<ArtisticGymnastics>>();
-        // TODO artistic gymnastics type
         if (options.Tables.Count == 1)
         {
-            //var table = options.Tables.FirstOrDefault();
-            ////await Console.Out.WriteLineAsync($"------ {options.Event.Name} {options.Game.Year}");
-            ////foreach (var item in table.Indexes)
-            ////{
-            ////    await Console.Out.WriteLineAsync(item.Key);
-            ////}
-            //var round = this.CreateRound<ArtisticGymnastics>(table.From, table.To, table.Format, new RoundModel { Type = RoundType.FinalRound }, options.Event.Name, null);
-            //if (options.Event.IsTeamEvent)
-            //{
-            //    await this.SetArtisticGymnasticsTeamsAsync(round, table, options.Event.Id);
-            //}
-            //else
-            //{
-            //    await this.SetArtisticGymnasticsAthletesAsync(round, table, options.Event.Id);
-
-            //}
-            //rounds.Add(round);
+            var table = options.Tables.FirstOrDefault();
+            var round = this.CreateRound<ArtisticGymnastics>(table.From, table.To, table.Format, new RoundModel { Type = RoundType.FinalRound }, options.Event.Name, null);
+            if (options.Event.IsTeamEvent)
+            {
+                await this.SetArtisticGymnasticsTeamsAsync(round, table, options.Event.Id, options.Game.Year, false, null);
+            }
+            else
+            {
+                await this.SetArtisticGymnasticsAthletesAsync(round, table, options.Event.Id, options.Game.Year, false, null);
+            }
+            rounds.Add(round);
         }
         else
         {
-            if (!options.Event.IsTeamEvent)
+            if (options.Event.IsTeamEvent)
             {
-                foreach (var table in options.Tables)
+                if (options.Game.Year <= 1996)
                 {
-                    Console.WriteLine(table.Title);
+                    var firstTable = options.Tables.FirstOrDefault();
+                    var round = this.CreateRound<ArtisticGymnastics>(firstTable.From, firstTable.To, firstTable.Format, new RoundModel { Type = RoundType.FinalRound }, options.Event.Name, null);
+                    await this.SetArtisticGymnasticsTeamsAsync(round, firstTable, options.Event.Id, options.Game.Year, false, null);
+
+                    foreach (var table in options.Tables.Skip(1))
+                    {
+                        await this.SetArtisticGymnasticsTeamsAsync(round, table, options.Event.Id, options.Game.Year, true, table.Title);
+                    }
+                    rounds.Add(round);
+                }
+                else
+                {
+                    Round<ArtisticGymnastics> round = null;
+                    foreach (var table in options.Tables.Skip(1))
+                    {
+                        round = this.CreateRound<ArtisticGymnastics>(table.From, table.To, table.Format, table.Round, options.Event.Name, null);
+                        await this.SetArtisticGymnasticsTeamsAsync(round, table, options.Event.Id, options.Game.Year, false, null);
+                        rounds.Add(round);
+                    }
+
+                    foreach (var document in options.Documents)
+                    {
+                        var parts = document.Title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                        var type = RoundType.Final;
+                        if (parts[0].Trim() == "Qualification" || parts[0].Trim() == "Qualifying")
+                        {
+                            type = RoundType.Qualification;
+                        }
+
+                        round = rounds.FirstOrDefault(x => x.RoundModel.Type == type);
+                        await this.SetArtisticGymnasticsTeamsAsync(round, document.Tables.FirstOrDefault(), options.Event.Id, options.Game.Year, true, parts[1].Trim());
+                    }
+                }
+            }
+            else
+            {
+                var firstTable = options.Tables.FirstOrDefault();
+                var round = this.CreateRound<ArtisticGymnastics>(firstTable.From, firstTable.To, firstTable.Format, new RoundModel { Type = RoundType.FinalRound }, options.Event.Name, null);
+
+                if (options.Game.Year <= 1932)
+                {
+                    await this.SetArtisticGymnasticsAthletesAsync(round, firstTable, options.Event.Id, options.Game.Year, false, null);
+                    foreach (var table in options.Tables.Skip(1))
+                    {
+                        await this.SetArtisticGymnasticsAthletesAsync(round, table, options.Event.Id, options.Game.Year, true, table.Title);
+                    }
+                    rounds.Add(round);
+                }
+                else
+                {
+                    foreach (var table in options.Tables.Skip(1))
+                    {
+                        round = this.CreateRound<ArtisticGymnastics>(table.From, table.To, table.Format, table.Round, options.Event.Name, null);
+                        await this.SetArtisticGymnasticsAthletesAsync(round, table, options.Event.Id, options.Game.Year, false, null);
+                        rounds.Add(round);
+                    }
+
+                    foreach (var document in options.Documents)
+                    {
+                        var parts = document.Title.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                        var type = RoundType.Final;
+                        if (parts[0].Trim() == "Qualification" || parts[0].Trim() == "Qualifying")
+                        {
+                            type = RoundType.Qualification;
+                        }
+
+                        round = rounds.FirstOrDefault(x => x.RoundModel.Type == type);
+                        await this.SetArtisticGymnasticsAthletesAsync(round, document.Tables.FirstOrDefault(), options.Event.Id, options.Game.Year, true, parts[1].Trim());
+                    }
                 }
             }
         }
@@ -683,38 +781,125 @@ public class ResultConverter : BaseOlympediaConverter
         await this.ProcessJsonAsync(rounds, options);
     }
 
-    private async Task SetArtisticGymnasticsTeamsAsync(Round<ArtisticGymnastics> round, TableModel table, int eventId)
+    private void SetArtisticGymnasticsScores(ArtisticGymnastics team, TableModel table, List<HtmlNode> data)
+    {
+        var floorExercise = this.GetDouble(table.Indexes, ConverterConstants.FloorExercise, data);
+        if (floorExercise != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = floorExercise, Name = "Floor Exercise" });
+        }
+
+        var horseVault = this.GetDouble(table.Indexes, ConverterConstants.HorseVault, data);
+        if (horseVault != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = horseVault, Name = "Horse Vault" });
+        }
+
+        var parallelBars = this.GetDouble(table.Indexes, ConverterConstants.ParallelBars, data);
+        if (parallelBars != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = parallelBars, Name = "Parallel Bars" });
+        }
+
+        var horizontalBar = this.GetDouble(table.Indexes, ConverterConstants.HorizontalBar, data);
+        if (horizontalBar != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = horizontalBar, Name = "Horizontal Bar" });
+        }
+
+        var rings = this.GetDouble(table.Indexes, ConverterConstants.Rings, data);
+        if (rings != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = rings, Name = "Rings" });
+        }
+
+        var pommellHorse = this.GetDouble(table.Indexes, ConverterConstants.PommellHorse, data);
+        if (pommellHorse != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = pommellHorse, Name = "Pommell Horse" });
+        }
+
+        var unevenBars = this.GetDouble(table.Indexes, ConverterConstants.UnevenBars, data);
+        if (unevenBars != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = unevenBars, Name = "Uneven Bars" });
+        }
+
+        var balanceBeam = this.GetDouble(table.Indexes, ConverterConstants.BalanceBeam, data);
+        if (balanceBeam != null)
+        {
+            team.Scores.Add(new ArtisticGymnasticsScore { Points = balanceBeam, Name = "Balance beam" });
+        }
+    }
+
+    private async Task SetArtisticGymnasticsTeamsAsync(Round<ArtisticGymnastics> round, TableModel table, int eventId, int year, bool isScore, string scoreName)
     {
         ArtisticGymnastics team = null;
+        string lastNOC = null;
         foreach (var row in table.Rows.Skip(1))
         {
             var noc = this.OlympediaService.FindNOCCode(row.OuterHtml);
             var data = row.Elements("td").ToList();
             if (noc != null)
             {
-                var teamName = data[table.Indexes[ConverterConstants.Name]].InnerText;
-                var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == noc);
-                var dbTeam = await this.teamsService.GetAsync(teamName, nocCache.Id, eventId);
-                dbTeam ??= await this.teamsService.GetAsync(nocCache.Id, eventId);
-
-                team = new ArtisticGymnastics
+                lastNOC = noc;
+                if (isScore)
                 {
-                    Id = dbTeam.Id,
-                    Name = dbTeam.Name,
-                    NOC = noc,
-                    FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
-                    Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
-                    ApparatusPoints = this.GetDouble(table.Indexes, ConverterConstants.ApparatusPoints, data),
-                    GroupExercisePoints = this.GetDouble(table.Indexes, ConverterConstants.GroupExercise, data),
-                    LongJumpPoints = this.GetDouble(table.Indexes, ConverterConstants.IndividualPoints, data),
-                    Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
-                    ShotPutPoints = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
-                    Yards100Points = this.GetDouble(table.Indexes, ConverterConstants.Y100, data),
-                };
+                    if (year < 2012)
+                    {
+                        var currentTeam = round.Teams.FirstOrDefault(x => x.NOC == noc);
+                        currentTeam?.Scores.Add(new ArtisticGymnasticsScore
+                        {
+                            ApparatusPoints = this.GetDouble(table.Indexes, ConverterConstants.ApparatusPoints, data),
+                            CompulsoryPoints = this.GetDouble(table.Indexes, ConverterConstants.CompulsaryPoints, data),
+                            DrillPoints = this.GetDouble(table.Indexes, ConverterConstants.DrillPoints, data),
+                            GroupExercisePoints = this.GetDouble(table.Indexes, ConverterConstants.GroupExercise, data),
+                            Vault1 = this.GetDouble(table.Indexes, ConverterConstants.HorseVault, data),
+                            HalfTeamPoints = this.GetDouble(table.Indexes, ConverterConstants.HalfTeamPoints, data),
+                            OptionalPoints = this.GetDouble(table.Indexes, ConverterConstants.OptionalPoints, data),
+                            LongJumpPoints = this.GetDouble(table.Indexes, ConverterConstants.LongJump, data),
+                            PrecisionPoins = this.GetDouble(table.Indexes, ConverterConstants.PrecisionPoints, data),
+                            Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
+                            ShotPutPoints = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
+                            Yards100Points = this.GetDouble(table.Indexes, ConverterConstants.Y100, data),
+                            Name = scoreName
+                        });
+                    }
+                }
+                else
+                {
+                    var teamName = data[table.Indexes[ConverterConstants.Name]].InnerText;
+                    var nocCache = this.DataCacheService.NOCCacheModels.FirstOrDefault(x => x.Code == noc);
+                    var dbTeam = await this.teamsService.GetAsync(teamName, nocCache.Id, eventId);
+                    dbTeam ??= await this.teamsService.GetAsync(nocCache.Id, eventId);
 
-                team.Points ??= this.GetDouble(table.Indexes, ConverterConstants.TeamPoints, data);
+                    team = new ArtisticGymnastics
+                    {
+                        Id = dbTeam.Id,
+                        Name = dbTeam.Name,
+                        NOC = noc,
+                        FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                        Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                        ApparatusPoints = this.GetDouble(table.Indexes, ConverterConstants.ApparatusPoints, data),
+                        CompulsoryPoints = this.GetDouble(table.Indexes, ConverterConstants.CompulsaryPoints, data),
+                        DrillPoints = this.GetDouble(table.Indexes, ConverterConstants.DrillPoints, data),
+                        GroupExercisePoints = this.GetDouble(table.Indexes, ConverterConstants.GroupExercise, data),
+                        Vault1 = this.GetDouble(table.Indexes, ConverterConstants.HorseVault, data),
+                        HalfTeamPoints = this.GetDouble(table.Indexes, ConverterConstants.HalfTeamPoints, data),
+                        OptionalPoints = this.GetDouble(table.Indexes, ConverterConstants.OptionalPoints, data),
+                        LongJumpPoints = this.GetDouble(table.Indexes, ConverterConstants.LongJump, data),
+                        PrecisionPoins = this.GetDouble(table.Indexes, ConverterConstants.PrecisionPoints, data),
+                        Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
+                        ShotPutPoints = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
+                        Yards100Points = this.GetDouble(table.Indexes, ConverterConstants.Y100, data),
+                    };
 
-                round.Teams.Add(team);
+                    team.Points ??= this.GetDouble(table.Indexes, ConverterConstants.TeamPoints, data);
+
+                    this.SetArtisticGymnasticsScores(team, table, data);
+
+                    round.Teams.Add(team);
+                }
             }
             else
             {
@@ -724,63 +909,131 @@ public class ResultConverter : BaseOlympediaConverter
                     foreach (var athleteModel in athleteModels)
                     {
                         var participant = await this.participantsService.GetAsync(athleteModel.Code, eventId);
-                        var athlete = new ArtisticGymnastics
-                        {
-                            Id = participant.Id,
-                            Code = athleteModel.Code,
-                            Name = athleteModel.Name,
-                            NOC = team.NOC,
-                            FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
-                            Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
-                            ApparatusPoints = this.GetDouble(table.Indexes, ConverterConstants.ApparatusPoints, data),
-                            GroupExercisePoints = this.GetDouble(table.Indexes, ConverterConstants.GroupExercise, data),
-                            IndividualPoints = this.GetDouble(table.Indexes, ConverterConstants.IndividualPoints, data),
-                            LongJumpPoints = this.GetDouble(table.Indexes, ConverterConstants.IndividualPoints, data),
-                            Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
-                            ShotPutPoints = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
-                            Yards100Points = this.GetDouble(table.Indexes, ConverterConstants.Y100, data),
-                        };
 
-                        team.Athletes.Add(athlete);
+                        if (isScore)
+                        {
+                            var currentTeam = round.Teams.FirstOrDefault(x => x.NOC == lastNOC);
+                            var athlete = currentTeam.Athletes.FirstOrDefault(x => x.Code == athleteModel.Code);
+                            athlete?.Scores.Add(new ArtisticGymnasticsScore
+                            {
+                                Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
+                                Time = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
+                                DScore = this.GetDouble(table.Indexes, ConverterConstants.Dscore, data),
+                                EScore = this.GetDouble(table.Indexes, ConverterConstants.Escore, data),
+                                LinePenalty = this.GetDouble(table.Indexes, ConverterConstants.LinePenalty, data),
+                                OtherPenalty = this.GetDouble(table.Indexes, ConverterConstants.OtherPenalty, data),
+                                Penalty = this.GetDouble(table.Indexes, ConverterConstants.Penalty, data),
+                                Name = scoreName
+                            });
+                        }
+                        else
+                        {
+                            var athlete = new ArtisticGymnastics
+                            {
+                                Id = participant != null ? participant.Id : Guid.Empty,
+                                Code = athleteModel.Code,
+                                Name = athleteModel.Name,
+                                NOC = team.NOC,
+                                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                                Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                            };
+
+                            if (athleteModels.Count == 1)
+                            {
+                                athlete.IndividualPoints = this.GetDouble(table.Indexes, ConverterConstants.IndividualPoints, data);
+                                athlete.ApparatusPoints = this.GetDouble(table.Indexes, ConverterConstants.ApparatusPoints, data);
+                                athlete.CompulsoryPoints = this.GetDouble(table.Indexes, ConverterConstants.CompulsaryPoints, data);
+                                athlete.DrillPoints = this.GetDouble(table.Indexes, ConverterConstants.DrillPoints, data);
+                                athlete.GroupExercisePoints = this.GetDouble(table.Indexes, ConverterConstants.GroupExercise, data);
+                                athlete.Vault1 = this.GetDouble(table.Indexes, ConverterConstants.HorseVault, data);
+                                athlete.OptionalPoints = this.GetDouble(table.Indexes, ConverterConstants.OptionalPoints, data);
+                                athlete.LongJumpPoints = this.GetDouble(table.Indexes, ConverterConstants.IndividualPoints, data);
+                                athlete.PrecisionPoins = this.GetDouble(table.Indexes, ConverterConstants.PrecisionPoints, data);
+                                athlete.Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data);
+                                athlete.ShotPutPoints = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data);
+                                athlete.Yards100Points = this.GetDouble(table.Indexes, ConverterConstants.Y100, data);
+                            }
+
+                            if (year == 2008)
+                            {
+                                this.SetArtisticGymnasticsScores(athlete, table, data);
+                            }
+
+                            team.Athletes.Add(athlete);
+                        }
                     }
                 }
             }
         }
     }
 
-    private async Task SetArtisticGymnasticsAthletesAsync(Round<ArtisticGymnastics> round, TableModel table, int eventId)
+    private async Task SetArtisticGymnasticsAthletesAsync(Round<ArtisticGymnastics> round, TableModel table, int eventId, int year, bool isScore, string scoreName)
     {
         foreach (var row in table.Rows.Skip(1))
         {
             var data = row.Elements("td").ToList();
             var athleteModel = this.OlympediaService.FindAthlete(data[table.Indexes[ConverterConstants.Name]].OuterHtml);
-            var participant = await this.participantsService.GetAsync(athleteModel.Code, eventId);
-            var noc = this.OlympediaService.FindNOCCode(data[table.Indexes[ConverterConstants.NOC]].OuterHtml);
-            var athlete = new ArtisticGymnastics
+
+            if (isScore)
             {
-                Id = participant.Id,
-                Name = athleteModel.Name,
-                NOC = noc,
-                Code = athleteModel.Code,
-                FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
-                Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
-                Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
-                CompulsoryPoints = this.GetDouble(table.Indexes, ConverterConstants.CompulsaryPoints, data),
-                Height = this.GetDouble(table.Indexes, ConverterConstants.Height, data),
-                OptionalPoints = this.GetDouble(table.Indexes, ConverterConstants.OptionalPoints, data),
-                Time = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
-                Vault1 = this.GetDouble(table.Indexes, ConverterConstants.Vault1, data),
-                Vault2 = this.GetDouble(table.Indexes, ConverterConstants.Vault2, data),
-                VaultOff1 = this.GetDouble(table.Indexes, ConverterConstants.VaultOff1, data),
-                VaultOff2 = this.GetDouble(table.Indexes, ConverterConstants.VaultOff2, data),
-                FirstTimeTrial = this.GetDouble(table.Indexes, ConverterConstants.FirstTimeTrial, data),
-                SecondTimeTrial = this.GetDouble(table.Indexes, ConverterConstants.SecondTimeTrial, data),
-                ThirdTimeTrial = this.GetDouble(table.Indexes, ConverterConstants.ThirdTimeTrial, data),
-            };
+                var athlete = round.Athletes.FirstOrDefault(x => x.Code == athleteModel.Code);
+                athlete?.Scores.Add(new ArtisticGymnasticsScore
+                {
+                    Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
+                    CompulsoryPoints = this.GetDouble(table.Indexes, ConverterConstants.CompulsaryPoints, data),
+                    OptionalPoints = this.GetDouble(table.Indexes, ConverterConstants.OptionalPoints, data),
+                    Time = this.GetDouble(table.Indexes, ConverterConstants.Time, data),
+                    Vault1 = this.GetDouble(table.Indexes, ConverterConstants.Vault1, data),
+                    Vault2 = this.GetDouble(table.Indexes, ConverterConstants.Vault2, data),
+                    Distance = this.GetDouble(table.Indexes, ConverterConstants.Distance, data),
+                    DScore = this.GetDouble(table.Indexes, ConverterConstants.Dscore, data),
+                    EScore = this.GetDouble(table.Indexes, ConverterConstants.Escore, data),
+                    FinalPoints = this.GetDouble(table.Indexes, ConverterConstants.Final, data),
+                    LinePenalty = this.GetDouble(table.Indexes, ConverterConstants.LinePenalty, data),
+                    OtherPenalty = this.GetDouble(table.Indexes, ConverterConstants.OtherPenalty, data),
+                    Penalty = this.GetDouble(table.Indexes, ConverterConstants.Penalty, data),
+                    QualificationHalfPoints = this.GetDouble(table.Indexes, ConverterConstants.HalfQualificationPoints, data),
+                    QualificationPoints = this.GetDouble(table.Indexes, ConverterConstants.Qualification, data),
+                    TimePenalty = this.GetDouble(table.Indexes, ConverterConstants.TimePenalty, data),
+                    Name = scoreName
+                });
+            }
+            else
+            {
+                if (athleteModel != null)
+                {
+                    var participant = await this.participantsService.GetAsync(athleteModel.Code, eventId);
+                    var noc = this.OlympediaService.FindNOCCode(data[table.Indexes[ConverterConstants.NOC]].OuterHtml);
+                    var athlete = new ArtisticGymnastics
+                    {
+                        Id = participant != null ? participant.Id : Guid.Empty,
+                        Name = athleteModel.Name,
+                        NOC = noc,
+                        Code = athleteModel.Code,
+                        FinishStatus = this.OlympediaService.FindStatus(row.OuterHtml),
+                        Qualification = this.OlympediaService.FindQualification(row.OuterHtml),
+                        Points = this.GetDouble(table.Indexes, ConverterConstants.Points, data),
+                        CompulsoryPoints = this.GetDouble(table.Indexes, ConverterConstants.CompulsaryPoints, data),
+                        Height = this.GetDouble(table.Indexes, ConverterConstants.Height, data),
+                        OptionalPoints = this.GetDouble(table.Indexes, ConverterConstants.OptionalPoints, data),
+                        Time = this.GetDouble(table.Indexes, ConverterConstants.ShotPut, data),
+                        Vault1 = this.GetDouble(table.Indexes, ConverterConstants.Vault1, data),
+                        Vault2 = this.GetDouble(table.Indexes, ConverterConstants.Vault2, data),
+                        VaultOff1 = this.GetDouble(table.Indexes, ConverterConstants.VaultOff1, data),
+                        VaultOff2 = this.GetDouble(table.Indexes, ConverterConstants.VaultOff2, data),
+                        FirstTimeTrial = this.GetDouble(table.Indexes, ConverterConstants.FirstTimeTrial, data),
+                        SecondTimeTrial = this.GetDouble(table.Indexes, ConverterConstants.SecondTimeTrial, data),
+                        ThirdTimeTrial = this.GetDouble(table.Indexes, ConverterConstants.ThirdTimeTrial, data),
+                    };
 
-            // TODO Type
+                    if (year == 2008)
+                    {
+                        this.SetArtisticGymnasticsScores(athlete, table, data);
+                    }
 
-            round.Athletes.Add(athlete);
+                    round.Athletes.Add(athlete);
+                }
+            }
         }
     }
     #endregion ARTISTIC GYMNASTICS
