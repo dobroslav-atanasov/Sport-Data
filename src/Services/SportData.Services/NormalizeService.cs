@@ -1117,7 +1117,7 @@ public class NormalizeService : INormalizeService
         {
             case "1/8-Final Repêchage": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.Eightfinals, Group = 0, Description = null };
             case "1/8-Final Repêchage Final": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.Eightfinals, Group = 0, Description = null };
-            case "100 yards": return new RoundModel { Name = title, Type = RoundType.Yards100, SubType = RoundType.None, Group = 0, Description = null };
+            //case "100 yards": return new RoundModel { Name = title, Type = RoundType.Yards100, SubType = RoundType.None, Group = 0, Description = null };
             case "2nd-Place Final Round": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.FinalRound, Group = 0, Description = null };
             case "2nd-Place Round One": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.RoundOne, Group = 0, Description = null };
             case "2nd-Place Semi-Finals": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.Semifinals, Group = 0, Description = null };
@@ -1127,9 +1127,9 @@ public class NormalizeService : INormalizeService
             case "3rd-Place Round One": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.RoundOne, Group = 0, Description = null };
             case "3rd-Place Semi-Finals": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.Semifinals, Group = 0, Description = null };
             case "3rd-Place Tournament": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.FinalRound, Group = 0, Description = "Bronze Medal" };
-            case "Apparatus": return new RoundModel { Name = title, Type = RoundType.Apparatus, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Apparatus": return new RoundModel { Name = title, Type = RoundType.Apparatus, SubType = RoundType.None, Group = 0, Description = null };
             case "B Final": return new RoundModel { Name = title, Type = RoundType.Final, SubType = RoundType.None, Group = 2, Description = null };
-            case "Balance Beam": return new RoundModel { Name = title, Type = RoundType.BalanceBeam, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Balance Beam": return new RoundModel { Name = title, Type = RoundType.BalanceBeam, SubType = RoundType.None, Group = 0, Description = null };
             case "Classification 5-8": return new RoundModel { Name = title, Type = RoundType.Classification, SubType = RoundType.None, Group = 0, Description = "5-8" };
             case "Classification 9-12": return new RoundModel { Name = title, Type = RoundType.Classification, SubType = RoundType.None, Group = 0, Description = "9-12" };
             case "Classification Final 1": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.Quarterfinals, Group = 0, Description = null };
@@ -1172,7 +1172,7 @@ public class NormalizeService : INormalizeService
             case "Consolation Round: Quarter-Finals": return new RoundModel { Name = title, Type = RoundType.ConsolationRound, SubType = RoundType.Quarterfinals, Group = 0, Description = null };
             case "Consolation Round: Semi-Finals": return new RoundModel { Name = title, Type = RoundType.ConsolationRound, SubType = RoundType.Semifinals, Group = 0, Description = null };
             case "Consolation Tournament": return new RoundModel { Name = title, Type = RoundType.ConsolationRound, SubType = RoundType.None, Group = 0, Description = null };
-            case "Drill Section": return new RoundModel { Name = title, Type = RoundType.DrillSection, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Drill Section": return new RoundModel { Name = title, Type = RoundType.DrillSection, SubType = RoundType.None, Group = 0, Description = null };
             case "Eighth-Finals": return new RoundModel { Name = title, Type = RoundType.Eightfinals, SubType = RoundType.None, Group = 0, Description = null };
             case "Elimination Round": return new RoundModel { Name = title, Type = RoundType.EliminationRound, SubType = RoundType.None, Group = 0, Description = null };
             case "Elimination Rounds": return new RoundModel { Name = title, Type = RoundType.EliminationRound, SubType = RoundType.None, Group = 0, Description = null };
@@ -1203,7 +1203,7 @@ public class NormalizeService : INormalizeService
             case "Final1": return new RoundModel { Name = title, Type = RoundType.Final, SubType = RoundType.None, Group = 0, Description = null };
             case "First Final": return new RoundModel { Name = title, Type = RoundType.Final, SubType = RoundType.None, Group = 0, Description = "First" };
             case "Fleet Races": return new RoundModel { Name = title, Type = RoundType.FleetRaces, SubType = RoundType.None, Group = 0, Description = null };
-            case "Floor Exercise": return new RoundModel { Name = title, Type = RoundType.FloorExercise, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Floor Exercise": return new RoundModel { Name = title, Type = RoundType.FloorExercise, SubType = RoundType.None, Group = 0, Description = null };
             case "Free Dance": return new RoundModel { Name = title, Type = RoundType.FreeSkating, SubType = RoundType.None, Group = 0, Description = null };
             case "Free Skating": return new RoundModel { Name = title, Type = RoundType.FreeSkating, SubType = RoundType.None, Group = 0, Description = null };
             case "Grand Prix": return new RoundModel { Name = title, Type = RoundType.GrandPrix, SubType = RoundType.None, Group = 0, Description = null };
@@ -1233,7 +1233,7 @@ public class NormalizeService : INormalizeService
             case "Group C3": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 3, Description = "Group" };
             case "Group D": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 4, Description = "Group" };
             case "Group E": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 5, Description = "Group" };
-            case "Group Exercises": return new RoundModel { Name = title, Type = RoundType.GroupExercise, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Group Exercises": return new RoundModel { Name = title, Type = RoundType.GroupExercise, SubType = RoundType.None, Group = 0, Description = null };
             case "Group F": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 6, Description = "Group" };
             case "Group G": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 7, Description = "Group" };
             case "Group H": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 8, Description = "Group" };
@@ -1247,23 +1247,23 @@ public class NormalizeService : INormalizeService
             case "Group One": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 1, Description = "Group" };
             case "Group P": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 16, Description = "Group" };
             case "Group Two": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 2, Description = "Group" };
-            case "Horizontal Bar": return new RoundModel { Name = title, Type = RoundType.HorizontalBar, SubType = RoundType.None, Group = 0, Description = null };
-            case "Horse Vault": return new RoundModel { Name = title, Type = RoundType.HorseVault, SubType = RoundType.None, Group = 0, Description = null };
-            case "Individual Standings": return new RoundModel { Name = title, Type = RoundType.IndividualStandings, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Horizontal Bar": return new RoundModel { Name = title, Type = RoundType.HorizontalBar, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Horse Vault": return new RoundModel { Name = title, Type = RoundType.HorseVault, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Individual Standings": return new RoundModel { Name = title, Type = RoundType.IndividualStandings, SubType = RoundType.None, Group = 0, Description = null };
             case "Jump-Off": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.None, Group = 0, Description = null };
             case "Jump-Off for 1-2": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.None, Group = 0, Description = "Gold Medal" };
             case "Jump-Off for 3-9": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.None, Group = 0, Description = "Bronze Medal" };
-            case "Long Jump": return new RoundModel { Name = title, Type = RoundType.LongJump, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Long Jump": return new RoundModel { Name = title, Type = RoundType.LongJump, SubType = RoundType.None, Group = 0, Description = null };
             case "Lucky Loser Round": return new RoundModel { Name = title, Type = RoundType.RoundLuckyLoser, SubType = RoundType.None, Group = 0, Description = null };
             case "Medal Pool": return new RoundModel { Name = title, Type = RoundType.RoundTwo, SubType = RoundType.None, Group = 0, Description = null };
             case "Original Final": return new RoundModel { Name = title, Type = RoundType.Final, SubType = RoundType.None, Group = 0, Description = "Original" };
             case "Original Round One": return new RoundModel { Name = title, Type = RoundType.RoundOne, SubType = RoundType.None, Group = 0, Description = "Original" };
             case "Original Set Pattern Dance": return new RoundModel { Name = title, Type = RoundType.OriginalSetPatternDance, SubType = RoundType.None, Group = 0, Description = null };
-            case "Parallel Bars": return new RoundModel { Name = title, Type = RoundType.ParallelBars, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Parallel Bars": return new RoundModel { Name = title, Type = RoundType.ParallelBars, SubType = RoundType.None, Group = 0, Description = null };
             case "Play-Off for Bronze Medal": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.FinalRound, Group = 0, Description = "Bronze Medal" };
             case "Play-Off for Silver Medal": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.FinalRound, Group = 0, Description = "Silver Medal" };
             case "Play-offs": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.None, Group = 0, Description = null };
-            case "Pommelled Horse": return new RoundModel { Name = title, Type = RoundType.PommellHorse, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Pommelled Horse": return new RoundModel { Name = title, Type = RoundType.PommellHorse, SubType = RoundType.None, Group = 0, Description = null };
             case "Pool A": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 1, Description = "Pool" };
             case "Pool B": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 2, Description = "Pool" };
             case "Pool C": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 3, Description = "Pool" };
@@ -1272,7 +1272,7 @@ public class NormalizeService : INormalizeService
             case "Pool F": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 6, Description = "Pool" };
             case "Pool G": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 7, Description = "Pool" };
             case "Pool H": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 8, Description = "Pool" };
-            case "Precision Section": return new RoundModel { Name = title, Type = RoundType.PrecisionSection, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Precision Section": return new RoundModel { Name = title, Type = RoundType.PrecisionSection, SubType = RoundType.None, Group = 0, Description = null };
             case "Preliminary Round": return new RoundModel { Name = title, Type = RoundType.PreliminaryRound, SubType = RoundType.None, Group = 0, Description = null };
             case "Qualification": return new RoundModel { Name = title, Type = RoundType.Qualification, SubType = RoundType.None, Group = 0, Description = null };
             case "Qualification Round": return new RoundModel { Name = title, Type = RoundType.Qualification, SubType = RoundType.None, Group = 0, Description = null };
@@ -1307,7 +1307,7 @@ public class NormalizeService : INormalizeService
             case "Repêchage Round Two": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.RoundTwo, Group = 0, Description = null };
             case "Re-run Final": return new RoundModel { Name = title, Type = RoundType.Final, SubType = RoundType.None, Group = 0, Description = "Re Run" };
             case "Rhythm Dance": return new RoundModel { Name = title, Type = RoundType.RhythmDance, SubType = RoundType.None, Group = 0, Description = null };
-            case "Rings": return new RoundModel { Name = title, Type = RoundType.Rings, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Rings": return new RoundModel { Name = title, Type = RoundType.Rings, SubType = RoundType.None, Group = 0, Description = null };
             case "Round Five": return new RoundModel { Name = title, Type = RoundType.RoundFive, SubType = RoundType.None, Group = 0, Description = null };
             case "Round Four": return new RoundModel { Name = title, Type = RoundType.RoundFour, SubType = RoundType.None, Group = 0, Description = null };
             case "Round Four5": return new RoundModel { Name = title, Type = RoundType.RoundFour, SubType = RoundType.None, Group = 0, Description = null };
@@ -1356,12 +1356,12 @@ public class NormalizeService : INormalizeService
             case "Shoot-Off for 3rd Place": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.None, Group = 0, Description = "Bronze Medal" };
             case "Short Dance": return new RoundModel { Name = title, Type = RoundType.ShortProgram, SubType = RoundType.None, Group = 0, Description = null };
             case "Short Program": return new RoundModel { Name = title, Type = RoundType.ShortProgram, SubType = RoundType.None, Group = 0, Description = null };
-            case "Shot Put": return new RoundModel { Name = title, Type = RoundType.ShotPut, SubType = RoundType.None, Group = 0, Description = null };
-            case "Side Horse": return new RoundModel { Name = title, Type = RoundType.SideHorse, SubType = RoundType.None, Group = 0, Description = null };
-            case "Team Drill": return new RoundModel { Name = title, Type = RoundType.TeamDrill, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Shot Put": return new RoundModel { Name = title, Type = RoundType.ShotPut, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Side Horse": return new RoundModel { Name = title, Type = RoundType.SideHorse, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Team Drill": return new RoundModel { Name = title, Type = RoundType.TeamDrill, SubType = RoundType.None, Group = 0, Description = null };
             case "Third-Place Tournament": return new RoundModel { Name = title, Type = RoundType.Repechage, SubType = RoundType.FinalRound, Group = 0, Description = "Bronze Medal" };
             case "Tie-Breaker": return new RoundModel { Name = title, Type = RoundType.PlayOff, SubType = RoundType.None, Group = 0, Description = null };
-            case "Uneven Bars": return new RoundModel { Name = title, Type = RoundType.UnevenBars, SubType = RoundType.None, Group = 0, Description = null };
+            //case "Uneven Bars": return new RoundModel { Name = title, Type = RoundType.UnevenBars, SubType = RoundType.None, Group = 0, Description = null };
             case "Downhill":
             case "Downhill1":
                 return new RoundModel { Name = title, Type = RoundType.Downhill };
@@ -1378,6 +1378,10 @@ public class NormalizeService : INormalizeService
                 return new RoundModel { Name = title, Type = RoundType.RoundOne };
             case "Part #2":
                 return new RoundModel { Name = title, Type = RoundType.RoundTwo };
+            case "Technical Routine":
+                return new RoundModel { Name = title, Type = RoundType.TechnicalRoutine };
+            case "Free Routine":
+                return new RoundModel { Name = title, Type = RoundType.FreeRoutine };
             default: return null;
         }
     }
