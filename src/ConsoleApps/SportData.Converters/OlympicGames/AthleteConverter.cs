@@ -78,7 +78,7 @@ public class AthleteConverter : BaseOlympediaConverter
             var nocMatch = this.RegExpService.Match(document.ParsedText, @"<tr>\s*<th>NOC(?:\(s\))?<\/th>\s*<td>(.*?)<\/td>\s*<\/tr>");
             if (nocMatch != null)
             {
-                var countryCodes = this.OlympediaService.FindCountryCodes(nocMatch.Groups[1].Value);
+                var countryCodes = this.OlympediaService.FindNOCCodes(nocMatch.Groups[1].Value);
                 foreach (var code in countryCodes)
                 {
                     var nocCacheModel = this.DataCacheService.NOCCacheModels.FirstOrDefault(c => c.Code == code);
